@@ -35,4 +35,16 @@ return [
         ],
     ],
 
+    'africastalking' => [
+        'username'  => env('AFRICAS_TALKING_USERNAME', 'sandbox'),
+        'api_key'   => env('AFRICAS_TALKING_API_KEY'),
+        'sender_id' => env('AFRICAS_TALKING_SENDER_ID', 'KOLOIMMO'),
+    ],
+
+    'whatsapp' => [
+        'api_token'       => env('WHATSAPP_API_TOKEN'),
+        'phone_number_id' => env('WHATSAPP_PHONE_NUMBER_ID'),
+        'template_name'   => env('WHATSAPP_TEMPLATE_NAME', 'otp_code'),
+    ],
+
 ];

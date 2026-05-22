@@ -45,9 +45,9 @@ class AuthController extends Controller
             'trust_score' => 50,
         ]);
 
-        // Send OTP for phone verification
+        // Send OTP for phone verification (all active channels including email)
         if ($user->phone) {
-            $this->otpService->generate($user->phone, 'phone_verify', $user);
+            $this->otpService->generate($user->phone, 'phone_verify', $user, $user->email);
         }
 
         $message = $user->phone
