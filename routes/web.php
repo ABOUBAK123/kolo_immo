@@ -10,6 +10,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\SettingsController;
 use Illuminate\Support\Facades\Route;
 
 // ─── PUBLIC ROUTES ────────────────────────────────────────────────────────────
@@ -192,6 +193,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Reports
     Route::get('/reports', [AdminController::class, 'reports'])->name('reports.index');
+
+    // Settings (API configurations)
+    Route::get('/settings', [SettingsController::class, 'show'])->name('settings.show');
+    Route::put('/settings/{section}', [SettingsController::class, 'update'])->name('settings.update');
 });
 
 // ─── PAYMENT WEBHOOK (public, no CSRF) ────────────────────────────────────────
