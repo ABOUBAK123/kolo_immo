@@ -118,7 +118,7 @@ export const PaymentScreen: React.FC<Props> = ({navigation, route}) => {
         <TextInput
           style={styles.phoneInput}
           placeholder="+225 07 00 00 00 00"
-          placeholderTextColor={colors.textLight}
+          placeholderTextColor={colors.textTertiary}
           value={phone}
           onChangeText={setPhone}
           keyboardType="phone-pad"

@@ -4,6 +4,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -15,7 +16,7 @@ import {Button} from '../../components/Button';
 import {Input} from '../../components/Input';
 import {useAuth} from '../../store/AuthContext';
 import {AuthStackParamList} from '../../types';
-import {colors, spacing, typography} from '../../utils/theme';
+import {colors, radius, shadows, spacing, typography} from '../../utils/theme';
 
 type Props = {
   navigation: NativeStackNavigationProp<AuthStackParamList, 'Login'>;
@@ -25,25 +26,25 @@ export const LoginScreen: React.FC<Props> = ({navigation}) => {
   const {login} = useAuth();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [usePhone, setUsePhone] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
     if (!identifier.trim() || !password) {
-      Alert.alert('Erreur', 'Veuillez remplir tous les champs.');
+      Alert.alert('Champs requis', 'Veuillez remplir tous les champs.');
       return;
     }
     setLoading(true);
     try {
-      const payload = usePhone
-        ? {phone: identifier, password}
-        : {email: identifier, password};
+      const payload = usePhone ? {phone: identifier, password} : {email: identifier, password};
       const res = await authApi.login(payload);
-      await login(res.data.user, res.data.token);
+      await login(res.data.data.user, res.data.data.token);
     } catch (err: any) {
-      const msg =
-        err.response?.data?.message ?? 'Email/téléphone ou mot de passe incorrect.';
-      Alert.alert('Erreur de connexion', msg);
+      Alert.alert(
+        'Connexion échouée',
+        err.response?.data?.message ?? 'Identifiants incorrects.',
+      );
     } finally {
       setLoading(false);
     }
@@ -53,36 +54,46 @@ export const LoginScreen: React.FC<Props> = ({navigation}) => {
     <KeyboardAvoidingView
       style={styles.flex}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView
-        contentContainerStyle={styles.container}
-        keyboardShouldPersistTaps="handled">
+      <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
 
-        {/* Logo */}
-        <View style={styles.logoWrap}>
-          <View style={styles.logoCircle}>
-            <Text style={styles.logoText}>K</Text>
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}>
+
+        {/* Hero */}
+        <View style={styles.hero}>
+          <View style={styles.logoWrap}>
+            <Text style={styles.logoLetter}>K</Text>
           </View>
-          <Text style={styles.logoName}>Kolo Immo</Text>
-          <Text style={styles.tagline}>Location de résidences meublées</Text>
+          <Text style={styles.appName}>Kolo Immo</Text>
+          <Text style={styles.tagline}>Locations meublées en Afrique de l'Ouest</Text>
         </View>
 
-        {/* Card */}
+        {/* Form card */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Connexion</Text>
-          <Text style={styles.cardSub}>
-            {usePhone ? 'Entrez votre numéro de téléphone' : 'Entrez votre adresse email'}
-          </Text>
+          <Text style={styles.cardTitle}>Bon retour 👋</Text>
+          <Text style={styles.cardSub}>Connectez-vous à votre compte</Text>
 
-          <TouchableOpacity
-            style={styles.switchMode}
-            onPress={() => setUsePhone(!usePhone)}>
-            <Text style={styles.switchText}>
-              {usePhone ? '📧 Utiliser l\'email' : '📱 Utiliser le téléphone'}
-            </Text>
-          </TouchableOpacity>
+          {/* Toggle email / phone */}
+          <View style={styles.toggle}>
+            {(['email', 'phone'] as const).map(mode => (
+              <TouchableOpacity
+                key={mode}
+                style={[styles.toggleBtn, (mode === 'phone') === usePhone && styles.toggleActive]}
+                onPress={() => setUsePhone(mode === 'phone')}>
+                <Text style={[
+                  styles.toggleText,
+                  (mode === 'phone') === usePhone && styles.toggleTextActive,
+                ]}>
+                  {mode === 'email' ? '📧  Email' : '📱  Téléphone'}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
           <Input
-            label={usePhone ? 'Numéro de téléphone' : 'Email'}
+            label={usePhone ? 'Numéro de téléphone' : 'Adresse email'}
             value={identifier}
             onChangeText={setIdentifier}
             placeholder={usePhone ? '+225 07 00 00 00 00' : 'votre@email.com'}
@@ -90,12 +101,18 @@ export const LoginScreen: React.FC<Props> = ({navigation}) => {
             autoCapitalize="none"
             autoCorrect={false}
           />
+
           <Input
             label="Mot de passe"
             value={password}
             onChangeText={setPassword}
             placeholder="••••••••"
-            secureTextEntry
+            secureTextEntry={!showPassword}
+            rightIcon={
+              <TouchableOpacity onPress={() => setShowPassword(v => !v)}>
+                <Text style={styles.eyeIcon}>{showPassword ? '🙈' : '👁️'}</Text>
+              </TouchableOpacity>
+            }
           />
 
           <Button
@@ -103,15 +120,24 @@ export const LoginScreen: React.FC<Props> = ({navigation}) => {
             onPress={handleLogin}
             loading={loading}
             fullWidth
+            size="lg"
             style={styles.loginBtn}
           />
-        </View>
 
-        {/* Register link */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Pas encore de compte ? </Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-            <Text style={styles.footerLink}>S'inscrire</Text>
+          <View style={styles.divider}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>ou</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          <TouchableOpacity
+            style={styles.registerBtn}
+            onPress={() => navigation.navigate('Register')}
+            activeOpacity={0.8}>
+            <Text style={styles.registerText}>
+              Pas encore de compte ?{' '}
+              <Text style={styles.registerLink}>Créer un compte</Text>
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -120,52 +146,75 @@ export const LoginScreen: React.FC<Props> = ({navigation}) => {
 };
 
 const styles = StyleSheet.create({
-  flex: {flex: 1, backgroundColor: colors.background},
-  container: {flexGrow: 1, justifyContent: 'center', padding: spacing.lg},
-  logoWrap: {alignItems: 'center', marginBottom: 32},
-  logoCircle: {
+  flex: { flex: 1, backgroundColor: colors.primary },
+  scroll: { flexGrow: 1 },
+
+  // Hero
+  hero: {
+    alignItems: 'center',
+    paddingTop: spacing.xl + 24,
+    paddingBottom: spacing.xl,
+    backgroundColor: colors.primary,
+  },
+  logoWrap: {
     width: 72,
     height: 72,
-    borderRadius: 24,
-    backgroundColor: colors.primary,
+    borderRadius: 22,
+    backgroundColor: colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: 14,
+    ...shadows.md,
   },
-  logoText: {color: '#fff', fontSize: 36, fontWeight: '800'},
-  logoName: {fontSize: 26, fontWeight: '800', color: colors.primary},
-  tagline: {...typography.caption, color: colors.textSecondary, marginTop: 4},
+  logoLetter: { color: '#fff', fontSize: 38, fontWeight: '900' },
+  appName: { ...typography.h1, color: '#fff', marginBottom: 6 },
+  tagline: { ...typography.bodySm, color: 'rgba(255,255,255,0.72)', textAlign: 'center' },
+
+  // Card
   card: {
-    backgroundColor: colors.surface,
-    borderRadius: 24,
+    flex: 1,
+    backgroundColor: colors.background,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
     padding: spacing.lg,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.07,
-    shadowRadius: 12,
-    elevation: 4,
+    paddingTop: spacing.xl,
+    minHeight: '65%',
   },
-  cardTitle: {...typography.h2, color: colors.text, marginBottom: 4},
-  cardSub: {...typography.body, color: colors.textSecondary, marginBottom: 16},
-  switchMode: {
-    alignSelf: 'flex-start',
-    backgroundColor: colors.primary + '12',
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 999,
+  cardTitle: { ...typography.h2, color: colors.text, marginBottom: 4 },
+  cardSub:   { ...typography.body, color: colors.textSecondary, marginBottom: 24 },
+
+  // Toggle
+  toggle: {
+    flexDirection: 'row',
+    backgroundColor: colors.gray100,
+    borderRadius: radius.lg,
+    padding: 4,
     marginBottom: 20,
   },
-  switchText: {fontSize: 13, fontWeight: '600', color: colors.primary},
-  loginBtn: {marginTop: 8},
-  footer: {
+  toggleBtn: {
+    flex: 1,
+    paddingVertical: 9,
+    borderRadius: radius.md,
+    alignItems: 'center',
+  },
+  toggleActive: { backgroundColor: colors.surface, ...shadows.xs },
+  toggleText: { ...typography.label, color: colors.textSecondary },
+  toggleTextActive: { color: colors.primary, fontWeight: '600' },
+
+  eyeIcon: { fontSize: 16 },
+
+  loginBtn: { marginTop: 8 },
+
+  divider: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 24,
+    alignItems: 'center',
+    marginVertical: 20,
+    gap: 10,
   },
-  footerText: {...typography.body, color: colors.textSecondary},
-  footerLink: {
-    ...typography.body,
-    color: colors.primary,
-    fontWeight: '700',
-  },
+  dividerLine: { flex: 1, height: 1, backgroundColor: colors.border },
+  dividerText: { ...typography.caption, color: colors.textTertiary },
+
+  registerBtn: { alignItems: 'center', paddingVertical: 4 },
+  registerText: { ...typography.body, color: colors.textSecondary },
+  registerLink: { color: colors.primary, fontWeight: '700' },
 });

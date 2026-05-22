@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {Property} from '../types';
 import {colors, radius, shadows, spacing, typography} from '../utils/theme';
 import {formatCFA, getImageUrl} from '../utils/helpers';
@@ -22,11 +16,13 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   horizontal = false,
 }) => {
   const coverUrl =
-    property.cover_photo
-      ? getImageUrl(property.cover_photo)
+    property.cover_photo_url
+      ? getImageUrl(property.cover_photo_url)
       : property.photos?.find(p => p.is_cover)?.path
       ? getImageUrl(property.photos.find(p => p.is_cover)!.path)
       : null;
+
+  const rating = property.rating_avg > 0;
 
   if (horizontal) {
     return (
@@ -34,58 +30,85 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         {coverUrl ? (
           <Image source={{uri: coverUrl}} style={styles.hImage} />
         ) : (
-          <View style={[styles.hImage, styles.placeholder]} />
+          <View style={[styles.hImage, styles.placeholder]}>
+            <Text style={styles.placeholderEmoji}>🏠</Text>
+          </View>
         )}
         <View style={styles.hContent}>
-          <Text style={styles.city}>{property.city}</Text>
-          <Text style={styles.title} numberOfLines={2}>{property.title}</Text>
-          <View style={styles.row}>
-            <Text style={styles.price}>{formatCFA(property.price_per_night)}</Text>
-            <Text style={styles.night}>/nuit</Text>
+          <Text style={styles.hType}>{property.type_label ?? property.type}</Text>
+          <Text style={styles.hTitle} numberOfLines={2}>{property.title}</Text>
+          <Text style={styles.hCity}>📍 {property.city}</Text>
+          <View style={styles.hFooter}>
+            <Text style={styles.hPrice}>{formatCFA(property.price_per_night)}</Text>
+            <Text style={styles.hNight}>/nuit</Text>
+            {rating && (
+              <View style={styles.hRating}>
+                <Text style={styles.ratingStar}>★</Text>
+                <Text style={styles.ratingVal}>{property.rating_avg.toFixed(1)}</Text>
+              </View>
+            )}
           </View>
-          {property.rating_avg > 0 && (
-            <View style={styles.row}>
-              <Text style={styles.star}>★</Text>
-              <Text style={styles.rating}>{property.rating_avg.toFixed(1)}</Text>
-              <Text style={styles.reviewCount}>({property.reviews_count})</Text>
-            </View>
-          )}
         </View>
       </TouchableOpacity>
     );
   }
 
   return (
-    <TouchableOpacity style={[styles.card, shadows.sm]} onPress={onPress} activeOpacity={0.85}>
-      {coverUrl ? (
-        <Image source={{uri: coverUrl}} style={styles.image} />
-      ) : (
-        <View style={[styles.image, styles.placeholder]} />
-      )}
-      <View style={styles.badge}>
-        <Text style={styles.badgeText}>{property.type}</Text>
-      </View>
-      <View style={styles.content}>
-        <Text style={styles.city}>{property.city}</Text>
-        <Text style={styles.title} numberOfLines={2}>{property.title}</Text>
-        <View style={[styles.row, {justifyContent: 'space-between', marginTop: 8}]}>
-          <View style={styles.row}>
-            <Text style={styles.price}>{formatCFA(property.price_per_night)}</Text>
-            <Text style={styles.night}>/nuit</Text>
+    <TouchableOpacity style={[styles.card, shadows.sm]} onPress={onPress} activeOpacity={0.88}>
+      {/* Image */}
+      <View style={styles.imageWrap}>
+        {coverUrl ? (
+          <Image source={{uri: coverUrl}} style={styles.image} />
+        ) : (
+          <View style={[styles.image, styles.placeholder]}>
+            <Text style={styles.placeholderEmoji}>🏠</Text>
           </View>
-          {property.rating_avg > 0 && (
-            <View style={styles.row}>
-              <Text style={styles.star}>★</Text>
-              <Text style={styles.rating}>{property.rating_avg.toFixed(1)}</Text>
-            </View>
+        )}
+        {/* Type badge */}
+        <View style={styles.typeBadge}>
+          <Text style={styles.typeBadgeText}>{property.type_label ?? property.type}</Text>
+        </View>
+        {/* Rating badge */}
+        {rating && (
+          <View style={styles.ratingBadge}>
+            <Text style={styles.ratingStar}>★</Text>
+            <Text style={styles.ratingBadgeText}>{property.rating_avg.toFixed(1)}</Text>
+          </View>
+        )}
+      </View>
+
+      {/* Content */}
+      <View style={styles.content}>
+        <View style={styles.cityRow}>
+          <Text style={styles.city}>📍 {property.city}</Text>
+          {property.reviews_count > 0 && (
+            <Text style={styles.reviews}>{property.reviews_count} avis</Text>
           )}
         </View>
-        <View style={[styles.row, {marginTop: 6, gap: 8}]}>
-          <Text style={styles.meta}>{property.bedrooms} ch.</Text>
-          <Text style={styles.metaDot}>·</Text>
-          <Text style={styles.meta}>{property.capacity} pers.</Text>
-          <Text style={styles.metaDot}>·</Text>
-          <Text style={styles.meta}>{property.bathrooms} sdb.</Text>
+        <Text style={styles.title} numberOfLines={2}>{property.title}</Text>
+
+        {/* Stats row */}
+        <View style={styles.statsRow}>
+          <View style={styles.stat}>
+            <Text style={styles.statEmoji}>🛏</Text>
+            <Text style={styles.statText}>{property.bedrooms} ch.</Text>
+          </View>
+          <View style={styles.statDot} />
+          <View style={styles.stat}>
+            <Text style={styles.statEmoji}>🚿</Text>
+            <Text style={styles.statText}>{property.bathrooms} sdb.</Text>
+          </View>
+          <View style={styles.statDot} />
+          <View style={styles.stat}>
+            <Text style={styles.statEmoji}>👤</Text>
+            <Text style={styles.statText}>{property.capacity} pers.</Text>
+          </View>
+        </View>
+
+        {/* Price */}
+        <View style={styles.priceRow}>
+          <Text style={styles.price}>{formatCFA(property.price_per_night)}</Text>
+          <Text style={styles.night}> / nuit</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -99,38 +122,76 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: spacing.md,
   },
-  image: {width: '100%', height: 200, backgroundColor: colors.gray200},
-  placeholder: {backgroundColor: colors.gray200},
-  badge: {
+
+  imageWrap: { position: 'relative' },
+  image: { width: '100%', height: 195 },
+  placeholder: {
+    backgroundColor: colors.primaryFaint,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  placeholderEmoji: { fontSize: 48, opacity: 0.4 },
+
+  typeBadge: {
     position: 'absolute',
     top: 12,
     left: 12,
-    backgroundColor: 'rgba(0,0,0,0.55)',
+    backgroundColor: 'rgba(0,0,0,0.58)',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: radius.full,
   },
-  badgeText: {color: '#fff', fontSize: 11, fontWeight: '600'},
-  content: {padding: spacing.md},
-  city: {...typography.caption, color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5},
-  title: {...typography.h3, color: colors.text, marginTop: 2},
-  row: {flexDirection: 'row', alignItems: 'center', gap: 4},
-  price: {fontSize: 16, fontWeight: '700', color: colors.primary},
-  night: {...typography.caption, color: colors.textSecondary},
-  star: {color: '#F59E0B', fontSize: 13},
-  rating: {fontSize: 13, fontWeight: '600', color: colors.text},
-  reviewCount: {...typography.caption, color: colors.textSecondary},
-  meta: {...typography.caption, color: colors.textSecondary},
-  metaDot: {...typography.caption, color: colors.textLight},
+  typeBadgeText: { ...typography.labelSm, color: '#fff' },
 
-  // Horizontal card
+  ratingBadge: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: radius.full,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    ...shadows.xs,
+  },
+  ratingStar: { color: '#F59E0B', fontSize: 12, fontWeight: '700' },
+  ratingBadgeText: { ...typography.labelSm, color: colors.text, fontWeight: '700' },
+
+  content: { padding: spacing.md },
+  cityRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
+  city: { ...typography.caption, color: colors.textSecondary },
+  reviews: { ...typography.caption, color: colors.textTertiary },
+  title: { ...typography.h4, color: colors.text, marginBottom: 10, lineHeight: 22 },
+
+  statsRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  stat: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  statEmoji: { fontSize: 12 },
+  statText: { ...typography.caption, color: colors.textSecondary },
+  statDot: { width: 3, height: 3, borderRadius: 2, backgroundColor: colors.gray300, marginHorizontal: 8 },
+
+  priceRow: { flexDirection: 'row', alignItems: 'baseline', borderTopWidth: 1, borderTopColor: colors.borderLight, paddingTop: 10 },
+  price: { fontSize: 18, fontWeight: '800', color: colors.primary },
+  night: { ...typography.caption, color: colors.textSecondary },
+
+  ratingVal: { ...typography.caption, color: colors.text, fontWeight: '600' },
+
+  // Horizontal
   hCard: {
     backgroundColor: colors.surface,
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     flexDirection: 'row',
     overflow: 'hidden',
     marginBottom: spacing.sm,
   },
-  hImage: {width: 110, height: 100, backgroundColor: colors.gray200},
-  hContent: {flex: 1, padding: 12, justifyContent: 'center'},
+  hImage: { width: 115, height: 105 },
+  hContent: { flex: 1, padding: 12, justifyContent: 'space-between' },
+  hType: { ...typography.labelSm, color: colors.textTertiary, textTransform: 'uppercase', marginBottom: 2 },
+  hTitle: { ...typography.h4, color: colors.text, flex: 1, lineHeight: 20 },
+  hCity: { ...typography.caption, color: colors.textSecondary, marginTop: 4 },
+  hFooter: { flexDirection: 'row', alignItems: 'baseline', gap: 2, marginTop: 6 },
+  hPrice: { fontSize: 15, fontWeight: '800', color: colors.primary },
+  hNight: { ...typography.caption, color: colors.textSecondary, flex: 1 },
+  hRating: { flexDirection: 'row', alignItems: 'center', gap: 2 },
 });

@@ -42,7 +42,7 @@ export const relativeTime = (date: string): string => {
 export const getImageUrl = (path: string | null | undefined): string => {
   if (!path) return '';
   if (path.startsWith('http')) return path;
-  return `http://10.0.2.2/kolo_immo/public/storage/${path}`;
+  return `https://koloimmo.dyula.ci/storage/${path}`;
 };
 
 export const getStatusLabel = (status: string): string => {

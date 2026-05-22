@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
   convHeader: {flexDirection: 'row', justifyContent: 'space-between', marginBottom: 2},
   convName: {fontSize: 15, fontWeight: '500', color: colors.text},
   convNameBold: {fontWeight: '700'},
-  convTime: {...typography.caption, color: colors.textLight},
+  convTime: {...typography.caption, color: colors.textTertiary},
   convProperty: {...typography.caption, color: colors.textSecondary, marginBottom: 4},
   convFooter: {flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'},
   convLastMsg: {...typography.body, color: colors.textSecondary, flex: 1},
@@ -168,5 +168,5 @@ const styles = StyleSheet.create({
   empty: {alignItems: 'center', paddingTop: 80},
   emptyEmoji: {fontSize: 48, marginBottom: 12},
   emptyText: {...typography.h3, color: colors.textSecondary},
-  emptySubText: {...typography.body, color: colors.textLight, marginTop: 8},
+  emptySubText: {...typography.body, color: colors.textTertiary, marginTop: 8},
 });

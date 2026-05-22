@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -9,40 +10,41 @@ import {
   View,
 } from 'react-native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {RouteProp} from '@react-navigation/native';
 import {propertiesApi} from '../../api/properties';
 import {PropertyCard} from '../../components/PropertyCard';
 import {Property, SearchStackParamList} from '../../types';
-import {colors, spacing, typography} from '../../utils/theme';
+import {colors, radius, shadows, spacing, typography} from '../../utils/theme';
 
 type Props = {
   navigation: NativeStackNavigationProp<SearchStackParamList, 'SearchScreen'>;
+  route?: RouteProp<any, any>;
 };
 
-const TYPES = ['Appartement', 'Studio', 'Villa', 'Chambre', 'Maison'];
+const TYPES = ['Tout', 'Appartement', 'Studio', 'Villa', 'Chambre', 'Maison'];
 const SORTS = [
-  {value: 'newest', label: 'Plus récent'},
-  {value: 'price_asc', label: 'Prix ↑'},
-  {value: 'price_desc', label: 'Prix ↓'},
-  {value: 'rating', label: 'Note'},
+  {value: 'newest',     label: 'Plus récent'},
+  {value: 'price_asc',  label: 'Prix croissant'},
+  {value: 'price_desc', label: 'Prix décroissant'},
+  {value: 'rating',     label: 'Mieux noté'},
 ];
 
-export const SearchScreen: React.FC<Props> = ({navigation}) => {
-  const [city, setCity] = useState('');
-  const [type, setType] = useState('');
-  const [sort, setSort] = useState('newest');
+export const SearchScreen: React.FC<Props> = ({navigation, route}) => {
+  const initialType = (route?.params as any)?.type ?? '';
+  const [city, setCity]           = useState('');
+  const [type, setType]           = useState(initialType);
+  const [sort, setSort]           = useState('newest');
+  const [showSort, setShowSort]   = useState(false);
   const [properties, setProperties] = useState<Property[]>([]);
-  const [page, setPage] = useState(1);
-  const [lastPage, setLastPage] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [page, setPage]           = useState(1);
+  const [lastPage, setLastPage]   = useState(1);
+  const [loading, setLoading]     = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [total, setTotal]         = useState(0);
 
   const search = useCallback(async (reset = false) => {
-    if (reset) {
-      setPage(1);
-      setLoading(true);
-    } else {
-      setLoadingMore(true);
-    }
+    if (reset) { setPage(1); setLoading(true); }
+    else setLoadingMore(true);
     try {
       const currentPage = reset ? 1 : page;
       const res = await propertiesApi.list({
@@ -51,12 +53,13 @@ export const SearchScreen: React.FC<Props> = ({navigation}) => {
         sort,
         page: currentPage,
       });
-      const {data, last_page} = res.data;
-      setLastPage(last_page);
+      const {properties: items, pagination} = res.data.data;
+      setLastPage(pagination.last_page);
+      setTotal(pagination.total);
       if (reset) {
-        setProperties(data);
+        setProperties(items ?? []);
       } else {
-        setProperties(prev => [...prev, ...data]);
+        setProperties(prev => [...prev, ...(items ?? [])]);
         setPage(p => p + 1);
       }
     } finally {
@@ -65,96 +68,118 @@ export const SearchScreen: React.FC<Props> = ({navigation}) => {
     }
   }, [city, type, sort, page]);
 
-  useEffect(() => {
-    search(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sort, type]);
+  useEffect(() => { search(true); }, [type, sort]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
 
-  const loadMore = () => {
-    if (!loadingMore && page <= lastPage) {
-      search(false);
-    }
-  };
+  const sortLabel = SORTS.find(s => s.value === sort)?.label ?? 'Trier';
 
   return (
     <View style={styles.screen}>
-      {/* Header */}
+      <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
+
+      {/* ── Search header ── */}
       <View style={styles.header}>
-        <Text style={styles.title}>Rechercher</Text>
+        <View style={styles.searchRow}>
+          <View style={styles.searchBox}>
+            <Text style={styles.searchIcon}>🔍</Text>
+            <TextInput
+              style={styles.searchInput}
+              value={city}
+              onChangeText={setCity}
+              onSubmitEditing={() => search(true)}
+              placeholder="Ville (Abidjan, Dakar...)"
+              placeholderTextColor="rgba(255,255,255,0.55)"
+              returnKeyType="search"
+              autoCorrect={false}
+            />
+            {city.length > 0 && (
+              <TouchableOpacity onPress={() => { setCity(''); search(true); }}>
+                <Text style={styles.clearBtn}>✕</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          <TouchableOpacity
+            style={styles.searchBtn}
+            onPress={() => search(true)}>
+            <Text style={styles.searchBtnText}>OK</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Type filter pills */}
+        <FlatList
+          data={TYPES}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={t => t}
+          contentContainerStyle={styles.typesRow}
+          renderItem={({item}) => {
+            const active = item === 'Tout' ? !type : type === item;
+            return (
+              <TouchableOpacity
+                style={[styles.typeChip, active && styles.typeChipActive]}
+                onPress={() => setType(item === 'Tout' ? '' : item)}>
+                <Text style={[styles.typeText, active && styles.typeTextActive]}>{item}</Text>
+              </TouchableOpacity>
+            );
+          }}
+        />
       </View>
 
-      {/* Search bar */}
-      <View style={styles.searchRow}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Ville, quartier..."
-          placeholderTextColor={colors.textLight}
-          value={city}
-          onChangeText={setCity}
-          onSubmitEditing={() => search(true)}
-          returnKeyType="search"
-        />
-        <TouchableOpacity style={styles.searchBtn} onPress={() => search(true)}>
-          <Text style={styles.searchBtnText}>Chercher</Text>
+      {/* ── Results bar ── */}
+      <View style={styles.resultsBar}>
+        <Text style={styles.resultsText}>
+          {loading ? 'Recherche...' : `${total} logement${total !== 1 ? 's' : ''}`}
+        </Text>
+        <TouchableOpacity
+          style={styles.sortBtn}
+          onPress={() => setShowSort(v => !v)}>
+          <Text style={styles.sortBtnText}>⇅ {sortLabel}</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Type filter */}
-      <FlatList
-        data={TYPES}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        keyExtractor={item => item}
-        contentContainerStyle={styles.filterRow}
-        renderItem={({item}) => (
-          <TouchableOpacity
-            style={[styles.chip, type === item && styles.chipActive]}
-            onPress={() => setType(type === item ? '' : item)}>
-            <Text style={[styles.chipText, type === item && styles.chipTextActive]}>
-              {item}
-            </Text>
-          </TouchableOpacity>
-        )}
-      />
+      {/* Sort dropdown */}
+      {showSort && (
+        <View style={styles.sortDropdown}>
+          {SORTS.map(s => (
+            <TouchableOpacity
+              key={s.value}
+              style={[styles.sortItem, sort === s.value && styles.sortItemActive]}
+              onPress={() => { setSort(s.value); setShowSort(false); }}>
+              <Text style={[styles.sortItemText, sort === s.value && styles.sortItemTextActive]}>
+                {sort === s.value ? '✓  ' : '     '}{s.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
 
-      {/* Sort */}
-      <FlatList
-        data={SORTS}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        keyExtractor={item => item.value}
-        contentContainerStyle={styles.sortRow}
-        renderItem={({item}) => (
-          <TouchableOpacity
-            style={[styles.sortChip, sort === item.value && styles.sortChipActive]}
-            onPress={() => setSort(item.value)}>
-            <Text style={[styles.sortText, sort === item.value && styles.sortTextActive]}>
-              {item.label}
-            </Text>
-          </TouchableOpacity>
-        )}
-      />
-
-      {/* Results */}
+      {/* ── List ── */}
       {loading ? (
         <View style={styles.loadingWrap}>
           <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>Recherche en cours...</Text>
         </View>
       ) : (
         <FlatList
           data={properties}
           keyExtractor={item => item.id.toString()}
           contentContainerStyle={styles.list}
-          onEndReached={loadMore}
+          showsVerticalScrollIndicator={false}
+          onEndReached={() => { if (page <= lastPage && !loadingMore) search(); }}
           onEndReachedThreshold={0.3}
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Text style={styles.emptyText}>Aucun logement trouvé</Text>
-              <Text style={styles.emptySubText}>Essayez une autre ville ou type</Text>
+              <Text style={styles.emptyEmoji}>🏙️</Text>
+              <Text style={styles.emptyTitle}>Aucun résultat</Text>
+              <Text style={styles.emptySub}>Essayez d'autres critères de recherche</Text>
             </View>
           }
           ListFooterComponent={
-            loadingMore ? <ActivityIndicator color={colors.primary} style={{margin: 16}} /> : null
+            loadingMore ? (
+              <View style={styles.footer}>
+                <ActivityIndicator color={colors.primary} />
+              </View>
+            ) : null
           }
           renderItem={({item}) => (
             <PropertyCard
@@ -170,57 +195,92 @@ export const SearchScreen: React.FC<Props> = ({navigation}) => {
 
 const styles = StyleSheet.create({
   screen: {flex: 1, backgroundColor: colors.background},
-  header: {padding: spacing.lg, paddingTop: spacing.xl + 8},
-  title: {...typography.h1, color: colors.text},
-  searchRow: {
-    flexDirection: 'row',
-    paddingHorizontal: spacing.lg,
-    gap: 8,
-    marginBottom: 12,
-  },
-  searchInput: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    fontSize: 14,
-    color: colors.text,
-  },
-  searchBtn: {
+
+  header: {
     backgroundColor: colors.primary,
-    borderRadius: 12,
+    paddingTop: 48,
+    paddingBottom: 12,
+    paddingHorizontal: spacing.lg,
+  },
+  searchRow: {flexDirection: 'row', gap: 10, alignItems: 'center', marginBottom: 12},
+  searchBox: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderRadius: radius.xl,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    gap: 8,
+  },
+  searchIcon: {fontSize: 16, opacity: 0.8},
+  searchInput: {flex: 1, ...typography.body, color: '#fff', padding: 0},
+  clearBtn: {color: 'rgba(255,255,255,0.7)', fontSize: 14, fontWeight: '600'},
+  searchBtn: {
+    backgroundColor: colors.accent,
     paddingHorizontal: 16,
-    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: radius.xl,
   },
   searchBtnText: {color: '#fff', fontWeight: '700', fontSize: 13},
-  filterRow: {paddingHorizontal: spacing.lg, gap: 8, marginBottom: 8},
-  chip: {
+
+  typesRow: {gap: 8, paddingBottom: 4},
+  typeChip: {
     paddingHorizontal: 14,
     paddingVertical: 7,
-    borderRadius: 999,
-    backgroundColor: colors.surface,
-    borderWidth: 1.5,
-    borderColor: colors.border,
+    borderRadius: radius.full,
+    backgroundColor: 'rgba(255,255,255,0.18)',
   },
-  chipActive: {backgroundColor: colors.primary, borderColor: colors.primary},
-  chipText: {fontSize: 13, fontWeight: '600', color: colors.textSecondary},
-  chipTextActive: {color: '#fff'},
-  sortRow: {paddingHorizontal: spacing.lg, gap: 8, marginBottom: 12},
-  sortChip: {
+  typeChipActive: {backgroundColor: colors.accent},
+  typeText: {...typography.label, color: 'rgba(255,255,255,0.8)'},
+  typeTextActive: {color: '#fff', fontWeight: '700'},
+
+  resultsBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  resultsText: {...typography.label, color: colors.textSecondary},
+  sortBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.gray100,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 999,
-    backgroundColor: colors.gray100,
+    borderRadius: radius.full,
   },
-  sortChipActive: {backgroundColor: colors.primary + '20'},
-  sortText: {fontSize: 12, fontWeight: '600', color: colors.textSecondary},
-  sortTextActive: {color: colors.primary},
-  list: {paddingHorizontal: spacing.lg, paddingBottom: 80},
-  loadingWrap: {flex: 1, justifyContent: 'center', alignItems: 'center'},
+  sortBtnText: {...typography.label, color: colors.textMed},
+
+  sortDropdown: {
+    position: 'absolute',
+    top: 178,
+    right: spacing.lg,
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    zIndex: 100,
+    ...shadows.lg,
+    overflow: 'hidden',
+  },
+  sortItem: {paddingHorizontal: 20, paddingVertical: 14},
+  sortItemActive: {backgroundColor: colors.primaryFaint},
+  sortItemText: {...typography.body, color: colors.textMed},
+  sortItemTextActive: {color: colors.primary, fontWeight: '600'},
+
+  list: {padding: spacing.lg, paddingBottom: 90},
+  loadingWrap: {flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12},
+  loadingText: {...typography.body, color: colors.textSecondary},
+  footer: {paddingVertical: 20, alignItems: 'center'},
+
   empty: {alignItems: 'center', paddingTop: 60},
-  emptyText: {...typography.h3, color: colors.textSecondary},
-  emptySubText: {...typography.body, color: colors.textLight, marginTop: 8},
+  emptyEmoji: {fontSize: 52, marginBottom: 14},
+  emptyTitle: {...typography.h3, color: colors.textSecondary, textAlign: 'center'},
+  emptySub: {...typography.body, color: colors.textTertiary, textAlign: 'center', marginTop: 8},
 });

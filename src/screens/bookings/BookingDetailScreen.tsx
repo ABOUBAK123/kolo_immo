@@ -123,7 +123,7 @@ export const BookingDetailScreen: React.FC<Props> = ({navigation, route}) => {
         </View>
         <View style={styles.priceRow}>
           <Text style={styles.priceLabel}>Frais de service</Text>
-          <Text style={styles.priceValue}>{formatCFA(booking.platform_fee)}</Text>
+          <Text style={styles.priceValue}>{formatCFA(booking.service_fee ?? 0)}</Text>
         </View>
         <View style={[styles.priceRow, styles.totalRow]}>
           <Text style={styles.totalLabel}>Total</Text>

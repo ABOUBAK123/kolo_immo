@@ -27,23 +27,30 @@ export interface PropertyAmenity {
 
 export interface Property {
   id: number;
-  owner_id: number;
+  owner_id?: number;
   title: string;
   description: string;
   type: string;
+  type_label?: string;
   city: string;
   address: string;
   country: string;
+  district?: string | null;
   price_per_night: number;
+  price_per_week?: number | null;
+  price_per_month?: number | null;
   capacity: number;
   bedrooms: number;
   bathrooms: number;
-  area: number | null;
-  status: 'active' | 'inactive' | 'draft';
+  area_sqm?: number | null;
+  booking_type?: string;
+  status?: 'active' | 'inactive' | 'draft';
   rating_avg: number;
+  rating_count?: number;
   reviews_count: number;
   views_count: number;
-  cover_photo: string | null;
+  cover_photo_url: string | null;
+  is_featured?: boolean;
   allow_pets: boolean;
   allow_smoking: boolean;
   allow_parties: boolean;
@@ -64,8 +71,8 @@ export interface Payment {
 export interface Booking {
   id: number;
   property_id: number;
-  tenant_id: number;
-  owner_id: number;
+  tenant_id?: number;
+  owner_id?: number;
   reference: string;
   check_in: string;
   check_out: string;
@@ -73,12 +80,17 @@ export interface Booking {
   guests: number;
   price_per_night: number;
   subtotal: number;
-  platform_fee: number;
+  service_fee?: number;
+  deposit_amount?: number;
   total_amount: number;
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'disputed';
+  status_label?: string;
   payment_status: string;
   special_requests: string | null;
-  property?: Property;
+  confirmed_at?: string | null;
+  cancelled_at?: string | null;
+  cancellation_reason?: string | null;
+  property?: Pick<Property, 'id' | 'title' | 'city' | 'cover_photo_url'>;
   payment?: Payment;
   created_at: string;
 }

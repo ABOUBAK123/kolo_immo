@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {
   Alert,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -11,22 +12,32 @@ import {authApi} from '../../api/auth';
 import {Button} from '../../components/Button';
 import {Input} from '../../components/Input';
 import {useAuth} from '../../store/AuthContext';
-import {colors, radius, spacing, typography} from '../../utils/theme';
+import {colors, radius, shadows, spacing, typography} from '../../utils/theme';
+
+const KYC_INFO: Record<string, {label: string; color: string; emoji: string; desc: string}> = {
+  pending:  {label: 'En attente', color: colors.warning, emoji: '⏳', desc: 'Vérification en cours'},
+  verified: {label: 'Vérifié',    color: colors.success, emoji: '✅', desc: 'Identité confirmée'},
+  rejected: {label: 'Rejeté',     color: colors.danger,  emoji: '❌', desc: 'Documents non valides'},
+};
 
 export const ProfileScreen: React.FC = () => {
   const {user, logout, updateUser} = useAuth();
   const [editing, setEditing] = useState(false);
-  const [name, setName] = useState(user?.name ?? '');
-  const [city, setCity] = useState(user?.city ?? '');
-  const [saving, setSaving] = useState(false);
+  const [name, setName]       = useState(user?.name ?? '');
+  const [city, setCity]       = useState(user?.city ?? '');
+  const [saving, setSaving]   = useState(false);
+
+  const kyc = KYC_INFO[user?.kyc_status ?? 'pending'];
+  const trust = user?.trust_score ?? 0;
+  const trustColor = trust >= 80 ? colors.success : trust >= 50 ? colors.warning : colors.danger;
 
   const handleSave = async () => {
     setSaving(true);
     try {
       const res = await authApi.updateProfile({name, city});
-      updateUser(res.data.user);
+      updateUser(res.data.data);
       setEditing(false);
-      Alert.alert('Succès', 'Profil mis à jour.');
+      Alert.alert('Profil mis à jour', 'Vos informations ont été enregistrées.');
     } catch (err: any) {
       Alert.alert('Erreur', err.response?.data?.message ?? 'Mise à jour échouée.');
     } finally {
@@ -34,248 +45,307 @@ export const ProfileScreen: React.FC = () => {
     }
   };
 
-  const handleLogout = () => {
-    Alert.alert(
-      'Déconnexion',
-      'Voulez-vous vous déconnecter ?',
-      [
-        {text: 'Annuler', style: 'cancel'},
-        {text: 'Déconnecter', style: 'destructive', onPress: logout},
-      ],
-    );
-  };
+  const handleLogout = () =>
+    Alert.alert('Déconnexion', 'Voulez-vous vraiment vous déconnecter ?', [
+      {text: 'Annuler', style: 'cancel'},
+      {text: 'Déconnecter', style: 'destructive', onPress: logout},
+    ]);
 
-  const kycLabel: Record<string, {label: string; color: string; emoji: string}> = {
-    pending: {label: 'En attente', color: '#F59E0B', emoji: '⏳'},
-    verified: {label: 'Vérifié', color: '#10B981', emoji: '✅'},
-    rejected: {label: 'Rejeté', color: '#EF4444', emoji: '❌'},
-  };
-  const kyc = kycLabel[user?.kyc_status ?? 'pending'];
-
-  const trustColor = (user?.trust_score ?? 0) >= 80 ? '#10B981' : (user?.trust_score ?? 0) >= 50 ? '#F59E0B' : '#EF4444';
+  const roleLabel =
+    user?.role === 'owner' ? '🔑 Propriétaire' :
+    user?.role === 'both'  ? '🔄 Locataire & Propriétaire' :
+    '🏠 Locataire';
 
   return (
-    <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Mon profil</Text>
-        <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
-          <Text style={styles.logoutText}>Déconnexion</Text>
-        </TouchableOpacity>
-      </View>
+    <View style={styles.screen}>
+      <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
 
-      {/* Avatar + name */}
-      <View style={styles.profileCard}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>
-            {(user?.name ?? 'U').charAt(0).toUpperCase()}
-          </Text>
-        </View>
-        <Text style={styles.name}>{user?.name}</Text>
-        <Text style={styles.email}>{user?.email ?? user?.phone}</Text>
-
-        <View style={styles.roleBadge}>
-          <Text style={styles.roleText}>
-            {user?.role === 'owner' ? '🔑 Propriétaire' : user?.role === 'both' ? '🔄 Locataire & Propriétaire' : '🏠 Locataire'}
-          </Text>
-        </View>
-      </View>
-
-      {/* KYC & Trust */}
-      <View style={styles.statsRow}>
-        <View style={[styles.statCard, {borderColor: kyc.color + '40'}]}>
-          <Text style={styles.statEmoji}>{kyc.emoji}</Text>
-          <Text style={[styles.statValue, {color: kyc.color}]}>{kyc.label}</Text>
-          <Text style={styles.statLabel}>Identité</Text>
-        </View>
-        <View style={[styles.statCard, {borderColor: trustColor + '40'}]}>
-          <Text style={[styles.statValue, {color: trustColor, fontSize: 24}]}>
-            {user?.trust_score ?? 0}
-          </Text>
-          <Text style={styles.statLabel}>Score de confiance</Text>
-          <View style={styles.trustBar}>
-            <View style={[styles.trustFill, {width: `${user?.trust_score ?? 0}%`, backgroundColor: trustColor}]} />
-          </View>
-        </View>
-      </View>
-
-      {/* Edit profile */}
-      <View style={styles.card}>
-        <View style={styles.cardHeader}>
-          <Text style={styles.cardTitle}>Informations personnelles</Text>
-          <TouchableOpacity onPress={() => setEditing(!editing)}>
-            <Text style={styles.editBtn}>{editing ? 'Annuler' : 'Modifier'}</Text>
-          </TouchableOpacity>
-        </View>
-
-        {editing ? (
-          <>
-            <Input label="Nom complet" value={name} onChangeText={setName} />
-            <Input label="Ville" value={city} onChangeText={setCity} placeholder="Ex: Abidjan" />
-            <Button title="Enregistrer" onPress={handleSave} loading={saving} fullWidth />
-          </>
-        ) : (
-          <View style={styles.infoList}>
-            {[
-              {label: 'Nom', value: user?.name},
-              {label: 'Email', value: user?.email ?? '—'},
-              {label: 'Téléphone', value: user?.phone ?? '—'},
-              {label: 'Ville', value: user?.city ?? '—'},
-              {label: 'Pays', value: user?.country ?? '—'},
-            ].map(info => (
-              <View key={info.label} style={styles.infoRow}>
-                <Text style={styles.infoLabel}>{info.label}</Text>
-                <Text style={styles.infoValue}>{info.value}</Text>
-              </View>
-            ))}
-          </View>
-        )}
-      </View>
-
-      {/* Verification */}
-      {user?.kyc_status !== 'verified' && (
-        <View style={styles.kycBanner}>
-          <View style={styles.kycBannerLeft}>
-            <Text style={styles.kycBannerTitle}>Vérifiez votre identité</Text>
-            <Text style={styles.kycBannerText}>
-              Augmentez votre score de confiance et débloquez toutes les fonctionnalités.
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* ── Hero ── */}
+        <View style={styles.hero}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>
+              {(user?.name ?? 'K').charAt(0).toUpperCase()}
             </Text>
           </View>
-          <TouchableOpacity style={styles.kycBannerBtn}>
-            <Text style={styles.kycBannerBtnText}>Vérifier →</Text>
+          <Text style={styles.heroName}>{user?.name}</Text>
+          <Text style={styles.heroContact}>{user?.email ?? user?.phone}</Text>
+          <View style={styles.roleBadge}>
+            <Text style={styles.roleText}>{roleLabel}</Text>
+          </View>
+        </View>
+
+        {/* ── Stats ── */}
+        <View style={styles.statsCard}>
+          {/* KYC */}
+          <View style={styles.statItem}>
+            <Text style={styles.statEmoji}>{kyc.emoji}</Text>
+            <Text style={[styles.statValue, {color: kyc.color}]}>{kyc.label}</Text>
+            <Text style={styles.statLabel}>Identité</Text>
+          </View>
+
+          <View style={styles.statSep} />
+
+          {/* Trust score */}
+          <View style={styles.statItem}>
+            <Text style={[styles.statBig, {color: trustColor}]}>{trust}</Text>
+            <Text style={styles.statLabel}>Score de confiance</Text>
+            <View style={styles.trustBarOuter}>
+              <View style={[styles.trustBarInner, {width: `${trust}%` as any, backgroundColor: trustColor}]} />
+            </View>
+          </View>
+
+          <View style={styles.statSep} />
+
+          {/* Country */}
+          <View style={styles.statItem}>
+            <Text style={styles.statEmoji}>🌍</Text>
+            <Text style={styles.statValue}>{user?.country ?? '—'}</Text>
+            <Text style={styles.statLabel}>Pays</Text>
+          </View>
+        </View>
+
+        {/* ── Info section ── */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Informations personnelles</Text>
+            <TouchableOpacity
+              style={styles.editToggle}
+              onPress={() => setEditing(v => !v)}>
+              <Text style={styles.editToggleText}>{editing ? '✕  Annuler' : '✏️  Modifier'}</Text>
+            </TouchableOpacity>
+          </View>
+
+          {editing ? (
+            <View style={styles.editForm}>
+              <Input
+                label="Nom complet"
+                value={name}
+                onChangeText={setName}
+              />
+              <Input
+                label="Ville"
+                value={city}
+                onChangeText={setCity}
+                placeholder="Ex: Abidjan"
+              />
+              <Button
+                title="Enregistrer les modifications"
+                onPress={handleSave}
+                loading={saving}
+                fullWidth
+                size="lg"
+              />
+            </View>
+          ) : (
+            <View style={styles.infoList}>
+              {[
+                {label: 'Nom',       value: user?.name,                icon: '👤'},
+                {label: 'Email',     value: user?.email ?? '—',        icon: '📧'},
+                {label: 'Téléphone', value: user?.phone ?? '—',        icon: '📱'},
+                {label: 'Ville',     value: user?.city ?? '—',         icon: '📍'},
+                {label: 'Pays',      value: user?.country ?? '—',      icon: '🌍'},
+              ].map(info => (
+                <View key={info.label} style={styles.infoRow}>
+                  <Text style={styles.infoIcon}>{info.icon}</Text>
+                  <View style={styles.infoContent}>
+                    <Text style={styles.infoLabel}>{info.label}</Text>
+                    <Text style={styles.infoValue}>{info.value}</Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+
+        {/* ── KYC Banner ── */}
+        {user?.kyc_status !== 'verified' && (
+          <View style={styles.kycBanner}>
+            <View style={styles.kycLeft}>
+              <Text style={styles.kycTitle}>Vérifiez votre identité</Text>
+              <Text style={styles.kycDesc}>
+                Augmentez votre crédibilité et accédez à plus de fonctionnalités.
+              </Text>
+            </View>
+            <TouchableOpacity style={styles.kycBtn}>
+              <Text style={styles.kycBtnText}>Vérifier →</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* ── Actions ── */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Compte</Text>
+          <View style={styles.actionList}>
+            {[
+              {label: 'Paramètres de notification', icon: '🔔'},
+              {label: 'Confidentialité et sécurité', icon: '🔒'},
+              {label: 'Aide et support',             icon: '💬'},
+              {label: 'À propos de Kolo Immo',       icon: 'ℹ️'},
+            ].map(a => (
+              <TouchableOpacity key={a.label} style={styles.actionRow} activeOpacity={0.7}>
+                <View style={styles.actionLeft}>
+                  <Text style={styles.actionIcon}>{a.icon}</Text>
+                  <Text style={styles.actionLabel}>{a.label}</Text>
+                </View>
+                <Text style={styles.actionChevron}>›</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* ── Logout ── */}
+        <View style={styles.logoutSection}>
+          <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.8}>
+            <Text style={styles.logoutText}>🚪  Se déconnecter</Text>
           </TouchableOpacity>
         </View>
-      )}
 
-      <View style={{height: 80}} />
-    </ScrollView>
+        <View style={{height: 90}} />
+      </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   screen: {flex: 1, backgroundColor: colors.background},
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: spacing.lg,
-    paddingTop: spacing.xl + 8,
-  },
-  title: {...typography.h1, color: colors.text},
-  logoutBtn: {padding: 8},
-  logoutText: {color: colors.danger, fontWeight: '600', fontSize: 14},
-  profileCard: {
-    alignItems: 'center',
-    padding: spacing.lg,
-    backgroundColor: colors.surface,
-    marginHorizontal: spacing.lg,
-    borderRadius: radius.xl,
-    marginBottom: 16,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 1},
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-  },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+
+  hero: {
     backgroundColor: colors.primary,
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
+    paddingTop: 52,
+    paddingBottom: spacing.xl,
+    paddingHorizontal: spacing.lg,
   },
-  avatarText: {color: '#fff', fontSize: 34, fontWeight: '800'},
-  name: {fontSize: 20, fontWeight: '700', color: colors.text},
-  email: {...typography.body, color: colors.textSecondary, marginTop: 4},
+  avatar: {
+    width: 88,
+    height: 88,
+    borderRadius: radius.full,
+    backgroundColor: colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
+    borderWidth: 3,
+    borderColor: 'rgba(255,255,255,0.35)',
+    ...shadows.md,
+  },
+  avatarText: {color: '#fff', fontSize: 38, fontWeight: '900'},
+  heroName: {...typography.h2, color: '#fff', textAlign: 'center'},
+  heroContact: {...typography.body, color: 'rgba(255,255,255,0.72)', marginTop: 4, textAlign: 'center'},
   roleBadge: {
     marginTop: 10,
-    backgroundColor: colors.primary + '15',
-    paddingHorizontal: 14,
-    paddingVertical: 5,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    paddingHorizontal: 16,
+    paddingVertical: 6,
     borderRadius: radius.full,
   },
-  roleText: {fontSize: 13, fontWeight: '600', color: colors.primary},
-  statsRow: {
+  roleText: {...typography.label, color: '#fff'},
+
+  statsCard: {
     flexDirection: 'row',
-    gap: 12,
+    backgroundColor: colors.surface,
     marginHorizontal: spacing.lg,
-    marginBottom: 16,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: radius.xl,
-    padding: 14,
-    alignItems: 'center',
-    borderWidth: 1.5,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 1},
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-  },
-  statEmoji: {fontSize: 22, marginBottom: 4},
-  statValue: {fontSize: 18, fontWeight: '700', color: colors.text},
-  statLabel: {...typography.caption, color: colors.textSecondary, marginTop: 4, textAlign: 'center'},
-  trustBar: {
-    width: '100%',
-    height: 4,
-    backgroundColor: colors.gray200,
-    borderRadius: 2,
-    marginTop: 6,
-    overflow: 'hidden',
-  },
-  trustFill: {height: 4, borderRadius: 2},
-  card: {
-    backgroundColor: colors.surface,
+    marginTop: -16,
     borderRadius: radius.xl,
     padding: spacing.md,
-    marginHorizontal: spacing.lg,
-    marginBottom: 16,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 1},
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
+    ...shadows.md,
   },
-  cardHeader: {
+  statItem: {flex: 1, alignItems: 'center', gap: 4},
+  statEmoji: {fontSize: 22},
+  statBig: {fontSize: 22, fontWeight: '800'},
+  statValue: {...typography.h4, color: colors.text},
+  statLabel: {...typography.caption, color: colors.textTertiary, textAlign: 'center'},
+  statSep: {width: 1, backgroundColor: colors.border, marginHorizontal: 4},
+  trustBarOuter: {width: '80%', height: 4, backgroundColor: colors.gray200, borderRadius: 2, overflow: 'hidden'},
+  trustBarInner: {height: 4, borderRadius: 2},
+
+  section: {
+    backgroundColor: colors.surface,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.md,
+    borderRadius: radius.xl,
+    padding: spacing.md,
+    ...shadows.xs,
+  },
+  sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 14,
   },
-  cardTitle: {...typography.h3, color: colors.text},
-  editBtn: {color: colors.primary, fontWeight: '600', fontSize: 14},
-  infoList: {gap: 2},
+  sectionTitle: {...typography.h4, color: colors.text},
+  editToggle: {
+    backgroundColor: colors.primaryFaint,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: radius.full,
+  },
+  editToggleText: {...typography.label, color: colors.primary},
+
+  editForm: {gap: 0},
+
+  infoList: {gap: 0},
   infoRow: {
     flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+    gap: 12,
+  },
+  infoIcon: {fontSize: 18, width: 24, textAlign: 'center'},
+  infoContent: {flex: 1},
+  infoLabel: {...typography.caption, color: colors.textTertiary},
+  infoValue: {...typography.body, color: colors.text, fontWeight: '500', marginTop: 1},
+
+  kycBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.md,
+    backgroundColor: colors.accentFaint,
+    borderRadius: radius.xl,
+    padding: spacing.md,
+    borderWidth: 1.5,
+    borderColor: colors.accentLight,
+  },
+  kycLeft: {flex: 1},
+  kycTitle: {...typography.h4, color: colors.accent},
+  kycDesc: {...typography.caption, color: colors.textSecondary, marginTop: 3},
+  kycBtn: {
+    backgroundColor: colors.accent,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: radius.lg,
+  },
+  kycBtnText: {color: '#fff', fontWeight: '700', fontSize: 13},
+
+  actionList: {gap: 0},
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 10,
+    paddingVertical: 14,
     borderBottomWidth: 1,
     borderBottomColor: colors.borderLight,
   },
-  infoLabel: {...typography.label, color: colors.textSecondary},
-  infoValue: {...typography.body, color: colors.text, fontWeight: '500'},
-  kycBanner: {
-    flexDirection: 'row',
-    gap: 12,
-    alignItems: 'center',
-    backgroundColor: colors.secondary + '15',
+  actionLeft: {flexDirection: 'row', alignItems: 'center', gap: 12},
+  actionIcon: {fontSize: 18, width: 24, textAlign: 'center'},
+  actionLabel: {...typography.body, color: colors.textMed},
+  actionChevron: {fontSize: 20, color: colors.textTertiary, fontWeight: '300'},
+
+  logoutSection: {
     marginHorizontal: spacing.lg,
+    marginTop: spacing.md,
+  },
+  logoutBtn: {
+    backgroundColor: colors.dangerLight,
     borderRadius: radius.xl,
-    padding: 16,
-    borderWidth: 1.5,
-    borderColor: colors.secondary + '40',
+    paddingVertical: 16,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.danger + '30',
   },
-  kycBannerLeft: {flex: 1},
-  kycBannerTitle: {fontSize: 14, fontWeight: '700', color: colors.secondary},
-  kycBannerText: {...typography.caption, color: colors.textSecondary, marginTop: 2},
-  kycBannerBtn: {
-    backgroundColor: colors.secondary,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: radius.md,
-  },
-  kycBannerBtnText: {color: '#fff', fontWeight: '700', fontSize: 13},
+  logoutText: {...typography.button, color: colors.danger},
 });

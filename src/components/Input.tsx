@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TextInputProps,
-  TouchableOpacity,
   View,
   ViewStyle,
 } from 'react-native';
@@ -12,6 +11,7 @@ import {colors, radius, typography} from '../utils/theme';
 
 interface InputProps extends TextInputProps {
   label?: string;
+  hint?: string;
   error?: string;
   containerStyle?: ViewStyle;
   rightIcon?: React.ReactNode;
@@ -20,6 +20,7 @@ interface InputProps extends TextInputProps {
 
 export const Input: React.FC<InputProps> = ({
   label,
+  hint,
   error,
   containerStyle,
   rightIcon,
@@ -38,49 +39,53 @@ export const Input: React.FC<InputProps> = ({
           focused && styles.focused,
           error ? styles.errored : null,
         ]}>
-        {leftIcon ? <View style={styles.icon}>{leftIcon}</View> : null}
+        {leftIcon ? <View style={styles.iconLeft}>{leftIcon}</View> : null}
         <TextInput
-          style={[styles.input, leftIcon ? {paddingLeft: 4} : null, style]}
+          style={[styles.input, style]}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          placeholderTextColor={colors.textLight}
+          placeholderTextColor={colors.textTertiary}
           {...props}
         />
-        {rightIcon ? <View style={styles.icon}>{rightIcon}</View> : null}
+        {rightIcon ? <View style={styles.iconRight}>{rightIcon}</View> : null}
       </View>
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? (
+        <Text style={styles.error}>{error}</Text>
+      ) : hint ? (
+        <Text style={styles.hint}>{hint}</Text>
+      ) : null}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {marginBottom: 16},
+  container: { marginBottom: 14 },
   label: {
     ...typography.label,
-    color: colors.text,
-    marginBottom: 6,
+    color: colors.textMed,
+    marginBottom: 7,
+    fontWeight: '500',
   },
   inputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1.5,
     borderColor: colors.border,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     backgroundColor: colors.surface,
     paddingHorizontal: 14,
+    minHeight: 50,
   },
-  focused: {borderColor: colors.primary},
-  errored: {borderColor: colors.danger},
+  focused: { borderColor: colors.primary, backgroundColor: colors.primaryFaint },
+  errored: { borderColor: colors.danger, backgroundColor: colors.dangerLight },
   input: {
     flex: 1,
-    paddingVertical: 13,
+    paddingVertical: 12,
     ...typography.body,
     color: colors.text,
   },
-  icon: {marginHorizontal: 4},
-  error: {
-    ...typography.caption,
-    color: colors.danger,
-    marginTop: 4,
-  },
+  iconLeft:  { marginRight: 8 },
+  iconRight: { marginLeft: 8 },
+  error: { ...typography.caption, color: colors.danger, marginTop: 5 },
+  hint:  { ...typography.caption, color: colors.textTertiary, marginTop: 5 },
 });

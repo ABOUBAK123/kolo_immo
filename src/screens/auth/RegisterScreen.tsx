@@ -4,6 +4,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -15,44 +16,59 @@ import {Button} from '../../components/Button';
 import {Input} from '../../components/Input';
 import {useAuth} from '../../store/AuthContext';
 import {AuthStackParamList} from '../../types';
-import {colors, spacing, typography} from '../../utils/theme';
+import {colors, radius, shadows, spacing, typography} from '../../utils/theme';
 
 type Props = {
   navigation: NativeStackNavigationProp<AuthStackParamList, 'Register'>;
 };
 
-const COUNTRIES = ['CI', 'SN', 'BF', 'ML', 'BJ', 'TG'];
-const ROLES: {value: 'tenant' | 'owner' | 'both'; label: string}[] = [
-  {value: 'tenant', label: '🏠 Locataire'},
-  {value: 'owner', label: '🔑 Propriétaire'},
-  {value: 'both', label: '🔄 Les deux'},
+const STEPS = ['Infos', 'Sécurité', 'Profil'];
+const ROLES: {value: 'tenant' | 'owner' | 'both'; emoji: string; label: string; desc: string}[] = [
+  {value: 'tenant', emoji: '🏠', label: 'Locataire',            desc: 'Je cherche un logement'},
+  {value: 'owner',  emoji: '🔑', label: 'Propriétaire',         desc: 'Je loue mon bien'},
+  {value: 'both',   emoji: '🔄', label: 'Les deux',             desc: 'Locataire et propriétaire'},
 ];
+const COUNTRIES = ['CI', 'SN', 'BF', 'ML', 'BJ', 'TG', 'GN', 'NE'];
 
 export const RegisterScreen: React.FC<Props> = ({navigation}) => {
-  const {login} = useAuth();
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'tenant' | 'owner' | 'both'>('tenant');
-  const [country, setCountry] = useState('CI');
+  useAuth();
+  const [step, setStep] = useState(0);
+
+  // Step 0 — Infos
+  const [name, setName]       = useState('');
+  const [email, setEmail]     = useState('');
+  const [phone, setPhone]     = useState('');
+  // Step 1 — Sécurité
+  const [password, setPassword]   = useState('');
+  const [confirm, setConfirm]     = useState('');
+  const [showPwd, setShowPwd]     = useState(false);
+  // Step 2 — Profil
+  const [role, setRole]           = useState<'tenant' | 'owner' | 'both'>('tenant');
+  const [country, setCountry]     = useState('CI');
+
+  const [errors, setErrors]   = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateStep = () => {
+    const e: Record<string, string> = {};
+    if (step === 0) {
+      if (!name.trim()) e.name = 'Nom requis';
+      if (!email && !phone) e.contact = 'Email ou téléphone requis';
+    }
+    if (step === 1) {
+      if (!password || password.length < 8) e.password = 'Minimum 8 caractères';
+      if (password !== confirm) e.confirm = 'Les mots de passe ne correspondent pas';
+    }
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const nextStep = () => {
+    if (validateStep()) setStep(s => s + 1);
+  };
 
   const handleRegister = async () => {
     setErrors({});
-    if (!name.trim()) {
-      setErrors(e => ({...e, name: 'Le nom est requis.'}));
-      return;
-    }
-    if (!email && !phone) {
-      Alert.alert('Erreur', 'Email ou téléphone requis.');
-      return;
-    }
-    if (!password || password.length < 8) {
-      setErrors(e => ({...e, password: 'Minimum 8 caractères.'}));
-      return;
-    }
     setLoading(true);
     try {
       const payload: any = {name, password, role, country};
@@ -60,12 +76,15 @@ export const RegisterScreen: React.FC<Props> = ({navigation}) => {
       if (phone) payload.phone = phone;
 
       const res = await authApi.register(payload);
-      const {user, token} = res.data;
+      const regData = res.data.data;
+      const userPhone: string | null = regData.phone ?? phone ?? null;
 
-      if (user.phone && !user.phone_verified_at) {
-        navigation.navigate('OTP', {phone: user.phone, userId: user.id});
+      if (userPhone) {
+        navigation.navigate('OTP', {phone: userPhone, userId: regData.user_id});
       } else {
-        await login(user, token);
+        Alert.alert('Compte créé !', res.data.message ?? 'Vous pouvez vous connecter.', [
+          {text: 'Se connecter', onPress: () => navigation.navigate('Login')},
+        ]);
       }
     } catch (err: any) {
       const apiErrors = err.response?.data?.errors ?? {};
@@ -75,6 +94,7 @@ export const RegisterScreen: React.FC<Props> = ({navigation}) => {
           mapped[k] = Array.isArray(v) ? v[0] : (v as string);
         });
         setErrors(mapped);
+        setStep(0);
       } else {
         Alert.alert('Erreur', err.response?.data?.message ?? 'Inscription échouée.');
       }
@@ -87,149 +107,289 @@ export const RegisterScreen: React.FC<Props> = ({navigation}) => {
     <KeyboardAvoidingView
       style={styles.flex}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
+
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => (step > 0 ? setStep(s => s - 1) : navigation.goBack())}>
+          <Text style={styles.backArrow}>←</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Créer un compte</Text>
+        <View style={{width: 36}} />
+      </View>
+
+      {/* Progress dots */}
+      <View style={styles.progress}>
+        {STEPS.map((label, i) => (
+          <React.Fragment key={i}>
+            <View style={styles.stepItem}>
+              <View style={[styles.stepDot, i <= step && styles.stepDotActive, i < step && styles.stepDotDone]}>
+                {i < step
+                  ? <Text style={styles.stepCheck}>✓</Text>
+                  : <Text style={[styles.stepNum, i === step && styles.stepNumActive]}>{i + 1}</Text>
+                }
+              </View>
+              <Text style={[styles.stepLabel, i === step && styles.stepLabelActive]}>{label}</Text>
+            </View>
+            {i < STEPS.length - 1 && (
+              <View style={[styles.stepLine, i < step && styles.stepLineDone]} />
+            )}
+          </React.Fragment>
+        ))}
+      </View>
+
       <ScrollView
-        contentContainerStyle={styles.container}
-        keyboardShouldPersistTaps="handled">
+        contentContainerStyle={styles.body}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}>
 
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back}>
-            <Text style={styles.backArrow}>←</Text>
-          </TouchableOpacity>
-          <Text style={styles.title}>Créer un compte</Text>
-        </View>
+        {/* ── Step 0 ── */}
+        {step === 0 && (
+          <View>
+            <Text style={styles.stepTitle}>Vos informations</Text>
+            <Text style={styles.stepSub}>Dites-nous qui vous êtes</Text>
 
-        <View style={styles.card}>
-          <Input
-            label="Nom complet *"
-            value={name}
-            onChangeText={setName}
-            placeholder="Jean Dupont"
-            error={errors.name}
-          />
-          <Input
-            label="Email"
-            value={email}
-            onChangeText={setEmail}
-            placeholder="jean@email.com"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            error={errors.email}
-          />
-          <Input
-            label="Téléphone"
-            value={phone}
-            onChangeText={setPhone}
-            placeholder="+225 07 00 00 00 00"
-            keyboardType="phone-pad"
-            error={errors.phone}
-          />
-          <Input
-            label="Mot de passe *"
-            value={password}
-            onChangeText={setPassword}
-            placeholder="Minimum 8 caractères"
-            secureTextEntry
-            error={errors.password}
-          />
+            <Input
+              label="Nom complet *"
+              value={name}
+              onChangeText={t => { setName(t); setErrors(e => ({...e, name: ''})); }}
+              placeholder="Jean Dupont"
+              error={errors.name}
+            />
+            <Input
+              label="Email"
+              value={email}
+              onChangeText={setEmail}
+              placeholder="jean@email.com"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              error={errors.email}
+            />
+            <Input
+              label="Téléphone"
+              value={phone}
+              onChangeText={setPhone}
+              placeholder="+225 07 00 00 00 00"
+              keyboardType="phone-pad"
+              error={errors.phone}
+              hint="Au moins email ou téléphone requis"
+            />
+            {errors.contact ? <Text style={styles.errorMsg}>{errors.contact}</Text> : null}
 
-          {/* Role selector */}
-          <Text style={styles.sectionLabel}>Je suis *</Text>
-          <View style={styles.roleRow}>
-            {ROLES.map(r => (
-              <TouchableOpacity
-                key={r.value}
-                style={[styles.roleBtn, role === r.value && styles.roleBtnActive]}
-                onPress={() => setRole(r.value)}>
-                <Text
-                  style={[
-                    styles.roleBtnText,
-                    role === r.value && styles.roleBtnTextActive,
-                  ]}>
-                  {r.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
+            <Button title="Suivant →" onPress={nextStep} fullWidth size="lg" style={{marginTop: 8}} />
           </View>
+        )}
 
-          {/* Country selector */}
-          <Text style={styles.sectionLabel}>Pays</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.countryRow}>
-            {COUNTRIES.map(c => (
-              <TouchableOpacity
-                key={c}
-                style={[styles.countryBtn, country === c && styles.countryBtnActive]}
-                onPress={() => setCountry(c)}>
-                <Text style={[styles.countryText, country === c && styles.countryTextActive]}>
-                  {c}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+        {/* ── Step 1 ── */}
+        {step === 1 && (
+          <View>
+            <Text style={styles.stepTitle}>Sécurité du compte</Text>
+            <Text style={styles.stepSub}>Choisissez un mot de passe fort</Text>
 
-          <Button
-            title="Créer mon compte"
-            onPress={handleRegister}
-            loading={loading}
-            fullWidth
-            style={styles.btn}
-          />
-        </View>
+            <Input
+              label="Mot de passe *"
+              value={password}
+              onChangeText={t => { setPassword(t); setErrors(e => ({...e, password: ''})); }}
+              placeholder="Minimum 8 caractères"
+              secureTextEntry={!showPwd}
+              error={errors.password}
+              rightIcon={
+                <TouchableOpacity onPress={() => setShowPwd(v => !v)}>
+                  <Text style={{fontSize: 16}}>{showPwd ? '🙈' : '👁️'}</Text>
+                </TouchableOpacity>
+              }
+            />
+            <Input
+              label="Confirmer le mot de passe *"
+              value={confirm}
+              onChangeText={t => { setConfirm(t); setErrors(e => ({...e, confirm: ''})); }}
+              placeholder="Répétez votre mot de passe"
+              secureTextEntry={!showPwd}
+              error={errors.confirm}
+            />
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Déjà un compte ? </Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-            <Text style={styles.footerLink}>Se connecter</Text>
-          </TouchableOpacity>
-        </View>
+            <View style={styles.pwdTips}>
+              {['8 caractères minimum', 'Lettres et chiffres', 'Sensible à la casse'].map(tip => (
+                <View key={tip} style={styles.pwdTip}>
+                  <Text style={styles.pwdTipDot}>•</Text>
+                  <Text style={styles.pwdTipText}>{tip}</Text>
+                </View>
+              ))}
+            </View>
+
+            <Button title="Suivant →" onPress={nextStep} fullWidth size="lg" style={{marginTop: 8}} />
+          </View>
+        )}
+
+        {/* ── Step 2 ── */}
+        {step === 2 && (
+          <View>
+            <Text style={styles.stepTitle}>Votre profil</Text>
+            <Text style={styles.stepSub}>Personnalisez votre expérience</Text>
+
+            <Text style={styles.fieldLabel}>Je suis</Text>
+            <View style={styles.rolesGrid}>
+              {ROLES.map(r => (
+                <TouchableOpacity
+                  key={r.value}
+                  style={[styles.roleCard, role === r.value && styles.roleCardActive]}
+                  onPress={() => setRole(r.value)}
+                  activeOpacity={0.8}>
+                  <Text style={styles.roleEmoji}>{r.emoji}</Text>
+                  <Text style={[styles.roleLabel, role === r.value && styles.roleLabelActive]}>
+                    {r.label}
+                  </Text>
+                  <Text style={styles.roleDesc}>{r.desc}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={[styles.fieldLabel, {marginTop: 20}]}>Pays</Text>
+            <View style={styles.countriesRow}>
+              {COUNTRIES.map(c => (
+                <TouchableOpacity
+                  key={c}
+                  style={[styles.countryChip, country === c && styles.countryChipActive]}
+                  onPress={() => setCountry(c)}>
+                  <Text style={[styles.countryText, country === c && styles.countryTextActive]}>
+                    {c}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Button
+              title="Créer mon compte"
+              onPress={handleRegister}
+              loading={loading}
+              fullWidth
+              size="lg"
+              style={{marginTop: 24}}
+            />
+          </View>
+        )}
       </ScrollView>
+
+      {/* Footer */}
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>Déjà un compte ? </Text>
+        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+          <Text style={styles.footerLink}>Se connecter</Text>
+        </TouchableOpacity>
+      </View>
     </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
-  flex: {flex: 1, backgroundColor: colors.background},
-  container: {flexGrow: 1, padding: spacing.lg, paddingTop: spacing.xl},
-  header: {flexDirection: 'row', alignItems: 'center', marginBottom: 24},
-  back: {marginRight: 12},
-  backArrow: {fontSize: 22, color: colors.primary},
-  title: {...typography.h2, color: colors.text},
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 24,
-    padding: spacing.lg,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.07,
-    shadowRadius: 12,
-  },
-  sectionLabel: {...typography.label, color: colors.text, marginBottom: 8, marginTop: 4},
-  roleRow: {flexDirection: 'row', gap: 8, marginBottom: 16},
-  roleBtn: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: colors.border,
+  flex: { flex: 1, backgroundColor: colors.background },
+
+  header: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.lg,
+    paddingTop: Platform.OS === 'ios' ? 56 : 40,
+    paddingBottom: spacing.md,
   },
-  roleBtnActive: {borderColor: colors.primary, backgroundColor: colors.primary + '10'},
-  roleBtnText: {fontSize: 12, fontWeight: '600', color: colors.textSecondary},
-  roleBtnTextActive: {color: colors.primary},
-  countryRow: {flexDirection: 'row', marginBottom: 16},
-  countryBtn: {
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.full,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  backArrow: { color: '#fff', fontSize: 20, fontWeight: '700', marginTop: -2 },
+  headerTitle: { ...typography.h3, color: '#fff' },
+
+  progress: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.xl,
+    paddingBottom: spacing.lg,
+  },
+  stepItem: { alignItems: 'center', gap: 6 },
+  stepDot: {
+    width: 32,
+    height: 32,
+    borderRadius: radius.full,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepDotActive: { backgroundColor: colors.accent },
+  stepDotDone:   { backgroundColor: colors.success },
+  stepNum: { ...typography.label, color: 'rgba(255,255,255,0.6)', fontWeight: '700' },
+  stepNumActive: { color: '#fff' },
+  stepCheck: { color: '#fff', fontSize: 14, fontWeight: '700' },
+  stepLabel: { ...typography.caption, color: 'rgba(255,255,255,0.55)' },
+  stepLabelActive: { color: '#fff', fontWeight: '600' },
+  stepLine: { flex: 1, height: 2, backgroundColor: 'rgba(255,255,255,0.2)', marginBottom: 20 },
+  stepLineDone: { backgroundColor: colors.success },
+
+  body: { padding: spacing.lg, paddingTop: spacing.xl },
+  stepTitle: { ...typography.h2, color: colors.text, marginBottom: 4 },
+  stepSub:   { ...typography.body, color: colors.textSecondary, marginBottom: 24 },
+
+  errorMsg: { ...typography.caption, color: colors.danger, marginBottom: 12, marginTop: -4 },
+
+  pwdTips: {
+    backgroundColor: colors.primaryFaint,
+    borderRadius: radius.lg,
+    padding: 14,
+    marginBottom: 16,
+    gap: 6,
+  },
+  pwdTip: { flexDirection: 'row', gap: 8, alignItems: 'center' },
+  pwdTipDot: { color: colors.primary, fontWeight: '700', fontSize: 16 },
+  pwdTipText: { ...typography.bodySm, color: colors.primaryMid },
+
+  fieldLabel: { ...typography.label, color: colors.textMed, marginBottom: 10 },
+
+  rolesGrid: { gap: 10 },
+  roleCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    borderRadius: radius.xl,
+    borderWidth: 2,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    padding: 14,
+    ...shadows.xs,
+  },
+  roleCardActive: { borderColor: colors.primary, backgroundColor: colors.primaryFaint },
+  roleEmoji: { fontSize: 28, width: 36, textAlign: 'center' },
+  roleLabel: { ...typography.h4, color: colors.text, flex: 1 },
+  roleLabelActive: { color: colors.primary },
+  roleDesc: { ...typography.caption, color: colors.textSecondary },
+
+  countriesRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  countryChip: {
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 999,
+    paddingVertical: 9,
+    borderRadius: radius.full,
     borderWidth: 1.5,
     borderColor: colors.border,
-    marginRight: 8,
+    backgroundColor: colors.surface,
   },
-  countryBtnActive: {borderColor: colors.primary, backgroundColor: colors.primary},
-  countryText: {fontSize: 13, fontWeight: '600', color: colors.textSecondary},
-  countryTextActive: {color: '#fff'},
-  btn: {marginTop: 8},
-  footer: {flexDirection: 'row', justifyContent: 'center', marginTop: 24},
-  footerText: {...typography.body, color: colors.textSecondary},
-  footerLink: {...typography.body, color: colors.primary, fontWeight: '700'},
+  countryChipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  countryText: { ...typography.label, color: colors.textSecondary },
+  countryTextActive: { color: '#fff' },
+
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    paddingVertical: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    backgroundColor: colors.background,
+  },
+  footerText: { ...typography.body, color: colors.textSecondary },
+  footerLink: { ...typography.body, color: colors.primary, fontWeight: '700' },
 });

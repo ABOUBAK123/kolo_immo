@@ -30,8 +30,8 @@ export const PropertyDetailScreen: React.FC<Props> = ({navigation, route}) => {
   const [activePhoto, setActivePhoto] = useState(0);
 
   const photos = property.photos ?? [];
-  const coverUrl = property.cover_photo
-    ? getImageUrl(property.cover_photo)
+  const coverUrl = property.cover_photo_url
+    ? property.cover_photo_url
     : photos[0]?.path ? getImageUrl(photos[0].path) : null;
 
   const allPhotos = photos.length > 0
@@ -118,7 +118,7 @@ export const PropertyDetailScreen: React.FC<Props> = ({navigation, route}) => {
               {icon: '🛏', label: `${property.bedrooms} ch.`},
               {icon: '🚿', label: `${property.bathrooms} sdb.`},
               {icon: '👥', label: `${property.capacity} pers.`},
-              ...(property.area ? [{icon: '📐', label: `${property.area}m²`}] : []),
+              ...(property.area_sqm ? [{icon: '📐', label: `${property.area_sqm}m²`}] : []),
             ].map((s, i) => (
               <View key={i} style={styles.statItem}>
                 <Text style={styles.statIcon}>{s.icon}</Text>
@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
   statLabel: {fontSize: 12, fontWeight: '600', color: colors.text},
   section: {marginBottom: 20},
   sectionTitle: {...typography.h3, color: colors.text, marginBottom: 10},
-  description: {...typography.bodyMd, color: colors.textSecondary, lineHeight: 24},
+  description: {...typography.body, color: colors.textSecondary, lineHeight: 24},
   amenitiesGrid: {flexDirection: 'row', flexWrap: 'wrap', gap: 8},
   amenityItem: {
     flexDirection: 'row',

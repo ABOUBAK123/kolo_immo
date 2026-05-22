@@ -159,7 +159,7 @@ export const ConversationScreen: React.FC<Props> = ({navigation, route}) => {
         <TextInput
           style={styles.input}
           placeholder="Écrire un message..."
-          placeholderTextColor={colors.textLight}
+          placeholderTextColor={colors.textTertiary}
           value={body}
           onChangeText={setBody}
           multiline
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
   timeStamp: {
     textAlign: 'center',
     ...typography.caption,
-    color: colors.textLight,
+    color: colors.textTertiary,
     marginVertical: 10,
   },
   msgRow: {flexDirection: 'row', alignItems: 'flex-end', gap: 6, marginBottom: 4},

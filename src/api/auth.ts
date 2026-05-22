@@ -17,26 +17,38 @@ export interface RegisterPayload {
   city?: string;
 }
 
-export interface AuthResponse {
+// Enveloppe standard de l'API: { success, message, data: {...} }
+interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+}
+
+interface AuthData {
   token: string;
   user: User;
-  message: string;
+}
+
+interface RegisterData {
+  user_id: number;
+  phone: string | null;
+  email: string | null;
 }
 
 export const authApi = {
   login: (payload: LoginPayload) =>
-    apiClient.post<AuthResponse>('/auth/login', payload),
+    apiClient.post<ApiResponse<AuthData>>('/auth/login', payload),
 
   register: (payload: RegisterPayload) =>
-    apiClient.post<AuthResponse>('/auth/register', payload),
+    apiClient.post<ApiResponse<RegisterData>>('/auth/register', payload),
 
-  verifyOtp: (phone: string, otp: string, userId: number) =>
-    apiClient.post('/auth/verify-otp', {phone, otp, user_id: userId}),
+  verifyOtp: (phone: string, code: string) =>
+    apiClient.post<ApiResponse<AuthData>>('/auth/verify-otp', {phone, code, purpose: 'phone_verify'}),
 
   logout: () => apiClient.post('/auth/logout'),
 
-  me: () => apiClient.get<{user: User}>('/auth/me'),
+  me: () => apiClient.get<ApiResponse<User>>('/auth/me'),
 
   updateProfile: (data: Partial<User> & {password?: string}) =>
-    apiClient.post('/auth/profile', data),
+    apiClient.post<ApiResponse<User>>('/auth/profile', data),
 };

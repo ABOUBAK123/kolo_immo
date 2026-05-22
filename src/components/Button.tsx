@@ -5,6 +5,7 @@ import {
   Text,
   TouchableOpacity,
   TouchableOpacityProps,
+  View,
   ViewStyle,
 } from 'react-native';
 import {colors, radius, typography} from '../utils/theme';
@@ -16,6 +17,7 @@ interface ButtonProps extends TouchableOpacityProps {
   loading?: boolean;
   fullWidth?: boolean;
   style?: ViewStyle;
+  icon?: string;
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -26,20 +28,21 @@ export const Button: React.FC<ButtonProps> = ({
   fullWidth = false,
   style,
   disabled,
+  icon,
   ...props
 }) => {
-  const variantStyles = {
-    primary: {bg: colors.primary, text: '#fff', border: colors.primary},
-    secondary: {bg: colors.secondary, text: '#fff', border: colors.secondary},
-    outline: {bg: 'transparent', text: colors.primary, border: colors.primary},
-    danger: {bg: colors.danger, text: '#fff', border: colors.danger},
-    ghost: {bg: 'transparent', text: colors.primary, border: 'transparent'},
+  const v = {
+    primary:   { bg: colors.primary,  text: '#fff',           border: colors.primary },
+    secondary: { bg: colors.accent,   text: '#fff',           border: colors.accent },
+    outline:   { bg: 'transparent',   text: colors.primary,   border: colors.primary },
+    danger:    { bg: colors.danger,   text: '#fff',           border: colors.danger },
+    ghost:     { bg: colors.primaryFaint, text: colors.primary, border: 'transparent' },
   }[variant];
 
-  const sizeStyles = {
-    sm: {paddingVertical: 8, paddingHorizontal: 16, fontSize: 13},
-    md: {paddingVertical: 13, paddingHorizontal: 24, fontSize: 15},
-    lg: {paddingVertical: 16, paddingHorizontal: 32, fontSize: 16},
+  const s = {
+    sm: { py: 9,  px: 16, fs: 13, br: radius.md },
+    md: { py: 14, px: 20, fs: 15, br: radius.lg },
+    lg: { py: 17, px: 24, fs: 16, br: radius.xl },
   }[size];
 
   return (
@@ -47,28 +50,26 @@ export const Button: React.FC<ButtonProps> = ({
       style={[
         styles.base,
         {
-          backgroundColor: variantStyles.bg,
-          borderColor: variantStyles.border,
-          paddingVertical: sizeStyles.paddingVertical,
-          paddingHorizontal: sizeStyles.paddingHorizontal,
+          backgroundColor: v.bg,
+          borderColor: v.border,
+          paddingVertical: s.py,
+          paddingHorizontal: s.px,
+          borderRadius: s.br,
           width: fullWidth ? '100%' : undefined,
-          opacity: disabled || loading ? 0.6 : 1,
+          opacity: disabled || loading ? 0.55 : 1,
         },
         style,
       ]}
       disabled={disabled || loading}
-      activeOpacity={0.75}
+      activeOpacity={0.78}
       {...props}>
       {loading ? (
-        <ActivityIndicator color={variantStyles.text} size="small" />
+        <ActivityIndicator color={v.text} size="small" />
       ) : (
-        <Text
-          style={[
-            typography.button,
-            {color: variantStyles.text, fontSize: sizeStyles.fontSize},
-          ]}>
-          {title}
-        </Text>
+        <View style={styles.inner}>
+          {icon ? <Text style={{fontSize: s.fs, color: v.text}}>{icon}</Text> : null}
+          <Text style={[typography.button, {color: v.text, fontSize: s.fs}]}>{title}</Text>
+        </View>
       )}
     </TouchableOpacity>
   );
@@ -76,10 +77,9 @@ export const Button: React.FC<ButtonProps> = ({
 
 const styles = StyleSheet.create({
   base: {
-    borderRadius: radius.lg,
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
-    flexDirection: 'row',
   },
+  inner: { flexDirection: 'row', alignItems: 'center', gap: 7 },
 });

@@ -1,5 +1,5 @@
 import apiClient from './client';
-import {Property, PaginatedResponse} from '../types';
+import {Property} from '../types';
 
 export interface PropertyFilters {
   city?: string;
@@ -13,13 +13,25 @@ export interface PropertyFilters {
   page?: number;
 }
 
+interface Pagination {
+  current_page: number;
+  last_page: number;
+  per_page: number;
+  total: number;
+}
+
+interface PropertiesListData {
+  properties: Property[];
+  pagination: Pagination;
+}
+
 export const propertiesApi = {
   list: (filters?: PropertyFilters) =>
-    apiClient.get<PaginatedResponse<Property>>('/properties', {params: filters}),
+    apiClient.get<{success: boolean; data: PropertiesListData}>('/properties', {params: filters}),
 
   featured: () =>
-    apiClient.get<{data: Property[]}>('/properties/featured'),
+    apiClient.get<{success: boolean; data: Property[]}>('/properties/featured'),
 
   show: (id: number) =>
-    apiClient.get<{data: Property}>(`/properties/${id}`),
+    apiClient.get<{success: boolean; data: Property}>(`/properties/${id}`),
 };

@@ -1,5 +1,5 @@
 import apiClient from './client';
-import {Booking, PaginatedResponse} from '../types';
+import {Booking} from '../types';
 
 export interface CreateBookingPayload {
   property_id: number;
@@ -9,16 +9,27 @@ export interface CreateBookingPayload {
   special_requests?: string;
 }
 
+interface Pagination {
+  current_page: number;
+  last_page: number;
+  total: number;
+}
+
+interface BookingsListData {
+  bookings: Booking[];
+  pagination: Pagination;
+}
+
 export const bookingsApi = {
   list: () =>
-    apiClient.get<PaginatedResponse<Booking>>('/bookings'),
+    apiClient.get<{success: boolean; data: BookingsListData}>('/bookings'),
 
   show: (id: number) =>
-    apiClient.get<{data: Booking}>(`/bookings/${id}`),
+    apiClient.get<{success: boolean; data: Booking}>(`/bookings/${id}`),
 
   create: (payload: CreateBookingPayload) =>
-    apiClient.post<{data: Booking; message: string}>('/bookings', payload),
+    apiClient.post<{success: boolean; message: string; data: Booking}>('/bookings', payload),
 
   cancel: (id: number) =>
-    apiClient.post<{message: string}>(`/bookings/${id}/cancel`),
+    apiClient.post<{success: boolean; message: string}>(`/bookings/${id}/cancel`),
 };

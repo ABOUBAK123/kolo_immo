@@ -71,7 +71,7 @@ export const BookingCreateScreen: React.FC<Props> = ({navigation, route}) => {
       <TextInput
         style={styles.dateInput}
         placeholder="YYYY-MM-DD"
-        placeholderTextColor={colors.textLight}
+        placeholderTextColor={colors.textTertiary}
         value={value}
         onChangeText={onChange}
         keyboardType="numeric"
@@ -135,7 +135,7 @@ export const BookingCreateScreen: React.FC<Props> = ({navigation, route}) => {
             multiline
             numberOfLines={3}
             placeholder="Arrivée tardive, berceau, régime alimentaire..."
-            placeholderTextColor={colors.textLight}
+            placeholderTextColor={colors.textTertiary}
             value={specialRequests}
             onChangeText={setSpecialRequests}
           />
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   dateSep: {paddingHorizontal: 8, paddingTop: 16},
-  dateSepText: {fontSize: 18, color: colors.textLight},
+  dateSepText: {fontSize: 18, color: colors.textTertiary},
   guestsRow: {flexDirection: 'row', alignItems: 'center', gap: 16},
   guestBtn: {
     width: 40,

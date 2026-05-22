@@ -1,10 +1,7 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// For Android emulator: 10.0.2.2 maps to host machine localhost
-// For iOS simulator: localhost works directly
-// For physical device: use your machine's local IP (e.g. 192.168.1.x)
-const BASE_URL = 'http://10.0.2.2/kolo_immo/public/api/v1';
+const BASE_URL = 'https://koloimmo.dyula.ci/api/v1';
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
