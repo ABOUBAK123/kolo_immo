@@ -12,6 +12,7 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        mb_internal_encoding('UTF-8');
         Schema::defaultStringLength(191);
         Model::unguard();
     }

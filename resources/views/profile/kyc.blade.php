@@ -114,10 +114,10 @@
             <div class="mb-5">
                 <label class="block text-sm font-semibold text-gray-700 mb-2">Type de document d'identité</label>
                 <div class="grid grid-cols-3 gap-3">
-                    @foreach(['cni' => 'Carte Nationale d\'Identité', 'passeport' => 'Passeport', 'carte_sejour' => 'Carte de séjour'] as $val => $label)
+                    @foreach(['cni' => 'Carte Nationale d\'Identité', 'passport' => 'Passeport', 'residence_permit' => 'Carte de séjour'] as $val => $label)
                     <label class="cursor-pointer">
-                        <input type="radio" name="document_type" value="{{ $val }}" class="sr-only peer"
-                            {{ old('document_type') === $val ? 'checked' : '' }} required>
+                        <input type="radio" name="type" value="{{ $val }}" class="sr-only peer"
+                            {{ old('type') === $val ? 'checked' : '' }} required>
                         <div class="p-3 border-2 border-gray-200 rounded-xl text-center transition-all peer-checked:border-blue-700 peer-checked:bg-blue-50 hover:border-blue-200 cursor-pointer">
                             <p class="font-semibold text-sm text-gray-700 peer-checked:text-blue-700">{{ $label }}</p>
                         </div>
@@ -139,10 +139,10 @@
                         <p class="text-xs text-gray-400 mt-1">JPG, PNG — Max 5MB</p>
                     </div>
                     <img x-show="docPreview" x-cloak :src="docPreview" class="max-h-40 mx-auto rounded-lg object-contain">
-                    <input type="file" name="document_photo" accept="image/*,application/pdf" x-ref="docInput"
+                    <input type="file" name="document_file" accept="image/*,application/pdf" x-ref="docInput"
                         @change="previewFile($event.target, 'docPreview')" class="hidden" required>
                 </div>
-                @error('document_photo')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                @error('document_file')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
             </div>
 
             <!-- Selfie -->
@@ -158,10 +158,10 @@
                         <p class="text-xs text-gray-400 mt-1">Assurez-vous que votre visage et le document sont nets</p>
                     </div>
                     <img x-show="selfiePreview" x-cloak :src="selfiePreview" class="max-h-40 mx-auto rounded-lg object-contain">
-                    <input type="file" name="selfie" accept="image/*" x-ref="selfieInput"
+                    <input type="file" name="selfie_file" accept="image/*" x-ref="selfieInput"
                         @change="previewFile($event.target, 'selfiePreview')" class="hidden" required>
                 </div>
-                @error('selfie')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                @error('selfie_file')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
             </div>
 
             <!-- Owner: Title deed -->
