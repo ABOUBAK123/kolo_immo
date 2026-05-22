@@ -1,0 +1,193 @@
+<?php
+
+use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\BookingController;
+use App\Http\Controllers\ContractController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\MessageController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\PropertyController;
+use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\Admin\AdminController;
+use Illuminate\Support\Facades\Route;
+
+// ─── PUBLIC ROUTES ────────────────────────────────────────────────────────────
+
+Route::get('/', function () {
+    $featured = \App\Models\Property::active()
+        ->featured()
+        ->with(['photos', 'amenities'])
+        ->withCount('reviews')
+        ->orderByDesc('rating_avg')
+        ->take(6)
+        ->get();
+
+    $cities = \App\Models\Property::active()
+        ->selectRaw('city, COUNT(*) as count')
+        ->groupBy('city')
+        ->orderByDesc('count')
+        ->take(8)
+        ->get();
+
+    return view('home', compact('featured', 'cities'));
+})->name('home');
+
+Route::get('/properties', [PropertyController::class, 'index'])->name('properties.index');
+Route::get('/properties/{property}', [PropertyController::class, 'show'])->name('properties.show');
+
+Route::get('/about', function () {
+    return view('pages.about');
+})->name('about');
+
+Route::get('/contact', function () {
+    return view('pages.contact');
+})->name('contact');
+
+// ─── AUTH ROUTES ──────────────────────────────────────────────────────────────
+
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register'])->name('register.post');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::get('/verify-phone', [AuthController::class, 'showPhoneVerify'])->name('verify.phone');
+    Route::post('/verify-phone', [AuthController::class, 'verifyPhone'])->name('verify.phone.post');
+    Route::post('/verify-phone/resend', [AuthController::class, 'resendOtp'])->name('verify.phone.resend');
+});
+
+// ─── TENANT / GENERAL AUTH ROUTES ────────────────────────────────────────────
+
+Route::middleware('auth')->group(function () {
+    // Tenant Dashboard
+    Route::get('/dashboard', [DashboardController::class, 'tenantDashboard'])->name('dashboard');
+
+    // Bookings (tenant)
+    Route::get('/bookings', [BookingController::class, 'myBookings'])->name('bookings.my-bookings');
+    Route::get('/bookings/create', [BookingController::class, 'create'])->name('bookings.create');
+    Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
+    Route::get('/bookings/{booking}', [BookingController::class, 'show'])->name('bookings.show');
+    Route::post('/bookings/{booking}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
+
+    // Payments
+    Route::get('/payments/{booking}/initiate', [PaymentController::class, 'initiate'])->name('payments.initiate');
+    Route::post('/payments/{booking}/process', [PaymentController::class, 'process'])->name('payments.process');
+    Route::get('/payments/{bookingId}/success', [PaymentController::class, 'success'])->name('payments.success');
+    Route::get('/payments/{bookingId}/failed', [PaymentController::class, 'failed'])->name('payments.failed');
+
+    // Contracts
+    Route::get('/contracts/{contract}', [ContractController::class, 'show'])->name('contracts.show');
+    Route::post('/contracts/{contract}/request-sign', [ContractController::class, 'requestSign'])->name('contracts.request-sign');
+    Route::post('/contracts/{contract}/sign', [ContractController::class, 'sign'])->name('contracts.sign');
+    Route::get('/contracts/{contract}/download', [ContractController::class, 'download'])->name('contracts.download');
+    Route::get('/contracts/{contract}/inspection/{type}', [ContractController::class, 'inspectionForm'])->name('contracts.inspection');
+    Route::post('/contracts/{contract}/inspection/{type}', [ContractController::class, 'saveInspection'])->name('contracts.inspection.save');
+
+    // Messages
+    Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
+    Route::get('/messages/{conversation}', [MessageController::class, 'show'])->name('messages.show');
+    Route::post('/messages/{conversation}/send', [MessageController::class, 'send'])->name('messages.send');
+    Route::post('/messages/{conversation}/read', [MessageController::class, 'markRead'])->name('messages.read');
+
+    // Reviews
+    Route::get('/reviews/create/{booking}', [ReviewController::class, 'create'])->name('reviews.create');
+    Route::post('/reviews/{booking}', [ReviewController::class, 'store'])->name('reviews.store');
+    Route::post('/reviews/{review}/reply', [ReviewController::class, 'reply'])->name('reviews.reply');
+
+    // KYC Profile
+    Route::get('/profile/kyc', function () {
+        return view('profile.kyc');
+    })->name('profile.kyc');
+
+    Route::post('/profile/kyc', function (\Illuminate\Http\Request $request) {
+        $request->validate([
+            'type'          => ['required', 'in:cni,passport,residence_permit,title_deed,lease'],
+            'document_file' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
+            'selfie_file'   => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+        ]);
+
+        $user = auth()->user();
+
+        $docPath    = $request->file('document_file')->store('kyc/documents', 'public');
+        $selfiePath = $request->hasFile('selfie_file')
+            ? $request->file('selfie_file')->store('kyc/selfies', 'public')
+            : null;
+
+        \App\Models\KycDocument::create([
+            'user_id'       => $user->id,
+            'type'          => $request->type,
+            'document_path' => $docPath,
+            'selfie_path'   => $selfiePath,
+            'status'        => 'pending',
+        ]);
+
+        $user->update(['kyc_status' => 'pending']);
+
+        return back()->with('success', 'Vos documents ont été soumis. Vous serez notifié une fois la vérification effectuée.');
+    })->name('profile.kyc.submit');
+});
+
+// ─── OWNER ROUTES ─────────────────────────────────────────────────────────────
+
+Route::middleware(['auth', 'owner'])->prefix('owner')->name('owner.')->group(function () {
+    // Owner dashboard
+    Route::get('/dashboard', [DashboardController::class, 'ownerDashboard'])->name('dashboard');
+
+    // Properties management
+    Route::get('/properties', [PropertyController::class, 'ownerIndex'])->name('properties.index');
+    Route::get('/properties/create', [PropertyController::class, 'create'])->name('properties.create');
+    Route::post('/properties', [PropertyController::class, 'store'])->name('properties.store');
+    Route::get('/properties/{property}/edit', [PropertyController::class, 'edit'])->name('properties.edit');
+    Route::put('/properties/{property}', [PropertyController::class, 'update'])->name('properties.update');
+    Route::delete('/properties/{property}', [PropertyController::class, 'destroy'])->name('properties.destroy');
+    Route::post('/properties/{property}/photos', [PropertyController::class, 'uploadPhotos'])->name('properties.photos.upload');
+    Route::delete('/properties/{property}/photos/{photo}', [PropertyController::class, 'deletePhoto'])->name('properties.photos.delete');
+    Route::get('/properties/{property}/availability', [PropertyController::class, 'manageAvailability'])->name('properties.availability');
+    Route::post('/properties/{property}/availability', [PropertyController::class, 'saveBlockedDates'])->name('properties.availability.save');
+    Route::delete('/properties/{property}/availability/{blockedDate}', [PropertyController::class, 'deleteBlockedDate'])->name('properties.availability.delete');
+    Route::post('/properties/{property}/toggle-status', [PropertyController::class, 'toggleStatus'])->name('properties.toggle-status');
+
+    // Bookings management (owner)
+    Route::get('/bookings', [BookingController::class, 'ownerBookings'])->name('bookings.index');
+    Route::get('/bookings/pending', [BookingController::class, 'pendingBookings'])->name('bookings.pending');
+    Route::post('/bookings/{booking}/confirm', [BookingController::class, 'confirm'])->name('bookings.confirm');
+    Route::post('/bookings/{booking}/reject', [BookingController::class, 'reject'])->name('bookings.reject');
+});
+
+// ─── ADMIN ROUTES ─────────────────────────────────────────────────────────────
+
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+
+    // Users
+    Route::get('/users', [AdminController::class, 'users'])->name('users.index');
+    Route::get('/users/{user}', [AdminController::class, 'showUser'])->name('users.show');
+    Route::post('/users/{user}/toggle-ban', [AdminController::class, 'toggleBan'])->name('users.toggle-ban');
+
+    // KYC
+    Route::get('/kyc', [AdminController::class, 'kycList'])->name('kyc.index');
+    Route::get('/kyc/{kycDocument}', [AdminController::class, 'showKyc'])->name('kyc.show');
+    Route::post('/kyc/{kycDocument}/verify', [AdminController::class, 'verifyKyc'])->name('kyc.verify');
+
+    // Properties
+    Route::get('/properties', [AdminController::class, 'properties'])->name('properties.index');
+    Route::post('/properties/{property}/toggle-featured', [AdminController::class, 'toggleFeatured'])->name('properties.toggle-featured');
+    Route::post('/properties/{property}/suspend', [AdminController::class, 'suspendProperty'])->name('properties.suspend');
+
+    // Bookings
+    Route::get('/bookings', [AdminController::class, 'bookings'])->name('bookings.index');
+
+    // Disputes
+    Route::get('/disputes', [AdminController::class, 'disputes'])->name('disputes.index');
+
+    // Reports
+    Route::get('/reports', [AdminController::class, 'reports'])->name('reports.index');
+});
+
+// ─── PAYMENT WEBHOOK (public, no CSRF) ────────────────────────────────────────
+Route::post('/payments/notify', [PaymentController::class, 'notify'])
+    ->name('payments.notify')
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);

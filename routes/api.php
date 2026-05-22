@@ -1,0 +1,56 @@
+<?php
+
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\BookingController;
+use App\Http\Controllers\Api\PropertyController;
+use App\Http\Controllers\PaymentController;
+use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| API Routes - KOLO IMMO v1
+|--------------------------------------------------------------------------
+|
+| All API routes are prefixed with /api/v1
+|
+*/
+
+Route::prefix('v1')->name('api.v1.')->group(function () {
+
+    // ─── AUTH (Public) ────────────────────────────────────────────────────────
+    Route::prefix('auth')->name('auth.')->group(function () {
+        Route::post('/register', [AuthController::class, 'register'])->name('register');
+        Route::post('/login', [AuthController::class, 'login'])->name('login');
+        Route::post('/verify-otp', [AuthController::class, 'verifyOtp'])->name('verify-otp');
+    });
+
+    // ─── AUTH (Protected) ─────────────────────────────────────────────────────
+    Route::middleware('auth:sanctum')->prefix('auth')->name('auth.')->group(function () {
+        Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+        Route::get('/me', [AuthController::class, 'me'])->name('me');
+        Route::post('/profile', [AuthController::class, 'updateProfile'])->name('profile');
+    });
+
+    // ─── PROPERTIES (Public) ──────────────────────────────────────────────────
+    Route::prefix('properties')->name('properties.')->group(function () {
+        Route::get('/', [PropertyController::class, 'index'])->name('index');
+        Route::get('/featured', [PropertyController::class, 'featured'])->name('featured');
+        Route::get('/{property}', [PropertyController::class, 'show'])->name('show');
+    });
+
+    // ─── BOOKINGS (Protected) ─────────────────────────────────────────────────
+    Route::middleware('auth:sanctum')->prefix('bookings')->name('bookings.')->group(function () {
+        Route::post('/', [BookingController::class, 'store'])->name('store');
+        Route::get('/', [BookingController::class, 'index'])->name('index');
+        Route::get('/{booking}', [BookingController::class, 'show'])->name('show');
+        Route::post('/{booking}/cancel', [BookingController::class, 'cancel'])->name('cancel');
+    });
+
+    // ─── PAYMENTS ─────────────────────────────────────────────────────────────
+    Route::middleware('auth:sanctum')->prefix('payments')->name('payments.')->group(function () {
+        Route::post('/initiate/{booking}', [PaymentController::class, 'process'])->name('initiate');
+    });
+
+    // CinetPay Webhook (public, no auth)
+    Route::post('/payments/notify', [PaymentController::class, 'notify'])->name('payments.notify');
+});

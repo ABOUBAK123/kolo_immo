@@ -1,0 +1,382 @@
+﻿@extends('layouts.app')
+
+@section('title', 'Publier un bien - Kolo Immo')
+
+@section('content')
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+    x-data="{
+        step: 1,
+        totalSteps: 7,
+        photos: [],
+        amenities: {{ json_encode(old('amenities', [])) }},
+        type: '{{ old('type', '') }}',
+        previewPhotos: [],
+
+        nextStep() { if(this.step < this.totalSteps) this.step++; },
+        prevStep() { if(this.step > 1) this.step--; },
+        setType(t) { this.type = t; },
+        toggleAmenity(a) {
+            if(this.amenities.includes(a)) {
+                this.amenities = this.amenities.filter(x => x !== a);
+            } else {
+                this.amenities.push(a);
+            }
+        },
+        handlePhotos(event) {
+            this.previewPhotos = [];
+            Array.from(event.target.files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => { this.previewPhotos.push(e.target.result); };
+                reader.readAsDataURL(file);
+            });
+        }
+    }">
+
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold text-gray-900 mb-1">Publier un bien</h1>
+        <p class="text-gray-500">ComplÃ©tez les informations pour mettre votre logement en location</p>
+    </div>
+
+    <!-- Step indicator -->
+    <div class="mb-8">
+        <div class="flex items-center gap-2 overflow-x-auto pb-2">
+            @foreach(['Type', 'Localisation', 'DÃ©tails', 'Tarifs', 'Ã‰quipements', 'RÃ¨gles', 'Photos'] as $i => $label)
+            <div class="flex items-center gap-2 flex-shrink-0">
+                <div class="flex items-center gap-1.5">
+                    <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all"
+                        :class="{{ $i + 1 }} < step ? 'bg-green-500 text-white' : ({{ $i + 1 }} === step ? 'bg-blue-700 text-white' : 'bg-gray-100 text-gray-400')">
+                        <template x-if="{{ $i + 1 }} < step">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        </template>
+                        <template x-if="{{ $i + 1 }} >= step">
+                            <span>{{ $i + 1 }}</span>
+                        </template>
+                    </div>
+                    <span class="text-xs font-medium hidden sm:block"
+                        :class="{{ $i + 1 }} === step ? 'text-blue-700' : '{{ $i + 1 }} < step ? text-green-600 : text-gray-400'">
+                        {{ $label }}
+                    </span>
+                </div>
+                @if($i < 6)
+                <div class="w-6 h-0.5 flex-shrink-0" :class="{{ $i + 1 }} < step ? 'bg-green-300' : 'bg-gray-200'"></div>
+                @endif
+            </div>
+            @endforeach
+        </div>
+        <!-- Progress bar -->
+        <div class="mt-3 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+            <div class="h-full bg-blue-700 rounded-full transition-all duration-300"
+                :style="'width: ' + ((step - 1) / (totalSteps - 1) * 100) + '%'"></div>
+        </div>
+    </div>
+
+    <form action="{{ route('owner.properties.store') }}" method="POST" enctype="multipart/form-data">
+        @csrf
+
+        <!-- STEP 1: Type & Basic Info -->
+        <div x-show="step === 1" class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <h2 class="text-lg font-bold text-gray-900 mb-5">Type et prÃ©sentation</h2>
+
+            <div class="mb-5">
+                <label class="block text-sm font-semibold text-gray-700 mb-3">Type de logement</label>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    @foreach(['studio' => 'Studio', 'appartement' => 'Appartement', 'villa' => 'Villa', 'chambre' => 'Chambre', 'duplex' => 'Duplex', 'maison' => 'Maison'] as $val => $label)
+                    <label class="cursor-pointer">
+                        <input type="radio" name="type" value="{{ $val }}" class="sr-only peer"
+                            @change="setType('{{ $val }}')" {{ old('type') === $val ? 'checked' : '' }}>
+                        <div class="p-3 border-2 border-gray-200 rounded-xl text-center transition-all
+                            peer-checked:border-blue-700 peer-checked:bg-blue-50 hover:border-blue-200"
+                            :class="type === '{{ $val }}' ? 'border-blue-700 bg-blue-50' : ''">
+                            <p class="font-semibold text-sm" :class="type === '{{ $val }}' ? 'text-blue-700' : 'text-gray-700'">{{ $label }}</p>
+                        </div>
+                    </label>
+                    @endforeach
+                </div>
+                @error('type')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+            </div>
+
+            <div class="mb-5">
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Titre de l'annonce</label>
+                <input type="text" name="title" value="{{ old('title') }}"
+                    placeholder="Ex: Bel appartement meublÃ© Ã  Cocody, Abidjan"
+                    class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 {{ $errors->has('title') ? 'border-red-300' : '' }}"
+                    maxlength="100" required>
+                <p class="text-xs text-gray-400 mt-1">Max 100 caractÃ¨res</p>
+                @error('title')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Description dÃ©taillÃ©e</label>
+                <textarea name="description" rows="5" placeholder="DÃ©crivez votre logement en dÃ©tail : espace, dÃ©coration, quartier, transports Ã  proximitÃ©..."
+                    class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none {{ $errors->has('description') ? 'border-red-300' : '' }}"
+                    required>{{ old('description') }}</textarea>
+                <p class="text-xs text-gray-400 mt-1">Min 100 caractÃ¨res recommandÃ©s</p>
+                @error('description')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+            </div>
+        </div>
+
+        <!-- STEP 2: Location -->
+        <div x-show="step === 2" x-cloak class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <h2 class="text-lg font-bold text-gray-900 mb-5">Localisation</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Pays</label>
+                    <select name="country" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <option value="">SÃ©lectionner...</option>
+                        @foreach(['CI' => 'CÃ´te d\'Ivoire', 'SN' => 'SÃ©nÃ©gal', 'BF' => 'Burkina Faso', 'ML' => 'Mali', 'TG' => 'Togo', 'BJ' => 'BÃ©nin', 'GN' => 'GuinÃ©e', 'GH' => 'Ghana'] as $code => $name)
+                        <option value="{{ $code }}" {{ old('country') === $code ? 'selected' : '' }}>{{ $name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Ville</label>
+                    <input type="text" name="city" value="{{ old('city') }}" placeholder="Abidjan" required
+                        class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Quartier / District</label>
+                    <input type="text" name="district" value="{{ old('district') }}" placeholder="Cocody, Plateau..."
+                        class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Adresse complÃ¨te</label>
+                    <input type="text" name="address" value="{{ old('address') }}" placeholder="Rue, numÃ©ro, immeuble..."
+                        class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <p class="text-xs text-gray-400 mt-1">L'adresse exacte ne sera visible qu'aprÃ¨s rÃ©servation confirmÃ©e</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Latitude (optionnel)</label>
+                    <input type="number" step="any" name="latitude" value="{{ old('latitude') }}" placeholder="5.3497"
+                        class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Longitude (optionnel)</label>
+                    <input type="number" step="any" name="longitude" value="{{ old('longitude') }}" placeholder="-4.0167"
+                        class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 3: Details -->
+        <div x-show="step === 3" x-cloak class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <h2 class="text-lg font-bold text-gray-900 mb-5">CaractÃ©ristiques</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                @foreach([
+                    ['name' => 'capacity', 'label' => 'CapacitÃ© (personnes)', 'type' => 'number', 'min' => 1, 'placeholder' => '2'],
+                    ['name' => 'bedrooms', 'label' => 'Chambres', 'type' => 'number', 'min' => 0, 'placeholder' => '1'],
+                    ['name' => 'bathrooms', 'label' => 'Salles de bain', 'type' => 'number', 'min' => 1, 'placeholder' => '1'],
+                    ['name' => 'area', 'label' => 'Superficie (mÂ²)', 'type' => 'number', 'min' => 1, 'placeholder' => '45'],
+                    ['name' => 'check_in_time', 'label' => 'Heure d\'arrivÃ©e', 'type' => 'time', 'min' => null, 'placeholder' => ''],
+                    ['name' => 'check_out_time', 'label' => 'Heure de dÃ©part', 'type' => 'time', 'min' => null, 'placeholder' => ''],
+                ] as $field)
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">{{ $field['label'] }}</label>
+                    <input type="{{ $field['type'] }}" name="{{ $field['name'] }}" value="{{ old($field['name']) }}"
+                        {{ $field['min'] !== null ? 'min="'.$field['min'].'"' : '' }}
+                        placeholder="{{ $field['placeholder'] }}"
+                        class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                @endforeach
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Type de rÃ©servation</label>
+                    <select name="booking_type" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="request" {{ old('booking_type') === 'request' ? 'selected' : '' }}>Sur demande</option>
+                        <option value="instant" {{ old('booking_type') === 'instant' ? 'selected' : '' }}>InstantanÃ©e</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Politique d'annulation</label>
+                    <select name="cancellation_policy" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="flexible" {{ old('cancellation_policy') === 'flexible' ? 'selected' : '' }}>Flexible (24h)</option>
+                        <option value="moderate" {{ old('cancellation_policy') === 'moderate' ? 'selected' : '' }}>ModÃ©rÃ©e (5 jours)</option>
+                        <option value="strict" {{ old('cancellation_policy') === 'strict' ? 'selected' : '' }}>Stricte</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 4: Pricing -->
+        <div x-show="step === 4" x-cloak class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <h2 class="text-lg font-bold text-gray-900 mb-5">Tarification (FCFA)</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                @foreach([
+                    ['name' => 'price_per_night', 'label' => 'Prix par nuit', 'required' => true, 'hint' => 'Tarif de base obligatoire'],
+                    ['name' => 'price_per_week', 'label' => 'Prix par semaine', 'required' => false, 'hint' => 'Optionnel â€” avec rÃ©duction'],
+                    ['name' => 'price_per_month', 'label' => 'Prix par mois', 'required' => false, 'hint' => 'Optionnel â€” long sÃ©jour'],
+                    ['name' => 'deposit_amount', 'label' => 'Caution', 'required' => false, 'hint' => 'RemboursÃ©e Ã  la fin du sÃ©jour'],
+                ] as $field)
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+                        {{ $field['label'] }} {{ $field['required'] ? '<span class="text-red-500">*</span>' : '' }}
+                    </label>
+                    <div class="relative">
+                        <input type="number" name="{{ $field['name'] }}" value="{{ old($field['name']) }}"
+                            min="0" step="500" placeholder="0"
+                            {{ $field['required'] ? 'required' : '' }}
+                            class="w-full pl-4 pr-16 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 {{ $errors->has($field['name']) ? 'border-red-300' : '' }}">
+                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">FCFA</span>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1">{{ $field['hint'] }}</p>
+                    @error($field['name'])<p class="text-red-500 text-xs">{{ $message }}</p>@enderror
+                </div>
+                @endforeach
+            </div>
+            <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                <p class="text-sm text-blue-800">
+                    <strong>Note :</strong> Kolo Immo prÃ©lÃ¨ve 3% de frais de service sur chaque rÃ©servation, payÃ©s par le locataire. Vous recevez le montant total indiquÃ©.
+                </p>
+            </div>
+        </div>
+
+        <!-- STEP 5: Amenities -->
+        <div x-show="step === 5" x-cloak class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <h2 class="text-lg font-bold text-gray-900 mb-2">Ã‰quipements disponibles</h2>
+            <p class="text-gray-500 text-sm mb-5">SÃ©lectionnez tout ce qui est disponible dans votre logement</p>
+            @php
+            $amenityGroups = [
+                'Internet & Tech' => ['wifi' => 'Wi-Fi', 'television' => 'TÃ©lÃ©vision', 'cable_tv' => 'TV cÃ¢ble/satellite'],
+                'Confort' => ['climatisation' => 'Climatisation', 'ventilateur' => 'Ventilateur', 'chauffage' => 'Chauffage'],
+                'Cuisine' => ['cuisine' => 'Cuisine Ã©quipÃ©e', 'refrigerateur' => 'RÃ©frigÃ©rateur', 'four' => 'Four/Micro-ondes', 'machine_cafe' => 'Machine Ã  cafÃ©'],
+                'SÃ©curitÃ©' => ['gardien' => 'Gardien 24h/24', 'camera' => 'CamÃ©ras de sÃ©curitÃ©', 'interphone' => 'Interphone', 'coffre_fort' => 'Coffre-fort'],
+                'ExtÃ©rieur' => ['piscine' => 'Piscine', 'parking' => 'Parking privÃ©', 'balcon' => 'Balcon/Terrasse', 'jardin' => 'Jardin'],
+                'Services' => ['ascenseur' => 'Ascenseur', 'machine_a_laver' => 'Machine Ã  laver', 'generateur' => 'Groupe Ã©lectrogÃ¨ne', 'eau_chaude' => 'Eau chaude'],
+            ];
+            @endphp
+            @foreach($amenityGroups as $group => $items)
+            <div class="mb-5">
+                <h3 class="text-sm font-bold text-gray-600 mb-3 uppercase tracking-wide">{{ $group }}</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    @foreach($items as $val => $label)
+                    <label class="cursor-pointer flex items-center gap-2 p-3 border-2 rounded-xl transition-all hover:border-blue-200"
+                        :class="amenities.includes('{{ $val }}') ? 'border-blue-700 bg-blue-50' : 'border-gray-200'">
+                        <input type="checkbox" name="amenities[]" value="{{ $val }}"
+                            @click="toggleAmenity('{{ $val }}')"
+                            {{ in_array($val, old('amenities', [])) ? 'checked' : '' }}
+                            class="hidden">
+                        <div class="w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all"
+                            :class="amenities.includes('{{ $val }}') ? 'bg-blue-700 border-blue-700' : 'border-gray-300'">
+                            <svg x-show="amenities.includes('{{ $val }}')" class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                        <span class="text-xs font-medium" :class="amenities.includes('{{ $val }}') ? 'text-blue-700' : 'text-gray-700'">{{ $label }}</span>
+                    </label>
+                    @endforeach
+                </div>
+            </div>
+            @endforeach
+        </div>
+
+        <!-- STEP 6: Rules -->
+        <div x-show="step === 6" x-cloak class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <h2 class="text-lg font-bold text-gray-900 mb-5">RÃ¨gles de la maison</h2>
+            <div class="space-y-4" x-data="{ pets: '{{ old('pets_allowed', '0') }}', smoking: '{{ old('smoking_allowed', '0') }}', parties: '{{ old('parties_allowed', '0') }}' }">
+                @foreach([
+                    ['name' => 'pets_allowed', 'label' => 'Animaux de compagnie', 'model' => 'pets', 'icon' => 'ðŸ¾', 'yes' => 'AutorisÃ©s', 'no' => 'Non autorisÃ©s'],
+                    ['name' => 'smoking_allowed', 'label' => 'Tabac/Cigarettes', 'model' => 'smoking', 'icon' => 'ðŸš¬', 'yes' => 'AutorisÃ©', 'no' => 'Interdit'],
+                    ['name' => 'parties_allowed', 'label' => 'FÃªtes et Ã©vÃ¨nements', 'model' => 'parties', 'icon' => 'ðŸŽ‰', 'yes' => 'AutorisÃ©es', 'no' => 'Non autorisÃ©es'],
+                ] as $rule)
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">{{ $rule['icon'] }}</span>
+                        <div>
+                            <p class="font-semibold text-gray-900 text-sm">{{ $rule['label'] }}</p>
+                            <p class="text-xs text-gray-500" x-text="{{ $rule['model'] }} === '1' ? '{{ $rule['yes'] }}' : '{{ $rule['no'] }}'"></p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <input type="hidden" name="{{ $rule['name'] }}" :value="{{ $rule['model'] }}">
+                        <button type="button"
+                            @click="{{ $rule['model'] }} = '0'"
+                            class="px-3 py-1.5 rounded-lg text-xs font-semibold border-2 transition-all"
+                            :class="{{ $rule['model'] }} === '0' ? 'border-red-500 bg-red-500 text-white' : 'border-gray-200 text-gray-600 hover:border-red-300'">
+                            Non
+                        </button>
+                        <button type="button"
+                            @click="{{ $rule['model'] }} = '1'"
+                            class="px-3 py-1.5 rounded-lg text-xs font-semibold border-2 transition-all"
+                            :class="{{ $rule['model'] }} === '1' ? 'border-green-500 bg-green-500 text-white' : 'border-gray-200 text-gray-600 hover:border-green-300'">
+                            Oui
+                        </button>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+
+            <div class="mt-5">
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">RÃ¨gles supplÃ©mentaires (optionnel)</label>
+                <textarea name="additional_rules" rows="3" placeholder="Ex: Pas de bruit aprÃ¨s 22h, chaussures Ã  l'entrÃ©e..."
+                    class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none">{{ old('additional_rules') }}</textarea>
+            </div>
+        </div>
+
+        <!-- STEP 7: Photos -->
+        <div x-show="step === 7" x-cloak class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <h2 class="text-lg font-bold text-gray-900 mb-2">Photos de votre logement</h2>
+            <p class="text-gray-500 text-sm mb-5">Les annonces avec au moins 5 photos reÃ§oivent 3Ã— plus de rÃ©servations</p>
+
+            <div class="border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center hover:border-blue-400 transition-colors cursor-pointer"
+                @click="$refs.photoInput.click()"
+                @dragover.prevent
+                @drop.prevent="handlePhotos({ target: { files: $event.dataTransfer.files } })">
+                <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <p class="font-semibold text-gray-700 mb-1">Cliquez ou glissez vos photos ici</p>
+                <p class="text-gray-400 text-xs">JPG, PNG, WebP â€” Max 5MB par photo â€” Min 5 photos recommandÃ©es</p>
+                <input type="file" name="photos[]" multiple accept="image/*" x-ref="photoInput"
+                    @change="handlePhotos($event)" class="hidden">
+            </div>
+
+            <!-- Preview grid -->
+            <div x-show="previewPhotos.length > 0" class="mt-4 grid grid-cols-3 sm:grid-cols-4 gap-2">
+                <template x-for="(src, i) in previewPhotos" :key="i">
+                    <div class="relative">
+                        <img :src="src" class="w-full h-24 object-cover rounded-xl">
+                        <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 rounded-xl transition-all"></div>
+                        <div x-show="i === 0" class="absolute top-1 left-1 bg-blue-700 text-white text-xs px-2 py-0.5 rounded font-semibold">Principale</div>
+                    </div>
+                </template>
+            </div>
+            <p x-show="previewPhotos.length > 0" class="text-xs text-gray-400 mt-2 text-center">
+                <span x-text="previewPhotos.length"></span> photo(s) sÃ©lectionnÃ©e(s). La premiÃ¨re sera la photo principale.
+            </p>
+
+            @error('photos')<p class="text-red-500 text-xs mt-2">{{ $message }}</p>@enderror
+            @error('photos.*')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+        </div>
+
+        <!-- Navigation buttons -->
+        <div class="flex items-center justify-between mt-6">
+            <button type="button" @click="prevStep()" x-show="step > 1"
+                class="flex items-center gap-2 border border-gray-200 text-gray-700 font-semibold px-5 py-3 rounded-xl hover:bg-gray-50 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+                PrÃ©cÃ©dent
+            </button>
+            <div x-show="step === 1"></div>
+
+            <div class="flex items-center gap-3">
+                <span class="text-sm text-gray-400">Ã‰tape <span x-text="step"></span> / {{ 7 }}</span>
+                <button type="button" @click="nextStep()" x-show="step < totalSteps"
+                    class="flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white font-semibold px-5 py-3 rounded-xl transition-colors">
+                    Suivant
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </button>
+                <button type="submit" x-show="step === totalSteps"
+                    class="flex items-center gap-2 bg-orange-400 hover:bg-orange-500 text-white font-bold px-6 py-3 rounded-xl transition-colors shadow-lg">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Publier mon annonce
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+@endsection
