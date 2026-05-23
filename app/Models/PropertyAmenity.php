@@ -25,24 +25,39 @@ class PropertyAmenity extends Model
     public static function allLabels(): array
     {
         return [
+            // Internet & Tech
             'wifi'             => 'Wi-Fi',
-            'air_conditioning' => 'Climatisation',
-            'equipped_kitchen' => 'Cuisine équipée',
-            'parking'          => 'Parking',
-            'generator'        => 'Groupe électrogène',
-            'pool'             => 'Piscine',
-            'gym'              => 'Salle de sport',
-            'security'         => 'Sécurité 24h',
             'tv'               => 'Télévision',
+            'cable_tv'         => 'TV câble/satellite',
+            // Confort
+            'air_conditioning' => 'Climatisation',
+            'fan'              => 'Ventilateur',
+            'heating'          => 'Chauffage',
+            // Cuisine
+            'equipped_kitchen' => 'Cuisine équipée',
+            'refrigerator'     => 'Réfrigérateur',
+            'oven'             => 'Four/Micro-ondes',
+            'coffee_machine'   => 'Machine à café',
+            // Sécurité
+            'security'         => 'Sécurité 24h',
+            'cctv'             => 'Caméras de sécurité',
+            'intercom'         => 'Interphone',
+            'safe'             => 'Coffre-fort',
+            // Extérieur
+            'pool'             => 'Piscine',
+            'parking'          => 'Parking',
+            'balcony'          => 'Balcon/Terrasse',
+            'garden'           => 'Jardin',
+            // Services
+            'elevator'         => 'Ascenseur',
             'washer'           => 'Machine à laver',
             'dryer'            => 'Sèche-linge',
             'iron'             => 'Fer à repasser',
             'workspace'        => 'Espace de travail',
-            'balcony'          => 'Balcon',
-            'garden'           => 'Jardin',
-            'elevator'         => 'Ascenseur',
             'hot_water'        => 'Eau chaude',
+            'generator'        => 'Groupe électrogène',
             'solar_power'      => 'Énergie solaire',
+            'gym'              => 'Salle de sport',
         ];
     }
 
@@ -55,23 +70,32 @@ class PropertyAmenity extends Model
     {
         return match($this->amenity) {
             'wifi'             => '📶',
-            'air_conditioning' => '❄️',
-            'equipped_kitchen' => '🍳',
-            'parking'          => '🅿️',
-            'generator'        => '⚡',
-            'pool'             => '🏊',
-            'gym'              => '💪',
-            'security'         => '🔒',
             'tv'               => '📺',
+            'cable_tv'         => '📡',
+            'air_conditioning' => '❄️',
+            'fan'              => '🌬️',
+            'heating'          => '🔥',
+            'equipped_kitchen' => '🍳',
+            'refrigerator'     => '🧊',
+            'oven'             => '♨️',
+            'coffee_machine'   => '☕',
+            'security'         => '🔒',
+            'cctv'             => '📹',
+            'intercom'         => '🔔',
+            'safe'             => '🗄️',
+            'pool'             => '🏊',
+            'parking'          => '🅿️',
+            'balcony'          => '🏠',
+            'garden'           => '🌿',
+            'elevator'         => '🛗',
             'washer'           => '🫧',
             'dryer'            => '🌀',
             'iron'             => '👔',
             'workspace'        => '💼',
-            'balcony'          => '🏠',
-            'garden'           => '🌿',
-            'elevator'         => '🛗',
             'hot_water'        => '🚿',
+            'generator'        => '⚡',
             'solar_power'      => '☀️',
+            'gym'              => '💪',
             default            => '✓',
         };
     }

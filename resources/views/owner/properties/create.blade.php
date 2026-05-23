@@ -235,12 +235,12 @@
             <p class="text-gray-500 text-sm mb-5">Sélectionnez tout ce qui est disponible dans votre logement</p>
             @php
             $amenityGroups = [
-                'Internet & Tech' => ['wifi' => 'Wi-Fi', 'television' => 'Télévision', 'cable_tv' => 'TV câble/satellite'],
-                'Confort' => ['climatisation' => 'Climatisation', 'ventilateur' => 'Ventilateur', 'chauffage' => 'Chauffage'],
-                'Cuisine' => ['cuisine' => 'Cuisine équipée', 'refrigerateur' => 'Réfrigérateur', 'four' => 'Four/Micro-ondes', 'machine_cafe' => 'Machine à café'],
-                'Sécurité' => ['gardien' => 'Gardien 24h/24', 'camera' => 'Caméras de sécurité', 'interphone' => 'Interphone', 'coffre_fort' => 'Coffre-fort'],
-                'Extérieur' => ['piscine' => 'Piscine', 'parking' => 'Parking privé', 'balcon' => 'Balcon/Terrasse', 'jardin' => 'Jardin'],
-                'Services' => ['ascenseur' => 'Ascenseur', 'machine_a_laver' => 'Machine à laver', 'generateur' => 'Groupe électrogène', 'eau_chaude' => 'Eau chaude'],
+                'Internet & Tech' => ['wifi' => 'Wi-Fi', 'tv' => 'Télévision', 'cable_tv' => 'TV câble/satellite'],
+                'Confort' => ['air_conditioning' => 'Climatisation', 'fan' => 'Ventilateur', 'heating' => 'Chauffage'],
+                'Cuisine' => ['equipped_kitchen' => 'Cuisine équipée', 'refrigerator' => 'Réfrigérateur', 'oven' => 'Four/Micro-ondes', 'coffee_machine' => 'Machine à café'],
+                'Sécurité' => ['security' => 'Sécurité 24h', 'cctv' => 'Caméras de sécurité', 'intercom' => 'Interphone', 'safe' => 'Coffre-fort'],
+                'Extérieur' => ['pool' => 'Piscine', 'parking' => 'Parking', 'balcony' => 'Balcon/Terrasse', 'garden' => 'Jardin'],
+                'Services' => ['elevator' => 'Ascenseur', 'washer' => 'Machine à laver', 'generator' => 'Groupe électrogène', 'hot_water' => 'Eau chaude'],
             ];
             @endphp
             @foreach($amenityGroups as $group => $items)

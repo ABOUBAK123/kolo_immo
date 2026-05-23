@@ -187,14 +187,7 @@
         <div x-show="step === 5" x-cloak class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             <h2 class="text-lg font-bold text-gray-900 mb-5">Équipements</h2>
             @php
-            $allAmenities = [
-                'wifi' => 'Wi-Fi', 'climatisation' => 'Climatisation', 'parking' => 'Parking',
-                'piscine' => 'Piscine', 'cuisine' => 'Cuisine équipée', 'television' => 'Télévision',
-                'machine_a_laver' => 'Machine à laver', 'gardien' => 'Gardien 24h/24',
-                'ascenseur' => 'Ascenseur', 'generateur' => 'Groupe électrogène',
-                'eau_chaude' => 'Eau chaude', 'balcon' => 'Balcon/Terrasse',
-                'refrigerateur' => 'Réfrigérateur', 'four' => 'Four/Micro-ondes',
-            ];
+            // $allAmenities is passed from PropertyController::edit() via PropertyAmenity::allLabels()
             @endphp
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 @foreach($allAmenities as $val => $label)
