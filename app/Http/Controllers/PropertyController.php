@@ -124,6 +124,11 @@ class PropertyController extends Controller
                 ->store('properties/covers', 'public');
         }
 
+        // Valeurs par défaut pour les colonnes NOT NULL qui sont optionnelles dans le formulaire
+        $data['check_in_time']  = $data['check_in_time']  ?? '14:00';
+        $data['check_out_time'] = $data['check_out_time'] ?? '11:00';
+        $data['deposit_amount'] = $data['deposit_amount'] ?? 0;
+
         // Retirer amenities et photos du tableau avant création
         $amenities = $data['amenities'] ?? [];
         unset($data['amenities'], $data['photos']);
@@ -174,14 +179,22 @@ class PropertyController extends Controller
         $data = $request->validated();
 
         if ($request->hasFile('cover_photo')) {
-            // Delete old cover
             if ($property->cover_photo) {
                 Storage::disk('public')->delete($property->cover_photo);
             }
             $data['cover_photo'] = $request->file('cover_photo')
                 ->store('properties/covers', 'public');
+        } else {
+            // Ne pas écraser la cover_photo existante si aucun nouveau fichier
+            unset($data['cover_photo']);
         }
 
+        // Valeurs par défaut pour les colonnes NOT NULL optionnelles
+        $data['check_in_time']  = $data['check_in_time']  ?? $property->check_in_time ?? '14:00';
+        $data['check_out_time'] = $data['check_out_time'] ?? $property->check_out_time ?? '11:00';
+        $data['deposit_amount'] = $data['deposit_amount'] ?? $property->deposit_amount ?? 0;
+
+        unset($data['amenities'], $data['photos']);
         $property->update($data);
 
         // Update amenities
@@ -195,7 +208,7 @@ class PropertyController extends Controller
             }
         }
 
-        return back()->with('success', 'Logement mis ÃÂ  jour avec succÃÂ¨s.');
+        return back()->with('success', 'Logement mis à jour avec succès.');
     }
 
     public function destroy(Property $property)
