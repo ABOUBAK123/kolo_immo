@@ -68,7 +68,7 @@ export const BookingDetailScreen: React.FC<Props> = ({navigation, route}) => {
   const canPay = booking.status === 'pending' && booking.payment_status !== 'paid';
 
   return (
-    <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
+    <ScrollView style={styles.screen} showsVerticalScrollIndicator={true}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back}>

@@ -106,7 +106,7 @@ export const ConversationScreen: React.FC<Props> = ({navigation, route}) => {
         data={messages}
         keyExtractor={item => item.id.toString()}
         contentContainerStyle={styles.messageList}
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={true}
         ListEmptyComponent={
           <View style={styles.emptyConv}>
             <Text style={styles.emptyConvText}>Démarrez la conversation 👋</Text>

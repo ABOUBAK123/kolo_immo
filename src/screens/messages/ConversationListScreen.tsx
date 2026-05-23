@@ -50,7 +50,7 @@ export const ConversationListScreen: React.FC<Props> = ({navigation}) => {
         data={conversations}
         keyExtractor={item => item.id.toString()}
         contentContainerStyle={styles.list}
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={true}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

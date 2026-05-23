@@ -59,7 +59,7 @@ export const LoginScreen: React.FC<Props> = ({navigation}) => {
       <ScrollView
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}>
+        showsVerticalScrollIndicator={true}>
 
         {/* Hero */}
         <View style={styles.hero}>

@@ -88,7 +88,7 @@ export const BookingListScreen: React.FC<Props> = ({navigation}) => {
         data={filtered}
         keyExtractor={item => item.id.toString()}
         contentContainerStyle={styles.list}
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={true}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

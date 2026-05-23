@@ -74,7 +74,7 @@ export const PaymentScreen: React.FC<Props> = ({navigation, route}) => {
   if (!booking) return null;
 
   return (
-    <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
+    <ScrollView style={styles.screen} showsVerticalScrollIndicator={true}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back}>
           <Text style={styles.backArrow}>←</Text>

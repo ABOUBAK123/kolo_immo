@@ -137,7 +137,7 @@ export const BookingCreateScreen: React.FC<Props> = ({navigation, route}) => {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView
           contentContainerStyle={styles.content}
-          showsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator={true}
           keyboardShouldPersistTaps="handled">
 
           {/* ── Property summary ── */}

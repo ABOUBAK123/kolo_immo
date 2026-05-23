@@ -214,6 +214,7 @@ export const OwnerPropertiesScreen: React.FC<Props> = ({navigation}) => {
         keyExtractor={item => String(item.id)}
         renderItem={renderItem}
         contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={true}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

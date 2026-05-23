@@ -164,7 +164,7 @@ export const SearchScreen: React.FC<Props> = ({navigation, route}) => {
           data={properties}
           keyExtractor={item => item.id.toString()}
           contentContainerStyle={styles.list}
-          showsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator={true}
           onEndReached={() => { if (page <= lastPage && !loadingMore) search(); }}
           onEndReachedThreshold={0.3}
           ListEmptyComponent={

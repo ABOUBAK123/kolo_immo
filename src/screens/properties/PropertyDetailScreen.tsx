@@ -54,7 +54,7 @@ export const PropertyDetailScreen: React.FC<Props> = ({navigation, route}) => {
 
   return (
     <View style={styles.screen}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={true}>
         {/* Photo gallery */}
         <View style={styles.gallery}>
           {allPhotos.length > 0 ? (

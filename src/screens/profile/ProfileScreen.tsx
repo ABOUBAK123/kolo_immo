@@ -64,7 +64,7 @@ export const ProfileScreen: React.FC<Props> = ({navigation}) => {
     <View style={styles.screen}>
       <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={true}>
         {/* ── Hero ── */}
         <View style={styles.hero}>
           <View style={styles.avatar}>

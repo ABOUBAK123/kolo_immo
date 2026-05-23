@@ -78,7 +78,7 @@ export const HomeScreen: React.FC<Props> = ({navigation}) => {
       <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
 
       <ScrollView
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={true}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />
         }>

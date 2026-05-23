@@ -235,7 +235,7 @@ export const OwnerAddPropertyScreen: React.FC<Props> = ({navigation}) => {
         style={{flex: 1}}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView
-          showsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator={true}
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled">
 

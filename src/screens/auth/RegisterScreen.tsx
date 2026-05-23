@@ -143,7 +143,7 @@ export const RegisterScreen: React.FC<Props> = ({navigation}) => {
       <ScrollView
         contentContainerStyle={styles.body}
         keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}>
+        showsVerticalScrollIndicator={true}>
 
         {/* ── Step 0 ── */}
         {step === 0 && (
