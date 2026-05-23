@@ -194,16 +194,35 @@ class PropertyController extends Controller
         $data['check_out_time'] = $data['check_out_time'] ?? $property->check_out_time ?? '11:00';
         $data['deposit_amount'] = $data['deposit_amount'] ?? $property->deposit_amount ?? 0;
 
+        // Save before unsetting
+        $amenities = array_key_exists('amenities', $data) ? ($data['amenities'] ?? []) : null;
+
         unset($data['amenities'], $data['photos']);
         $property->update($data);
 
-        // Update amenities
-        if (array_key_exists('amenities', $data)) {
+        // Update amenities when form sends the field
+        if ($amenities !== null) {
             $property->amenities()->delete();
-            foreach ((array) ($data['amenities'] ?? []) as $amenity) {
+            foreach ((array) $amenities as $amenity) {
                 PropertyAmenity::create([
                     'property_id' => $property->id,
                     'amenity'     => $amenity,
+                ]);
+            }
+        }
+
+        // Handle new photos uploaded via the edit form
+        if ($request->hasFile('photos')) {
+            $sortOrder = $property->photos()->max('sort_order') ?? 0;
+            foreach ($request->file('photos') as $photo) {
+                $path = $photo->store('properties/photos', 'public');
+                $sortOrder++;
+                $isFirst = $sortOrder === 1 && $property->photos()->count() === 1;
+                PropertyPhoto::create([
+                    'property_id' => $property->id,
+                    'path'        => $path,
+                    'sort_order'  => $sortOrder,
+                    'is_cover'    => $isFirst,
                 ]);
             }
         }

@@ -19,8 +19,17 @@
             }
         },
         handlePhotos(event) {
+            const dt = new DataTransfer();
+            if (this.$refs.photoInput.files) {
+                Array.from(this.$refs.photoInput.files).forEach(f => dt.items.add(f));
+            }
+            const existing = Array.from(dt.files).map(f => f.name);
+            Array.from(event.target.files).forEach(f => {
+                if (!existing.includes(f.name)) dt.items.add(f);
+            });
+            this.$refs.photoInput.files = dt.files;
             this.previewPhotos = [];
-            Array.from(event.target.files).forEach(file => {
+            Array.from(dt.files).forEach(file => {
                 const reader = new FileReader();
                 reader.onload = (e) => { this.previewPhotos.push(e.target.result); };
                 reader.readAsDataURL(file);

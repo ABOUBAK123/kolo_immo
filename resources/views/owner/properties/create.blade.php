@@ -23,8 +23,20 @@
             }
         },
         handlePhotos(event) {
+            const dt = new DataTransfer();
+            // Keep previously selected files
+            if (this.$refs.photoInput.files) {
+                Array.from(this.$refs.photoInput.files).forEach(f => dt.items.add(f));
+            }
+            // Add newly selected files (skip duplicates by name)
+            const existing = Array.from(dt.files).map(f => f.name);
+            Array.from(event.target.files).forEach(f => {
+                if (!existing.includes(f.name)) dt.items.add(f);
+            });
+            this.$refs.photoInput.files = dt.files;
+            // Rebuild previews
             this.previewPhotos = [];
-            Array.from(event.target.files).forEach(file => {
+            Array.from(dt.files).forEach(file => {
                 const reader = new FileReader();
                 reader.onload = (e) => { this.previewPhotos.push(e.target.result); };
                 reader.readAsDataURL(file);
