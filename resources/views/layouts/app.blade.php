@@ -12,54 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50:  '#EBF5FB',
-                            100: '#D6EAF8',
-                            200: '#AED6F1',
-                            300: '#85C1E9',
-                            400: '#5DADE2',
-                            500: '#3498DB',
-                            600: '#2E86C1',
-                            700: '#1B4F72',
-                            800: '#154360',
-                            900: '#0D2B3E',
-                        },
-                        accent: {
-                            300: '#FAD7A0',
-                            400: '#F8C471',
-                            500: '#F39C12',
-                            600: '#D68910',
-                            700: '#B7770D',
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
-
-    <!-- Alpine.js CDN -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        .nav-link { @apply text-gray-600 hover:text-primary-700 font-medium transition-colors duration-200; }
-        .btn-primary { @apply bg-primary-700 hover:bg-primary-800 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md; }
-        .btn-accent { @apply bg-accent-500 hover:bg-accent-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md; }
-        .btn-outline { @apply border-2 border-primary-700 text-primary-700 hover:bg-primary-700 hover:text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200; }
-        .card { @apply bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden; }
-        .input-field { @apply w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-gray-700; }
-        [x-cloak] { display: none !important; }
-    </style>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     @stack('styles')
 </head>
