@@ -18,7 +18,7 @@ class StorePropertyRequest extends FormRequest
             'title'               => ['required', 'string', 'min:5', 'max:150'],
             'description'         => ['required', 'string', 'min:50', 'max:3000'],
             // Accepte les valeurs françaises du formulaire ET les valeurs anglaises
-            'type'                => ['required', 'in:studio,appartement,apartment,villa,chambre,room,duplex,maison,house'],
+            'type'                => ['required', 'in:studio,apartment,villa,room,duplex,house'],
             'country'             => ['required', 'string', 'max:100'],
             'city'                => ['required', 'string', 'max:100'],
             'district'            => ['nullable', 'string', 'max:100'],
@@ -120,6 +120,16 @@ class StorePropertyRequest extends FormRequest
         // Renommage area → area_sqm si le formulaire envoie "area"
         if ($this->has('area') && !$this->has('area_sqm')) {
             $merge['area_sqm'] = $this->input('area') ?: null;
+        }
+
+        // Normalisation des valeurs françaises de type → valeurs ENUM de la DB
+        $typeMap = [
+            'appartement' => 'apartment',
+            'chambre'     => 'room',
+            'maison'      => 'house',
+        ];
+        if ($this->has('type') && isset($typeMap[$this->input('type')])) {
+            $merge['type'] = $typeMap[$this->input('type')];
         }
 
         $this->merge($merge);
