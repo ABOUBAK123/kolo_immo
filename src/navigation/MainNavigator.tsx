@@ -21,6 +21,7 @@ import {ConversationListScreen} from '../screens/messages/ConversationListScreen
 import {ConversationScreen} from '../screens/messages/ConversationScreen';
 import {ProfileScreen} from '../screens/profile/ProfileScreen';
 import {OwnerPropertiesScreen} from '../screens/owner/OwnerPropertiesScreen';
+import {OwnerAddPropertyScreen} from '../screens/owner/OwnerAddPropertyScreen';
 import {PaymentScreen} from '../screens/bookings/PaymentScreen';
 import {colors, radius, shadows} from '../utils/theme';
 import {
@@ -131,6 +132,7 @@ function ProfileStackNav() {
     <ProfileStack.Navigator screenOptions={{headerShown: false}}>
       <ProfileStack.Screen name="ProfileScreen"    component={ProfileScreen} />
       <ProfileStack.Screen name="OwnerProperties"  component={OwnerPropertiesScreen} />
+      <ProfileStack.Screen name="OwnerAddProperty" component={OwnerAddPropertyScreen} />
     </ProfileStack.Navigator>
   );
 }

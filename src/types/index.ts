@@ -44,7 +44,7 @@ export interface Property {
   bathrooms: number;
   area_sqm?: number | null;
   booking_type?: string;
-  status?: 'active' | 'inactive' | 'draft';
+  status?: 'active' | 'inactive' | 'draft' | 'suspended';
   rating_avg: number;
   rating_count?: number;
   reviews_count: number;
@@ -185,4 +185,5 @@ export type ProfileStackParamList = {
   ProfileScreen: undefined;
   KycScreen: undefined;
   OwnerProperties: undefined;
+  OwnerAddProperty: undefined;
 };

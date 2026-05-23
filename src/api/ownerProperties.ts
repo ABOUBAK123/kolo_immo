@@ -28,6 +28,13 @@ export const ownerPropertiesApi = {
   show: (id: number) =>
     apiClient.get<{success: boolean; data: Property}>(`/owner/properties/${id}`),
 
+  store: (formData: FormData) =>
+    apiClient.post<{success: boolean; message: string; data: Property}>(
+      '/owner/properties',
+      formData,
+      {headers: {'Content-Type': 'multipart/form-data'}},
+    ),
+
   toggleStatus: (id: number) =>
     apiClient.post<ToggleStatusResponse>(`/owner/properties/${id}/toggle-status`),
 

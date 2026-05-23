@@ -179,7 +179,12 @@ export const OwnerPropertiesScreen: React.FC<Props> = ({navigation}) => {
             <Text style={styles.backIcon}>‹</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Mes logements</Text>
-          <View style={{width: 40}} />
+          <TouchableOpacity
+            style={styles.addBtn}
+            onPress={() => navigation.navigate('OwnerAddProperty')}
+            activeOpacity={0.8}>
+            <Text style={styles.addBtnText}>+</Text>
+          </TouchableOpacity>
         </View>
         <LoadingSpinner message="Chargement..." />
       </View>
@@ -196,7 +201,12 @@ export const OwnerPropertiesScreen: React.FC<Props> = ({navigation}) => {
           <Text style={styles.backIcon}>‹</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Mes logements</Text>
-        <View style={{width: 40}} />
+        <TouchableOpacity
+          style={styles.addBtn}
+          onPress={() => navigation.navigate('OwnerAddProperty')}
+          activeOpacity={0.8}>
+          <Text style={styles.addBtnText}>+</Text>
+        </TouchableOpacity>
       </View>
 
       <FlatList
@@ -216,7 +226,7 @@ export const OwnerPropertiesScreen: React.FC<Props> = ({navigation}) => {
             <Text style={styles.emptyIcon}>🏠</Text>
             <Text style={styles.emptyTitle}>Aucun logement</Text>
             <Text style={styles.emptySub}>
-              Créez vos annonces depuis le site web Kolo Immo.
+              Appuyez sur + pour ajouter votre premier logement.
             </Text>
           </View>
         }
@@ -247,6 +257,15 @@ const styles = StyleSheet.create({
   },
   backIcon: {color: '#fff', fontSize: 26, fontWeight: '300', marginTop: -2},
   headerTitle: {...typography.h3, color: '#fff'},
+  addBtn: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.accent,
+    borderRadius: radius.full,
+  },
+  addBtnText: {color: '#fff', fontSize: 24, fontWeight: '600', lineHeight: 28},
 
   list: {padding: spacing.md, gap: 12, paddingBottom: 100},
 
