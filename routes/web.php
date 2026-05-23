@@ -198,6 +198,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Settings (API configurations)
     Route::get('/settings', [SettingsController::class, 'show'])->name('settings.show');
     Route::put('/settings/{section}', [SettingsController::class, 'update'])->name('settings.update');
+    Route::post('/settings/payment-logos', [SettingsController::class, 'uploadPaymentLogo'])->name('settings.payment-logos.upload');
+    Route::delete('/settings/payment-logos', [SettingsController::class, 'deletePaymentLogo'])->name('settings.payment-logos.delete');
 });
 
 // ─── PAYMENT WEBHOOK (public, no CSRF) ────────────────────────────────────────

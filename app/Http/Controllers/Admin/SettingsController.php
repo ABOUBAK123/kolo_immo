@@ -96,6 +96,45 @@ class SettingsController extends Controller
             ->with('success', 'Configuration mise à jour avec succès.');
     }
 
+    public function uploadPaymentLogo(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $request->validate([
+            'method' => ['required', 'in:orange_money,wave,mtn_momo,moov_money'],
+            'logo'   => ['required', 'image', 'mimes:png,jpg,jpeg,webp', 'max:1024'],
+        ]);
+
+        $method = $request->input('method');
+        $dir    = storage_path('app/public/payment_logos');
+
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        // Remove any existing logo for this method
+        foreach (glob("{$dir}/{$method}.*") as $old) {
+            @unlink($old);
+        }
+
+        $ext  = $request->file('logo')->getClientOriginalExtension();
+        $request->file('logo')->move($dir, "{$method}.{$ext}");
+
+        return redirect()->route('admin.settings.show', ['tab' => 'payments'])
+            ->with('success', "Logo {$method} mis à jour.");
+    }
+
+    public function deletePaymentLogo(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $method = $request->input('method');
+        $dir    = storage_path('app/public/payment_logos');
+
+        foreach (glob("{$dir}/{$method}.*") as $file) {
+            @unlink($file);
+        }
+
+        return redirect()->route('admin.settings.show', ['tab' => 'payments'])
+            ->with('success', "Logo {$method} supprimé.");
+    }
+
     private function writeEnv(array $updates): void
     {
         $path = base_path('.env');

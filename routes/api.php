@@ -18,6 +18,22 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->name('api.v1.')->group(function () {
 
+    // ─── PAYMENT LOGOS (Public) ──────────────────────────────────────────────
+    Route::get('/payment-logos', function () {
+        $methods = ['orange_money', 'wave', 'mtn_momo', 'moov_money'];
+        $dir     = storage_path('app/public/payment_logos');
+        $logos   = [];
+
+        foreach ($methods as $method) {
+            $files = is_dir($dir) ? glob("{$dir}/{$method}.*") : [];
+            if (!empty($files)) {
+                $logos[$method] = url('storage/payment_logos/' . basename($files[0]));
+            }
+        }
+
+        return response()->json(['data' => $logos]);
+    })->name('payment-logos');
+
     // ─── AUTH (Public) ────────────────────────────────────────────────────────
     Route::prefix('auth')->name('auth.')->group(function () {
         Route::post('/register', [AuthController::class, 'register'])->name('register');

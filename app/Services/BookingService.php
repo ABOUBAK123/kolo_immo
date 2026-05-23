@@ -103,16 +103,12 @@ class BookingService
                 ]);
             }
 
-            // Create a conversation thread
-            $property->bookings()->where('id', $booking->id)->first();
-
-            \App\Models\Conversation::create([
-                'booking_id'  => $booking->id,
-                'property_id' => $property->id,
-                'tenant_id'   => $tenant->id,
-                'owner_id'    => $property->owner_id,
-                'last_message_at' => now(),
-            ]);
+            // Upsert conversation (unique on property+tenant, one thread per pair)
+            $conversation = \App\Models\Conversation::firstOrCreate(
+                ['property_id' => $property->id, 'tenant_id' => $tenant->id],
+                ['owner_id' => $property->owner_id, 'last_message_at' => now()],
+            );
+            $conversation->update(['booking_id' => $booking->id, 'last_message_at' => now()]);
 
             Log::info('[KOLO IMMO] Nouvelle réservation créée', [
                 'reference' => $booking->reference,

@@ -11,12 +11,13 @@
     </div>
 
     {{-- Tab bar --}}
-    <div class="flex gap-1 bg-gray-100 p-1 rounded-xl mb-6 w-fit">
+    <div class="flex gap-1 bg-gray-100 p-1 rounded-xl mb-6 w-fit flex-wrap">
         @foreach([
-            ['id' => 'general',  'label' => 'Général',   'icon' => 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z'],
-            ['id' => 'sms',      'label' => 'SMS',        'icon' => 'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-3 3v-3z'],
-            ['id' => 'whatsapp', 'label' => 'WhatsApp',   'icon' => 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z'],
-            ['id' => 'email',    'label' => 'Email',      'icon' => 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'],
+            ['id' => 'general',  'label' => 'Général',          'icon' => 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z'],
+            ['id' => 'sms',      'label' => 'SMS',              'icon' => 'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-3 3v-3z'],
+            ['id' => 'whatsapp', 'label' => 'WhatsApp',         'icon' => 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z'],
+            ['id' => 'email',    'label' => 'Email',            'icon' => 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'],
+            ['id' => 'payments', 'label' => 'Paiements mobiles','icon' => 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z'],
         ] as $t)
         <button type="button"
             @click="tab = '{{ $t['id'] }}'"
@@ -319,6 +320,112 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+
+    {{-- ── Paiements mobiles ────────────────────────────────────────────── --}}
+    <div x-show="tab === 'payments'" x-cloak>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                <div class="w-9 h-9 bg-orange-50 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-800">Logos des paiements mobiles</h3>
+                    <p class="text-xs text-gray-400">Ces logos s'affichent dans l'application mobile lors du paiement.</p>
+                </div>
+            </div>
+            <div class="px-6 py-6">
+
+                @if(session('success') && request('tab') === 'payments')
+                <div class="mb-4 bg-green-50 border border-green-200 text-green-800 text-sm rounded-xl px-4 py-3">
+                    {{ session('success') }}
+                </div>
+                @endif
+
+                @php
+                    $paymentMethods = [
+                        ['key' => 'orange_money', 'label' => 'Orange Money', 'color' => 'orange'],
+                        ['key' => 'wave',         'label' => 'Wave',         'color' => 'blue'],
+                        ['key' => 'mtn_momo',     'label' => 'MTN MoMo',     'color' => 'yellow'],
+                        ['key' => 'moov_money',   'label' => 'Moov Money',   'color' => 'sky'],
+                    ];
+                    $logoDir = storage_path('app/public/payment_logos');
+                @endphp
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    @foreach($paymentMethods as $pm)
+                    @php
+                        $existingFiles = is_dir($logoDir) ? glob("{$logoDir}/{$pm['key']}.*") : [];
+                        $hasLogo = !empty($existingFiles);
+                        $logoUrl = $hasLogo ? asset('storage/payment_logos/' . basename($existingFiles[0])) : null;
+                    @endphp
+                    <div class="border border-gray-200 rounded-xl p-4 flex flex-col gap-3">
+                        <div class="flex items-center justify-between">
+                            <p class="font-semibold text-sm text-gray-800">{{ $pm['label'] }}</p>
+                            @if($hasLogo)
+                            <span class="inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 px-2 py-0.5 rounded-full">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                Logo configuré
+                            </span>
+                            @else
+                            <span class="text-xs text-gray-400">Aucun logo</span>
+                            @endif
+                        </div>
+
+                        @if($hasLogo)
+                        <div class="flex items-center gap-3">
+                            <img src="{{ $logoUrl }}" alt="{{ $pm['label'] }}"
+                                class="h-12 w-auto object-contain border border-gray-100 rounded-lg p-1 bg-gray-50">
+                        </div>
+                        @endif
+
+                        <form action="{{ route('admin.settings.payment-logos.upload') }}" method="POST"
+                            enctype="multipart/form-data" class="flex flex-col gap-2">
+                            @csrf
+                            <input type="hidden" name="method" value="{{ $pm['key'] }}">
+                            <label class="block text-xs font-medium text-gray-600">
+                                {{ $hasLogo ? 'Remplacer le logo' : 'Uploader un logo' }}
+                            </label>
+                            <input type="file" name="logo" accept="image/png,image/jpeg,image/webp"
+                                class="block w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                            <p class="text-xs text-gray-400">PNG, JPG ou WebP · max 1 Mo · fond transparent recommandé</p>
+                            <button type="submit"
+                                class="self-start inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                                </svg>
+                                Enregistrer
+                            </button>
+                        </form>
+
+                        @if($hasLogo)
+                        <form action="{{ route('admin.settings.payment-logos.delete') }}" method="POST"
+                            onsubmit="return confirm('Supprimer le logo {{ $pm['label'] }} ?')">
+                            @csrf @method('DELETE')
+                            <input type="hidden" name="method" value="{{ $pm['key'] }}">
+                            <button type="submit"
+                                class="text-xs text-red-500 hover:text-red-700 font-medium">
+                                Supprimer le logo
+                            </button>
+                        </form>
+                        @endif
+                    </div>
+                    @endforeach
+                </div>
+
+                <div class="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
+                    <p class="font-semibold mb-1">Comment ça marche ?</p>
+                    <p class="text-xs leading-relaxed">
+                        Les logos uploadés ici s'affichent automatiquement dans l'application mobile au moment du paiement.
+                        Utilisez des images PNG avec fond transparent (format recommandé : 200×80 px).
+                        L'API mobile est disponible à <code class="bg-blue-100 px-1 rounded">{{ url('/api/v1/payment-logos') }}</code>.
+                    </p>
+                </div>
+            </div>
         </div>
     </div>
 
