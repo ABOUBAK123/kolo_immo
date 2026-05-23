@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BookingController;
+use App\Http\Controllers\Api\OwnerPropertyController;
 use App\Http\Controllers\Api\PropertyController;
 use App\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Route;
@@ -44,6 +45,18 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::get('/', [BookingController::class, 'index'])->name('index');
         Route::get('/{booking}', [BookingController::class, 'show'])->name('show');
         Route::post('/{booking}/cancel', [BookingController::class, 'cancel'])->name('cancel');
+    });
+
+    // ─── OWNER PROPERTY MANAGEMENT (Protected) ───────────────────────────────
+    Route::middleware('auth:sanctum')->prefix('owner/properties')->name('owner.properties.')->group(function () {
+        Route::get('/', [OwnerPropertyController::class, 'index'])->name('index');
+        Route::post('/', [OwnerPropertyController::class, 'store'])->name('store');
+        Route::get('/{property}', [OwnerPropertyController::class, 'show'])->name('show');
+        Route::post('/{property}', [OwnerPropertyController::class, 'update'])->name('update');
+        Route::delete('/{property}', [OwnerPropertyController::class, 'destroy'])->name('destroy');
+        Route::post('/{property}/toggle-status', [OwnerPropertyController::class, 'toggleStatus'])->name('toggle-status');
+        Route::post('/{property}/photos', [OwnerPropertyController::class, 'uploadPhotos'])->name('photos.upload');
+        Route::delete('/{property}/photos/{photo}', [OwnerPropertyController::class, 'deletePhoto'])->name('photos.delete');
     });
 
     // ─── PAYMENTS ─────────────────────────────────────────────────────────────

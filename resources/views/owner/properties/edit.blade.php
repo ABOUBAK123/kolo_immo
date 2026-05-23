@@ -18,29 +18,28 @@
                 this.amenities.push(a);
             }
         },
+        fileList: [],
         handlePhotos(event) {
-            const dt = new DataTransfer();
-            if (this.$refs.photoInput.files) {
-                Array.from(this.$refs.photoInput.files).forEach(f => dt.items.add(f));
-            }
-            const existing = Array.from(dt.files).map(f => f.name);
+            const existingNames = this.fileList.map(f => f.name);
             Array.from(event.target.files).forEach(f => {
-                if (!existing.includes(f.name)) dt.items.add(f);
+                if (!existingNames.includes(f.name)) this.fileList.push(f);
             });
-            this.$refs.photoInput.files = dt.files;
+            this.applyFilesToInput();
             this.rebuildPreviews();
         },
         removePhoto(index) {
-            const dt = new DataTransfer();
-            Array.from(this.$refs.photoInput.files).forEach((f, i) => {
-                if (i !== index) dt.items.add(f);
-            });
-            this.$refs.photoInput.files = dt.files;
+            this.fileList.splice(index, 1);
+            this.applyFilesToInput();
             this.rebuildPreviews();
+        },
+        applyFilesToInput() {
+            const dt = new DataTransfer();
+            this.fileList.forEach(f => dt.items.add(f));
+            this.$refs.photoInput.files = dt.files;
         },
         rebuildPreviews() {
             this.previewPhotos = [];
-            Array.from(this.$refs.photoInput.files).forEach(file => {
+            this.fileList.forEach(file => {
                 const reader = new FileReader();
                 reader.onload = (e) => { this.previewPhotos.push(e.target.result); };
                 reader.readAsDataURL(file);
