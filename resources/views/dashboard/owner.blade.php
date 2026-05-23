@@ -25,7 +25,7 @@
                     Vérifier mon identité
                 </a>
                 @endif
-                <a href="{{ route('properties.create') }}" class="flex items-center gap-2 bg-white text-blue-700 font-bold px-4 py-2 rounded-xl text-sm hover:bg-blue-50 transition-colors">
+                <a href="{{ route('owner.properties.create') }}" class="flex items-center gap-2 bg-white text-blue-700 font-bold px-4 py-2 rounded-xl text-sm hover:bg-blue-50 transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                     Ajouter un bien
                 </a>
@@ -82,7 +82,7 @@
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                 <div class="flex items-center justify-between p-5 border-b border-gray-100">
                     <h2 class="font-bold text-gray-900">Réservations récentes</h2>
-                    <a href="{{ route('bookings.index') }}" class="text-blue-700 text-sm font-semibold hover:text-blue-900">Voir tout →</a>
+                    <a href="{{ route('owner.bookings.index') }}" class="text-blue-700 text-sm font-semibold hover:text-blue-900">Voir tout →</a>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full">
@@ -133,7 +133,7 @@
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                 <div class="flex items-center justify-between p-5 border-b border-gray-100">
                     <h2 class="font-bold text-gray-900">Mes propriétés</h2>
-                    <a href="{{ route('properties.create') }}" class="text-blue-700 text-sm font-semibold hover:text-blue-900 flex items-center gap-1">
+                    <a href="{{ route('owner.properties.create') }}" class="text-blue-700 text-sm font-semibold hover:text-blue-900 flex items-center gap-1">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                         Ajouter
                     </a>
@@ -156,13 +156,13 @@
                             <span class="text-xs font-semibold px-2.5 py-1 rounded-full {{ $property->status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600' }}">
                                 {{ $property->status === 'active' ? 'Actif' : 'Inactif' }}
                             </span>
-                            <a href="{{ route('properties.edit', $property) }}" class="text-blue-700 hover:text-blue-900 text-xs font-medium">Modifier</a>
+                            <a href="{{ route('owner.properties.edit', $property) }}" class="text-blue-700 hover:text-blue-900 text-xs font-medium">Modifier</a>
                         </div>
                     </div>
                     @empty
                     <div class="p-8 text-center">
                         <p class="text-gray-400 text-sm mb-3">Vous n'avez pas encore de propriété publiée</p>
-                        <a href="{{ route('properties.create') }}" class="bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-blue-800 transition-colors">
+                        <a href="{{ route('owner.properties.create') }}" class="bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-blue-800 transition-colors">
                             Publier mon premier bien
                         </a>
                     </div>
@@ -196,13 +196,13 @@
                             </div>
                         </div>
                         <div class="flex gap-2">
-                            <form action="{{ route('bookings.confirm', $booking) }}" method="POST" class="flex-1">
+                            <form action="{{ route('owner.bookings.confirm', $booking) }}" method="POST" class="flex-1">
                                 @csrf @method('PATCH')
                                 <button class="w-full bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-2 rounded-lg transition-colors">
                                     Accepter
                                 </button>
                             </form>
-                            <form action="{{ route('bookings.reject', $booking) }}" method="POST" class="flex-1">
+                            <form action="{{ route('owner.bookings.reject', $booking) }}" method="POST" class="flex-1">
                                 @csrf @method('PATCH')
                                 <button class="w-full bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold py-2 rounded-lg transition-colors border border-red-200">
                                     Refuser
@@ -224,7 +224,7 @@
                 <h2 class="font-bold text-gray-900 mb-4 text-sm">Raccourcis</h2>
                 <div class="space-y-2">
                     @foreach([
-                        ['href' => 'properties.create', 'label' => 'Publier un nouveau bien', 'icon' => 'M12 4v16m8-8H4', 'color' => 'text-blue-700'],
+                        ['href' => 'owner.properties.create', 'label' => 'Publier un nouveau bien', 'icon' => 'M12 4v16m8-8H4', 'color' => 'text-blue-700'],
                         ['href' => 'messages.index', 'label' => 'Mes messages', 'icon' => 'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z', 'color' => 'text-green-700'],
                         ['href' => 'profile.kyc', 'label' => 'Vérification KYC', 'icon' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', 'color' => 'text-purple-700'],
                         ['href' => 'profile.show', 'label' => 'Mon profil', 'icon' => 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z', 'color' => 'text-gray-700'],

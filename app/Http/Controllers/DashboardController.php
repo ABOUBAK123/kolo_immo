@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\Conversation;
 use App\Models\Payment;
+use App\Models\Review;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -92,7 +93,39 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
+        // Recent bookings (for dashboard table)
+        $recentBookings = $user->bookingsAsOwner()
+            ->with(['tenant', 'property'])
+            ->latest()
+            ->take(8)
+            ->get();
+
+        // Owner's properties with photos
+        $myProperties = $user->properties()
+            ->with('photos')
+            ->latest()
+            ->take(5)
+            ->get();
+
+        // Average rating across all properties
+        $avgRating = Review::whereHas('property', fn($q) => $q->where('owner_id', $user->id))
+            ->avg('rating') ?? 0;
+
+        // Occupancy rate (booked nights this month / days in month)
+        $daysInMonth = now()->daysInMonth;
+        $occupancyRate = $daysInMonth > 0
+            ? round(($totalNightsThisMonth / ($daysInMonth * max($activeProperties, 1))) * 100)
+            : 0;
+
+        $stats = [
+            'monthly_revenue'  => $monthlyRevenue,
+            'occupancy_rate'   => min($occupancyRate, 100),
+            'pending_bookings' => $pendingCount,
+            'average_rating'   => round($avgRating, 1),
+        ];
+
         return view('owner.dashboard', compact(
+            'stats',
             'monthlyRevenue',
             'totalRevenue',
             'totalNightsThisMonth',
@@ -102,7 +135,9 @@ class DashboardController extends Controller
             'pendingCount',
             'recentConversations',
             'revenueChart',
-            'upcomingCheckIns'
+            'upcomingCheckIns',
+            'recentBookings',
+            'myProperties'
         ));
     }
 
