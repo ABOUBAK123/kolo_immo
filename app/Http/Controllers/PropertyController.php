@@ -9,15 +9,13 @@ use App\Models\PropertyBlockedDate;
 use App\Models\PropertyPhoto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class PropertyController extends Controller
 {
-    // âââ¬âââ¬âââ¬ PUBLIC âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬
+    // ─── PUBLIC ──────────────────────────────────────────────────────────────
 
-    /**
-     * Search and list properties.
-     */
     public function index(Request $request)
     {
         $query = Property::active()
@@ -73,9 +71,6 @@ class PropertyController extends Controller
         return view('properties.index', compact('properties', 'cities', 'allLabels'));
     }
 
-    /**
-     * Show a single property.
-     */
     public function show(Property $property)
     {
         if ($property->status !== 'active' && Auth::id() !== $property->owner_id) {
@@ -103,11 +98,10 @@ class PropertyController extends Controller
         return view('properties.show', compact('property', 'unavailableDates'));
     }
 
-    // âââ¬âââ¬âââ¬ OWNER âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬
+    // ─── OWNER ────────────────────────────────────────────────────────────────
 
     public function create()
     {
-        // Authorization handled by 'owner' middleware on route
         $allAmenities = PropertyAmenity::allLabels();
         return view('owner.properties.create', compact('allAmenities'));
     }
@@ -118,45 +112,44 @@ class PropertyController extends Controller
         $data['owner_id'] = Auth::id();
         $data['status']   = 'draft';
 
-        // Cover photo unique
         if ($request->hasFile('cover_photo')) {
             $data['cover_photo'] = $request->file('cover_photo')
                 ->store('properties/covers', 'public');
         }
 
-        // Valeurs par défaut pour les colonnes NOT NULL qui sont optionnelles dans le formulaire
         $data['check_in_time']  = $data['check_in_time']  ?? '14:00';
         $data['check_out_time'] = $data['check_out_time'] ?? '11:00';
         $data['deposit_amount'] = $data['deposit_amount'] ?? 0;
 
-        // Retirer amenities et photos du tableau avant création
-        $amenities = $data['amenities'] ?? [];
+        $amenities = array_unique($data['amenities'] ?? []);
         unset($data['amenities'], $data['photos']);
 
-        $property = Property::create($data);
+        $property = DB::transaction(function () use ($data, $amenities, $request) {
+            $property = Property::create($data);
 
-        // Ãquipements
-        foreach ($amenities as $amenity) {
-            PropertyAmenity::create([
-                'property_id' => $property->id,
-                'amenity'     => $amenity,
-            ]);
-        }
-
-        // Photos multiples (champ photos[])
-        if ($request->hasFile('photos')) {
-            $sortOrder = 0;
-            foreach ($request->file('photos') as $photo) {
-                $path = $photo->store('properties/photos', 'public');
-                $sortOrder++;
-                PropertyPhoto::create([
+            foreach ($amenities as $amenity) {
+                PropertyAmenity::firstOrCreate([
                     'property_id' => $property->id,
-                    'path'        => $path,
-                    'sort_order'  => $sortOrder,
-                    'is_cover'    => $sortOrder === 1 && !$request->hasFile('cover_photo'),
+                    'amenity'     => $amenity,
                 ]);
             }
-        }
+
+            if ($request->hasFile('photos')) {
+                $sortOrder = 0;
+                foreach ($request->file('photos') as $photo) {
+                    $path = $photo->store('properties/photos', 'public');
+                    $sortOrder++;
+                    PropertyPhoto::create([
+                        'property_id' => $property->id,
+                        'path'        => $path,
+                        'sort_order'  => $sortOrder,
+                        'is_cover'    => $sortOrder === 1 && !$request->hasFile('cover_photo'),
+                    ]);
+                }
+            }
+
+            return $property;
+        });
 
         return redirect()->route('owner.properties.edit', $property)
             ->with('success', 'Logement créé ! Ajoutez des photos et activez-le pour le publier.');
@@ -185,25 +178,21 @@ class PropertyController extends Controller
             $data['cover_photo'] = $request->file('cover_photo')
                 ->store('properties/covers', 'public');
         } else {
-            // Ne pas écraser la cover_photo existante si aucun nouveau fichier
             unset($data['cover_photo']);
         }
 
-        // Valeurs par défaut pour les colonnes NOT NULL optionnelles
         $data['check_in_time']  = $data['check_in_time']  ?? $property->check_in_time ?? '14:00';
         $data['check_out_time'] = $data['check_out_time'] ?? $property->check_out_time ?? '11:00';
         $data['deposit_amount'] = $data['deposit_amount'] ?? $property->deposit_amount ?? 0;
 
-        // Save before unsetting
-        $amenities = array_key_exists('amenities', $data) ? ($data['amenities'] ?? []) : null;
+        $amenities = array_key_exists('amenities', $data) ? array_unique($data['amenities'] ?? []) : null;
 
         unset($data['amenities'], $data['photos']);
         $property->update($data);
 
-        // Update amenities when form sends the field
         if ($amenities !== null) {
             $property->amenities()->delete();
-            foreach ((array) $amenities as $amenity) {
+            foreach ($amenities as $amenity) {
                 PropertyAmenity::create([
                     'property_id' => $property->id,
                     'amenity'     => $amenity,
@@ -211,7 +200,6 @@ class PropertyController extends Controller
             }
         }
 
-        // Handle new photos uploaded via the edit form
         if ($request->hasFile('photos')) {
             $sortOrder = $property->photos()->max('sort_order') ?? 0;
             foreach ($request->file('photos') as $photo) {
@@ -236,7 +224,7 @@ class PropertyController extends Controller
         $property->delete();
 
         return redirect()->route('owner.properties.index')
-            ->with('success', 'Logement supprimÃÂ©.');
+            ->with('success', 'Logement supprimé.');
     }
 
     public function uploadPhotos(Request $request, Property $property)
@@ -247,9 +235,9 @@ class PropertyController extends Controller
             'photos'   => ['required', 'array', 'max:20'],
             'photos.*' => ['image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
         ], [
-            'photos.required'  => 'Veuillez sÃÂ©lectionner au moins une photo.',
-            'photos.*.image'   => 'Le fichier doit ÃÂªtre une image.',
-            'photos.*.max'     => 'Chaque image ne doit pas dÃÂ©passer 5 Mo.',
+            'photos.required'  => 'Veuillez sélectionner au moins une photo.',
+            'photos.*.image'   => 'Le fichier doit être une image.',
+            'photos.*.max'     => 'Chaque image ne doit pas dépasser 5 Mo.',
         ]);
 
         $sortOrder = $property->photos()->max('sort_order') ?? 0;
@@ -267,7 +255,7 @@ class PropertyController extends Controller
             ]);
         }
 
-        return back()->with('success', count($request->file('photos')) . ' photo(s) ajoutÃÂ©e(s).');
+        return back()->with('success', count($request->file('photos')) . ' photo(s) ajoutée(s).');
     }
 
     public function deletePhoto(Property $property, PropertyPhoto $photo)
@@ -280,7 +268,6 @@ class PropertyController extends Controller
 
         Storage::disk('public')->delete($photo->path);
 
-        // If it was the cover, assign cover to next photo
         if ($photo->is_cover) {
             $next = $property->photos()->where('id', '!=', $photo->id)->first();
             if ($next) {
@@ -290,7 +277,7 @@ class PropertyController extends Controller
 
         $photo->delete();
 
-        return back()->with('success', 'Photo supprimÃÂ©e.');
+        return back()->with('success', 'Photo supprimée.');
     }
 
     public function manageAvailability(Property $property)
@@ -318,10 +305,10 @@ class PropertyController extends Controller
             'end_date'   => ['required', 'date', 'after:start_date'],
             'reason'     => ['nullable', 'string', 'max:255'],
         ], [
-            'start_date.required'      => 'La date de dÃÂ©but est obligatoire.',
-            'start_date.after_or_equal'=> 'La date de dÃÂ©but doit ÃÂªtre aujourd\'hui ou dans le futur.',
+            'start_date.required'      => 'La date de début est obligatoire.',
+            'start_date.after_or_equal'=> "La date de début doit être aujourd'hui ou dans le futur.",
             'end_date.required'        => 'La date de fin est obligatoire.',
-            'end_date.after'           => 'La date de fin doit ÃÂªtre aprÃÂ¨s la date de dÃÂ©but.',
+            'end_date.after'           => 'La date de fin doit être après la date de début.',
         ]);
 
         PropertyBlockedDate::create([
@@ -332,7 +319,7 @@ class PropertyController extends Controller
             'source'      => 'manual',
         ]);
 
-        return back()->with('success', 'Dates bloquÃÂ©es enregistrÃÂ©es.');
+        return back()->with('success', 'Dates bloquées enregistrées.');
     }
 
     public function deleteBlockedDate(Property $property, PropertyBlockedDate $blockedDate)
@@ -345,7 +332,7 @@ class PropertyController extends Controller
 
         $blockedDate->delete();
 
-        return back()->with('success', 'Dates dÃÂ©bloquÃÂ©es.');
+        return back()->with('success', 'Dates débloquées.');
     }
 
     public function ownerIndex()
@@ -366,8 +353,7 @@ class PropertyController extends Controller
         $newStatus = $property->status === 'active' ? 'inactive' : 'active';
         $property->update(['status' => $newStatus]);
 
-        $label = $newStatus === 'active' ? 'activÃÂ©' : 'dÃÂ©sactivÃÂ©';
+        $label = $newStatus === 'active' ? 'activé' : 'désactivé';
         return back()->with('success', "Logement {$label}.");
     }
 }
-
