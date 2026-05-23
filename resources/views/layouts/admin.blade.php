@@ -25,6 +25,15 @@
         }
         .sidebar-link.active { color: #F39C12; }
         .sidebar-link svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+        /* ── Scrollbars visibles ─────────────────────────── */
+        ::-webkit-scrollbar               { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track         { background: #f1f5f9; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb         { background: #94a3b8; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover   { background: #64748b; }
+        ::-webkit-scrollbar-corner        { background: #f1f5f9; }
+        /* Firefox */
+        * { scrollbar-width: thin; scrollbar-color: #94a3b8 #f1f5f9; }
     </style>
 
     @stack('styles')
@@ -159,7 +168,7 @@
         class="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"></div>
 
     <!-- Main content -->
-    <div class="flex-1 flex flex-col min-h-screen md:ml-64">
+    <div class="flex-1 flex flex-col min-h-screen md:ml-64 overflow-y-auto">
         <!-- Top bar -->
         <header class="bg-white shadow-sm sticky top-0 z-30 flex items-center justify-between px-6 py-4">
             <div class="flex items-center gap-4">
