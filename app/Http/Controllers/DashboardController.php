@@ -109,7 +109,7 @@ class DashboardController extends Controller
 
         // Average rating across all properties
         $avgRating = Review::whereHas('property', fn($q) => $q->where('owner_id', $user->id))
-            ->avg('rating') ?? 0;
+            ->avg('rating_overall') ?? 0;
 
         // Occupancy rate (booked nights this month / days in month)
         $daysInMonth = now()->daysInMonth;
