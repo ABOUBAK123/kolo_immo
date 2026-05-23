@@ -353,7 +353,7 @@
                         ['key' => 'mtn_momo',     'label' => 'MTN MoMo',     'color' => 'yellow'],
                         ['key' => 'moov_money',   'label' => 'Moov Money',   'color' => 'sky'],
                     ];
-                    $logoDir = storage_path('app/public/payment_logos');
+                    $logoDir = public_path('payment_logos');
                 @endphp
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -361,7 +361,7 @@
                     @php
                         $existingFiles = is_dir($logoDir) ? glob("{$logoDir}/{$pm['key']}.*") : [];
                         $hasLogo = !empty($existingFiles);
-                        $logoUrl = $hasLogo ? asset('storage/payment_logos/' . basename($existingFiles[0])) : null;
+                        $logoUrl = $hasLogo ? asset('payment_logos/' . basename($existingFiles[0])) : null;
                     @endphp
                     <div class="border border-gray-200 rounded-xl p-4 flex flex-col gap-3">
                         <div class="flex items-center justify-between">

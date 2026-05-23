@@ -21,13 +21,13 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     // ─── PAYMENT LOGOS (Public) ──────────────────────────────────────────────
     Route::get('/payment-logos', function () {
         $methods = ['orange_money', 'wave', 'mtn_momo', 'moov_money'];
-        $dir     = storage_path('app/public/payment_logos');
+        $dir     = public_path('payment_logos');
         $logos   = [];
 
         foreach ($methods as $method) {
             $files = is_dir($dir) ? glob("{$dir}/{$method}.*") : [];
             if (!empty($files)) {
-                $logos[$method] = url('storage/payment_logos/' . basename($files[0]));
+                $logos[$method] = url('payment_logos/' . basename($files[0]));
             }
         }
 

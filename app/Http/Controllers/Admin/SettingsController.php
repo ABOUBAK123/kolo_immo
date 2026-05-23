@@ -104,7 +104,7 @@ class SettingsController extends Controller
         ]);
 
         $method = $request->input('method');
-        $dir    = storage_path('app/public/payment_logos');
+        $dir    = public_path('payment_logos');
 
         if (!is_dir($dir)) {
             mkdir($dir, 0755, true);
@@ -125,7 +125,7 @@ class SettingsController extends Controller
     public function deletePaymentLogo(Request $request): \Illuminate\Http\RedirectResponse
     {
         $method = $request->input('method');
-        $dir    = storage_path('app/public/payment_logos');
+        $dir    = public_path('payment_logos');
 
         foreach (glob("{$dir}/{$method}.*") as $file) {
             @unlink($file);
