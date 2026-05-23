@@ -79,18 +79,41 @@
                         </form>
                     </td>
                     <td class="px-5 py-3 text-center">
-                        @if($property->status !== 'suspended')
-                        <form method="POST" action="{{ route('admin.properties.suspend', $property) }}" class="inline">
-                            @csrf
-                            <button type="submit"
-                                class="text-xs px-2 py-1 bg-red-100 text-red-700 rounded font-semibold hover:bg-red-200 transition"
-                                onclick="return confirm('Suspendre ce logement ?')">
-                                Suspendre
-                            </button>
-                        </form>
-                        @else
-                        <span class="text-xs text-gray-400">Suspendu</span>
-                        @endif
+                        <div class="flex items-center justify-center gap-1.5">
+                            {{-- Toggle active/inactive/restore --}}
+                            <form method="POST" action="{{ route('admin.properties.toggle-status', $property) }}" class="inline">
+                                @csrf
+                                @if($property->status === 'suspended')
+                                <button type="submit"
+                                    class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded font-semibold hover:bg-blue-200 transition"
+                                    onclick="return confirm('Réactiver ce logement ?')">
+                                    Réactiver
+                                </button>
+                                @elseif($property->status === 'active')
+                                <button type="submit"
+                                    class="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded font-semibold hover:bg-yellow-200 transition">
+                                    Désactiver
+                                </button>
+                                @else
+                                <button type="submit"
+                                    class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded font-semibold hover:bg-green-200 transition">
+                                    Activer
+                                </button>
+                                @endif
+                            </form>
+
+                            {{-- Suspend (only for non-suspended) --}}
+                            @if($property->status !== 'suspended')
+                            <form method="POST" action="{{ route('admin.properties.suspend', $property) }}" class="inline">
+                                @csrf
+                                <button type="submit"
+                                    class="text-xs px-2 py-1 bg-red-100 text-red-700 rounded font-semibold hover:bg-red-200 transition"
+                                    onclick="return confirm('Suspendre ce logement ?')">
+                                    Suspendre
+                                </button>
+                            </form>
+                            @endif
+                        </div>
                     </td>
                 </tr>
                 @empty

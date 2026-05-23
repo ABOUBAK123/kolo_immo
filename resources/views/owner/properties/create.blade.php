@@ -24,19 +24,27 @@
         },
         handlePhotos(event) {
             const dt = new DataTransfer();
-            // Keep previously selected files
             if (this.$refs.photoInput.files) {
                 Array.from(this.$refs.photoInput.files).forEach(f => dt.items.add(f));
             }
-            // Add newly selected files (skip duplicates by name)
             const existing = Array.from(dt.files).map(f => f.name);
             Array.from(event.target.files).forEach(f => {
                 if (!existing.includes(f.name)) dt.items.add(f);
             });
             this.$refs.photoInput.files = dt.files;
-            // Rebuild previews
+            this.rebuildPreviews();
+        },
+        removePhoto(index) {
+            const dt = new DataTransfer();
+            Array.from(this.$refs.photoInput.files).forEach((f, i) => {
+                if (i !== index) dt.items.add(f);
+            });
+            this.$refs.photoInput.files = dt.files;
+            this.rebuildPreviews();
+        },
+        rebuildPreviews() {
             this.previewPhotos = [];
-            Array.from(dt.files).forEach(file => {
+            Array.from(this.$refs.photoInput.files).forEach(file => {
                 const reader = new FileReader();
                 reader.onload = (e) => { this.previewPhotos.push(e.target.result); };
                 reader.readAsDataURL(file);
@@ -345,15 +353,18 @@
             <!-- Preview grid -->
             <div x-show="previewPhotos.length > 0" class="mt-4 grid grid-cols-3 sm:grid-cols-4 gap-2">
                 <template x-for="(src, i) in previewPhotos" :key="i">
-                    <div class="relative">
+                    <div class="relative group">
                         <img :src="src" class="w-full h-24 object-cover rounded-xl">
-                        <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 rounded-xl transition-all"></div>
                         <div x-show="i === 0" class="absolute top-1 left-1 bg-blue-700 text-white text-xs px-2 py-0.5 rounded font-semibold">Principale</div>
+                        <button type="button" @click.stop="removePhoto(i)"
+                            class="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs font-bold flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600">
+                            ×
+                        </button>
                     </div>
                 </template>
             </div>
-            <p x-show="previewPhotos.length > 0" class="text-xs text-gray-400 mt-2 text-center">
-                <span x-text="previewPhotos.length"></span> photo(s) sélectionnée(s). La première sera la photo principale.
+            <p x-show="previewPhotos.length > 0" class="text-xs text-gray-500 mt-2 text-center">
+                <span x-text="previewPhotos.length"></span> photo(s) — Cliquez à nouveau sur la zone pour en ajouter d'autres. La 1ère sera la photo principale.
             </p>
 
             @error('photos')<p class="text-red-500 text-xs mt-2">{{ $message }}</p>@enderror

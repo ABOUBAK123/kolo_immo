@@ -183,6 +183,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Properties
     Route::get('/properties', [AdminController::class, 'properties'])->name('properties.index');
     Route::post('/properties/{property}/toggle-featured', [AdminController::class, 'toggleFeatured'])->name('properties.toggle-featured');
+    Route::post('/properties/{property}/toggle-status', [AdminController::class, 'togglePropertyStatus'])->name('properties.toggle-status');
     Route::post('/properties/{property}/suspend', [AdminController::class, 'suspendProperty'])->name('properties.suspend');
 
     // Bookings

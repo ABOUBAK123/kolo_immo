@@ -215,6 +215,23 @@ class AdminController extends Controller
     }
 
     /**
+     * Toggle property active/inactive (admin override).
+     */
+    public function togglePropertyStatus(Property $property)
+    {
+        if ($property->status === 'suspended') {
+            $property->update(['status' => 'inactive']);
+            return back()->with('success', 'Logement réactivé (inactif — le propriétaire peut l\'activer).');
+        }
+
+        $newStatus = $property->status === 'active' ? 'inactive' : 'active';
+        $property->update(['status' => $newStatus]);
+
+        $label = $newStatus === 'active' ? 'activé' : 'désactivé';
+        return back()->with('success', "Logement {$label} par l'administrateur.");
+    }
+
+    /**
      * Admin booking listing.
      */
     public function bookings(Request $request)

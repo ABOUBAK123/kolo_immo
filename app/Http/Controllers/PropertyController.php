@@ -350,6 +350,24 @@ class PropertyController extends Controller
     {
         if (Auth::id() !== $property->owner_id) abort(403);
 
+        // KYC required to publish from the 2nd property onwards
+        if ($property->status !== 'active') {
+            $user = Auth::user();
+            $alreadyPublished = $user->properties()
+                ->whereIn('status', ['active', 'inactive'])
+                ->where('id', '!=', $property->id)
+                ->count();
+
+            if ($alreadyPublished >= 1 && !$user->isKycVerified()) {
+                if ($user->kyc_status === 'pending') {
+                    return back()->with('warning',
+                        'Votre vérification d\'identité est en cours de traitement. Vous pourrez publier ce bien une fois validée par notre équipe.'
+                    );
+                }
+                return back()->with('kyc_required', route('profile.kyc'));
+            }
+        }
+
         $newStatus = $property->status === 'active' ? 'inactive' : 'active';
         $property->update(['status' => $newStatus]);
 

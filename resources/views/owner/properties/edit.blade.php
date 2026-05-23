@@ -28,8 +28,19 @@
                 if (!existing.includes(f.name)) dt.items.add(f);
             });
             this.$refs.photoInput.files = dt.files;
+            this.rebuildPreviews();
+        },
+        removePhoto(index) {
+            const dt = new DataTransfer();
+            Array.from(this.$refs.photoInput.files).forEach((f, i) => {
+                if (i !== index) dt.items.add(f);
+            });
+            this.$refs.photoInput.files = dt.files;
+            this.rebuildPreviews();
+        },
+        rebuildPreviews() {
             this.previewPhotos = [];
-            Array.from(dt.files).forEach(file => {
+            Array.from(this.$refs.photoInput.files).forEach(file => {
                 const reader = new FileReader();
                 reader.onload = (e) => { this.previewPhotos.push(e.target.result); };
                 reader.readAsDataURL(file);
@@ -284,9 +295,18 @@
 
             <div x-show="previewPhotos.length > 0" class="mt-3 grid grid-cols-4 gap-2">
                 <template x-for="(src, i) in previewPhotos" :key="i">
-                    <img :src="src" class="w-full h-20 object-cover rounded-xl">
+                    <div class="relative group">
+                        <img :src="src" class="w-full h-20 object-cover rounded-xl">
+                        <button type="button" @click.stop="removePhoto(i)"
+                            class="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs font-bold flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600">
+                            ×
+                        </button>
+                    </div>
                 </template>
             </div>
+            <p x-show="previewPhotos.length > 0" class="text-xs text-gray-500 mt-2 text-center">
+                <span x-text="previewPhotos.length"></span> nouvelle(s) photo(s) à ajouter
+            </p>
         </div>
 
         <!-- Navigation -->
