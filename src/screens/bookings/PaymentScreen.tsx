@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {
   Alert,
+  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,6 +13,7 @@ import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RouteProp} from '@react-navigation/native';
 import {bookingsApi} from '../../api/bookings';
 import {paymentsApi} from '../../api/payments';
+import {apiClient} from '../../api/client';
 import {Button} from '../../components/Button';
 import {LoadingSpinner} from '../../components/LoadingSpinner';
 import {Booking, BookingsStackParamList} from '../../types';
@@ -25,9 +27,9 @@ type Props = {
 
 const METHODS = [
   {value: 'orange_money', label: 'Orange Money', emoji: '🟠', color: '#FF6B00'},
-  {value: 'wave', label: 'Wave', emoji: '🔵', color: '#1A7EF6'},
-  {value: 'mtn_momo', label: 'MTN MoMo', emoji: '🟡', color: '#FFCC00'},
-  {value: 'moov_money', label: 'Moov Money', emoji: '🔵', color: '#0082CA'},
+  {value: 'wave',         label: 'Wave',         emoji: '🔵', color: '#1A7EF6'},
+  {value: 'mtn_momo',     label: 'MTN MoMo',     emoji: '🟡', color: '#FFCC00'},
+  {value: 'moov_money',   label: 'Moov Money',   emoji: '🔵', color: '#0082CA'},
 ];
 
 export const PaymentScreen: React.FC<Props> = ({navigation, route}) => {
@@ -37,11 +39,15 @@ export const PaymentScreen: React.FC<Props> = ({navigation, route}) => {
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
+  const [logos, setLogos] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    bookingsApi.show(bookingId)
-      .then(res => setBooking(res.data.data))
-      .finally(() => setLoading(false));
+    Promise.all([
+      bookingsApi.show(bookingId).then(res => setBooking(res.data.data)),
+      apiClient.get<{data: Record<string, string>}>('/payment-logos')
+        .then(res => setLogos(res.data.data ?? {}))
+        .catch(() => {}),
+    ]).finally(() => setLoading(false));
   }, [bookingId]);
 
   const handlePay = async () => {
@@ -95,7 +101,11 @@ export const PaymentScreen: React.FC<Props> = ({navigation, route}) => {
                 method === m.value && {borderColor: m.color, backgroundColor: m.color + '10'},
               ]}
               onPress={() => setMethod(m.value)}>
-              <Text style={styles.methodEmoji}>{m.emoji}</Text>
+              {logos[m.value] ? (
+                <Image source={{uri: logos[m.value]}} style={styles.methodLogo} resizeMode="contain" />
+              ) : (
+                <Text style={styles.methodEmoji}>{m.emoji}</Text>
+              )}
               <Text style={[styles.methodLabel, method === m.value && {color: m.color}]}>
                 {m.label}
               </Text>
@@ -191,6 +201,7 @@ const styles = StyleSheet.create({
     gap: 6,
     position: 'relative',
   },
+  methodLogo: {width: 64, height: 32},
   methodEmoji: {fontSize: 28},
   methodLabel: {fontSize: 13, fontWeight: '600', color: colors.textSecondary},
   methodCheck: {
