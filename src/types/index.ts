@@ -184,4 +184,5 @@ export type MessagesStackParamList = {
 export type ProfileStackParamList = {
   ProfileScreen: undefined;
   KycScreen: undefined;
+  OwnerProperties: undefined;
 };

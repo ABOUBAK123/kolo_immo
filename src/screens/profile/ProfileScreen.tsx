@@ -8,11 +8,15 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {authApi} from '../../api/auth';
 import {Button} from '../../components/Button';
 import {Input} from '../../components/Input';
 import {useAuth} from '../../store/AuthContext';
+import {ProfileStackParamList} from '../../types';
 import {colors, radius, shadows, spacing, typography} from '../../utils/theme';
+
+type Props = NativeStackScreenProps<ProfileStackParamList, 'ProfileScreen'>;
 
 const KYC_INFO: Record<string, {label: string; color: string; emoji: string; desc: string}> = {
   pending:  {label: 'En attente', color: colors.warning, emoji: '⏳', desc: 'Vérification en cours'},
@@ -20,7 +24,7 @@ const KYC_INFO: Record<string, {label: string; color: string; emoji: string; des
   rejected: {label: 'Rejeté',     color: colors.danger,  emoji: '❌', desc: 'Documents non valides'},
 };
 
-export const ProfileScreen: React.FC = () => {
+export const ProfileScreen: React.FC<Props> = ({navigation}) => {
   const {user, logout, updateUser} = useAuth();
   const [editing, setEditing] = useState(false);
   const [name, setName]       = useState(user?.name ?? '');
@@ -170,6 +174,25 @@ export const ProfileScreen: React.FC = () => {
             <TouchableOpacity style={styles.kycBtn}>
               <Text style={styles.kycBtnText}>Vérifier →</Text>
             </TouchableOpacity>
+          </View>
+        )}
+
+        {/* ── Owner section ── */}
+        {(user?.role === 'owner' || user?.role === 'both') && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Espace propriétaire</Text>
+            <View style={styles.actionList}>
+              <TouchableOpacity
+                style={styles.actionRow}
+                activeOpacity={0.7}
+                onPress={() => navigation.navigate('OwnerProperties')}>
+                <View style={styles.actionLeft}>
+                  <Text style={styles.actionIcon}>🏠</Text>
+                  <Text style={styles.actionLabel}>Mes logements</Text>
+                </View>
+                <Text style={styles.actionChevron}>›</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
 
