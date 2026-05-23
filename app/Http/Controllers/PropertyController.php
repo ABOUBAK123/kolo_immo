@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Storage;
 
 class PropertyController extends Controller
 {
-    // â”€â”€â”€ PUBLIC â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // âââ¬âââ¬âââ¬ PUBLIC âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬
 
     /**
      * Search and list properties.
@@ -103,7 +103,7 @@ class PropertyController extends Controller
         return view('properties.show', compact('property', 'unavailableDates'));
     }
 
-    // â”€â”€â”€ OWNER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // âââ¬âââ¬âââ¬ OWNER âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬âââ¬
 
     public function create()
     {
@@ -114,32 +114,47 @@ class PropertyController extends Controller
 
     public function store(StorePropertyRequest $request)
     {
-        // Authorization handled by 'owner' middleware on route
-
         $data = $request->validated();
         $data['owner_id'] = Auth::id();
         $data['status']   = 'draft';
 
-        // Handle cover photo
+        // Cover photo unique
         if ($request->hasFile('cover_photo')) {
             $data['cover_photo'] = $request->file('cover_photo')
                 ->store('properties/covers', 'public');
         }
 
+        // Retirer amenities et photos du tableau avant création
+        $amenities = $data['amenities'] ?? [];
+        unset($data['amenities'], $data['photos']);
+
         $property = Property::create($data);
 
-        // Store amenities
-        if (!empty($data['amenities'])) {
-            foreach ($data['amenities'] as $amenity) {
-                PropertyAmenity::create([
+        // Ãquipements
+        foreach ($amenities as $amenity) {
+            PropertyAmenity::create([
+                'property_id' => $property->id,
+                'amenity'     => $amenity,
+            ]);
+        }
+
+        // Photos multiples (champ photos[])
+        if ($request->hasFile('photos')) {
+            $sortOrder = 0;
+            foreach ($request->file('photos') as $photo) {
+                $path = $photo->store('properties/photos', 'public');
+                $sortOrder++;
+                PropertyPhoto::create([
                     'property_id' => $property->id,
-                    'amenity'     => $amenity,
+                    'path'        => $path,
+                    'sort_order'  => $sortOrder,
+                    'is_cover'    => $sortOrder === 1 && !$request->hasFile('cover_photo'),
                 ]);
             }
         }
 
         return redirect()->route('owner.properties.edit', $property)
-            ->with('success', 'Logement crÃ©Ã© ! Ajoutez maintenant des photos et activez-le.');
+            ->with('success', 'Logement créé ! Ajoutez des photos et activez-le pour le publier.');
     }
 
     public function edit(Property $property)
@@ -180,7 +195,7 @@ class PropertyController extends Controller
             }
         }
 
-        return back()->with('success', 'Logement mis Ã  jour avec succÃ¨s.');
+        return back()->with('success', 'Logement mis ÃÂ  jour avec succÃÂ¨s.');
     }
 
     public function destroy(Property $property)
@@ -189,7 +204,7 @@ class PropertyController extends Controller
         $property->delete();
 
         return redirect()->route('owner.properties.index')
-            ->with('success', 'Logement supprimÃ©.');
+            ->with('success', 'Logement supprimÃÂ©.');
     }
 
     public function uploadPhotos(Request $request, Property $property)
@@ -200,9 +215,9 @@ class PropertyController extends Controller
             'photos'   => ['required', 'array', 'max:20'],
             'photos.*' => ['image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
         ], [
-            'photos.required'  => 'Veuillez sÃ©lectionner au moins une photo.',
-            'photos.*.image'   => 'Le fichier doit Ãªtre une image.',
-            'photos.*.max'     => 'Chaque image ne doit pas dÃ©passer 5 Mo.',
+            'photos.required'  => 'Veuillez sÃÂ©lectionner au moins une photo.',
+            'photos.*.image'   => 'Le fichier doit ÃÂªtre une image.',
+            'photos.*.max'     => 'Chaque image ne doit pas dÃÂ©passer 5 Mo.',
         ]);
 
         $sortOrder = $property->photos()->max('sort_order') ?? 0;
@@ -220,7 +235,7 @@ class PropertyController extends Controller
             ]);
         }
 
-        return back()->with('success', count($request->file('photos')) . ' photo(s) ajoutÃ©e(s).');
+        return back()->with('success', count($request->file('photos')) . ' photo(s) ajoutÃÂ©e(s).');
     }
 
     public function deletePhoto(Property $property, PropertyPhoto $photo)
@@ -243,7 +258,7 @@ class PropertyController extends Controller
 
         $photo->delete();
 
-        return back()->with('success', 'Photo supprimÃ©e.');
+        return back()->with('success', 'Photo supprimÃÂ©e.');
     }
 
     public function manageAvailability(Property $property)
@@ -271,10 +286,10 @@ class PropertyController extends Controller
             'end_date'   => ['required', 'date', 'after:start_date'],
             'reason'     => ['nullable', 'string', 'max:255'],
         ], [
-            'start_date.required'      => 'La date de dÃ©but est obligatoire.',
-            'start_date.after_or_equal'=> 'La date de dÃ©but doit Ãªtre aujourd\'hui ou dans le futur.',
+            'start_date.required'      => 'La date de dÃÂ©but est obligatoire.',
+            'start_date.after_or_equal'=> 'La date de dÃÂ©but doit ÃÂªtre aujourd\'hui ou dans le futur.',
             'end_date.required'        => 'La date de fin est obligatoire.',
-            'end_date.after'           => 'La date de fin doit Ãªtre aprÃ¨s la date de dÃ©but.',
+            'end_date.after'           => 'La date de fin doit ÃÂªtre aprÃÂ¨s la date de dÃÂ©but.',
         ]);
 
         PropertyBlockedDate::create([
@@ -285,7 +300,7 @@ class PropertyController extends Controller
             'source'      => 'manual',
         ]);
 
-        return back()->with('success', 'Dates bloquÃ©es enregistrÃ©es.');
+        return back()->with('success', 'Dates bloquÃÂ©es enregistrÃÂ©es.');
     }
 
     public function deleteBlockedDate(Property $property, PropertyBlockedDate $blockedDate)
@@ -298,7 +313,7 @@ class PropertyController extends Controller
 
         $blockedDate->delete();
 
-        return back()->with('success', 'Dates dÃ©bloquÃ©es.');
+        return back()->with('success', 'Dates dÃÂ©bloquÃÂ©es.');
     }
 
     public function ownerIndex()
@@ -319,7 +334,7 @@ class PropertyController extends Controller
         $newStatus = $property->status === 'active' ? 'inactive' : 'active';
         $property->update(['status' => $newStatus]);
 
-        $label = $newStatus === 'active' ? 'activÃ©' : 'dÃ©sactivÃ©';
+        $label = $newStatus === 'active' ? 'activÃÂ©' : 'dÃÂ©sactivÃÂ©';
         return back()->with('success', "Logement {$label}.");
     }
 }
