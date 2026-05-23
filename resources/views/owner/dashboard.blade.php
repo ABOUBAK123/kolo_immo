@@ -197,16 +197,26 @@
                         </div>
                         <div class="flex gap-2">
                             <form action="{{ route('owner.bookings.confirm', $booking) }}" method="POST" class="flex-1">
-                                @csrf @method('PATCH')
+                                @csrf
                                 <button class="w-full bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-2 rounded-lg transition-colors">
                                     Accepter
                                 </button>
                             </form>
-                            <form action="{{ route('owner.bookings.reject', $booking) }}" method="POST" class="flex-1">
-                                @csrf @method('PATCH')
-                                <button class="w-full bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold py-2 rounded-lg transition-colors border border-red-200">
+                            <form action="{{ route('owner.bookings.reject', $booking) }}" method="POST" class="flex-1" x-data="{ open: false }">
+                                @csrf
+                                <button type="button" @click="open = true"
+                                    class="w-full bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold py-2 rounded-lg transition-colors border border-red-200">
                                     Refuser
                                 </button>
+                                <div x-show="open" x-cloak class="mt-2 p-2 bg-white border border-red-200 rounded-lg shadow-sm">
+                                    <textarea name="reason" rows="2" required
+                                        placeholder="Motif du refus..."
+                                        class="w-full border border-gray-200 rounded text-xs px-2 py-1.5 resize-none mb-1.5"></textarea>
+                                    <button type="submit"
+                                        class="w-full bg-red-600 text-white text-xs font-bold py-1.5 rounded transition-colors hover:bg-red-700">
+                                        Confirmer le refus
+                                    </button>
+                                </div>
                             </form>
                         </div>
                     </div>

@@ -61,6 +61,8 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::get('/', [BookingController::class, 'index'])->name('index');
         Route::get('/{booking}', [BookingController::class, 'show'])->name('show');
         Route::post('/{booking}/cancel', [BookingController::class, 'cancel'])->name('cancel');
+        Route::post('/{booking}/confirm', [BookingController::class, 'confirm'])->name('confirm');
+        Route::post('/{booking}/reject', [BookingController::class, 'reject'])->name('reject');
     });
 
     // ─── OWNER PROPERTY MANAGEMENT (Protected) ───────────────────────────────

@@ -128,6 +128,81 @@ class BookingController extends Controller
     }
 
     /**
+     * Owner confirms a pending booking.
+     */
+    public function confirm(Request $request, Booking $booking)
+    {
+        $user = $request->user();
+
+        if ($user->id !== $booking->owner_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Seul le propriétaire peut confirmer cette réservation.',
+            ], 403);
+        }
+
+        if (!$booking->isPending()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cette réservation ne peut pas être confirmée.',
+            ], 422);
+        }
+
+        try {
+            $booking = $this->bookingService->confirmBooking($booking);
+        } catch (\RuntimeException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Réservation confirmée.',
+            'data'    => $this->formatBooking($booking),
+        ]);
+    }
+
+    /**
+     * Owner rejects a pending booking.
+     */
+    public function reject(Request $request, Booking $booking)
+    {
+        $user = $request->user();
+
+        if ($user->id !== $booking->owner_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Seul le propriétaire peut rejeter cette réservation.',
+            ], 403);
+        }
+
+        $request->validate([
+            'reason' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        try {
+            $booking = $this->bookingService->cancelBooking(
+                $booking,
+                'owner',
+                $request->reason ?? 'Réservation refusée par le propriétaire'
+            );
+        } catch (\RuntimeException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Réservation refusée.',
+            'data'    => $this->formatBooking($booking),
+        ]);
+    }
+
+    /**
      * Cancel a booking.
      */
     public function cancel(Request $request, Booking $booking)
