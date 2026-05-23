@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Publier un bien - Kolo Immo')
 
@@ -35,13 +35,13 @@
     <!-- Header -->
     <div class="mb-8">
         <h1 class="text-2xl font-bold text-gray-900 mb-1">Publier un bien</h1>
-        <p class="text-gray-500">ComplÃ©tez les informations pour mettre votre logement en location</p>
+        <p class="text-gray-500">Complétez les informations pour mettre votre logement en location</p>
     </div>
 
     <!-- Step indicator -->
     <div class="mb-8">
         <div class="flex items-center gap-2 overflow-x-auto pb-2">
-            @foreach(['Type', 'Localisation', 'DÃ©tails', 'Tarifs', 'Ã‰quipements', 'RÃ¨gles', 'Photos'] as $i => $label)
+            @foreach(['Type', 'Localisation', 'Détails', 'Tarifs', 'Équipements', 'Règles', 'Photos'] as $i => $label)
             <div class="flex items-center gap-2 flex-shrink-0">
                 <div class="flex items-center gap-1.5">
                     <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all"
@@ -76,7 +76,7 @@
 
         <!-- STEP 1: Type & Basic Info -->
         <div x-show="step === 1" class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <h2 class="text-lg font-bold text-gray-900 mb-5">Type et prÃ©sentation</h2>
+            <h2 class="text-lg font-bold text-gray-900 mb-5">Type et présentation</h2>
 
             <div class="mb-5">
                 <label class="block text-sm font-semibold text-gray-700 mb-3">Type de logement</label>
@@ -99,19 +99,19 @@
             <div class="mb-5">
                 <label class="block text-sm font-semibold text-gray-700 mb-1.5">Titre de l'annonce</label>
                 <input type="text" name="title" value="{{ old('title') }}"
-                    placeholder="Ex: Bel appartement meublÃ© Ã  Cocody, Abidjan"
+                    placeholder="Ex: Bel appartement meublé à Cocody, Abidjan"
                     class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 {{ $errors->has('title') ? 'border-red-300' : '' }}"
                     maxlength="100" required>
-                <p class="text-xs text-gray-400 mt-1">Max 100 caractÃ¨res</p>
+                <p class="text-xs text-gray-400 mt-1">Max 100 caractères</p>
                 @error('title')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
             </div>
 
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Description dÃ©taillÃ©e</label>
-                <textarea name="description" rows="5" placeholder="DÃ©crivez votre logement en dÃ©tail : espace, dÃ©coration, quartier, transports Ã  proximitÃ©..."
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Description détaillée</label>
+                <textarea name="description" rows="5" placeholder="Décrivez votre logement en détail : espace, décoration, quartier, transports à proximité..."
                     class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none {{ $errors->has('description') ? 'border-red-300' : '' }}"
                     required>{{ old('description') }}</textarea>
-                <p class="text-xs text-gray-400 mt-1">Min 100 caractÃ¨res recommandÃ©s</p>
+                <p class="text-xs text-gray-400 mt-1">Min 100 caractères recommandés</p>
                 @error('description')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
             </div>
         </div>
@@ -123,8 +123,8 @@
                 <div class="sm:col-span-2">
                     <label class="block text-sm font-semibold text-gray-700 mb-1.5">Pays</label>
                     <select name="country" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                        <option value="">SÃ©lectionner...</option>
-                        @foreach(['CI' => 'CÃ´te d\'Ivoire', 'SN' => 'SÃ©nÃ©gal', 'BF' => 'Burkina Faso', 'ML' => 'Mali', 'TG' => 'Togo', 'BJ' => 'BÃ©nin', 'GN' => 'GuinÃ©e', 'GH' => 'Ghana'] as $code => $name)
+                        <option value="">Sélectionner...</option>
+                        @foreach(['CI' => "Côte d'Ivoire", 'SN' => 'Sénégal', 'BF' => 'Burkina Faso', 'ML' => 'Mali', 'TG' => 'Togo', 'BJ' => 'Bénin', 'GN' => 'Guinée', 'GH' => 'Ghana'] as $code => $name)
                         <option value="{{ $code }}" {{ old('country') === $code ? 'selected' : '' }}>{{ $name }}</option>
                         @endforeach
                     </select>
@@ -140,10 +140,10 @@
                         class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div class="sm:col-span-2">
-                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Adresse complÃ¨te</label>
-                    <input type="text" name="address" value="{{ old('address') }}" placeholder="Rue, numÃ©ro, immeuble..."
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Adresse complète</label>
+                    <input type="text" name="address" value="{{ old('address') }}" placeholder="Rue, numéro, immeuble..."
                         class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <p class="text-xs text-gray-400 mt-1">L'adresse exacte ne sera visible qu'aprÃ¨s rÃ©servation confirmÃ©e</p>
+                    <p class="text-xs text-gray-400 mt-1">L'adresse exacte ne sera visible qu'après réservation confirmée</p>
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1.5">Latitude (optionnel)</label>
@@ -160,15 +160,15 @@
 
         <!-- STEP 3: Details -->
         <div x-show="step === 3" x-cloak class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <h2 class="text-lg font-bold text-gray-900 mb-5">CaractÃ©ristiques</h2>
+            <h2 class="text-lg font-bold text-gray-900 mb-5">Caractéristiques</h2>
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 @foreach([
-                    ['name' => 'capacity', 'label' => 'CapacitÃ© (personnes)', 'type' => 'number', 'min' => 1, 'placeholder' => '2'],
+                    ['name' => 'capacity', 'label' => 'Capacité (personnes)', 'type' => 'number', 'min' => 1, 'placeholder' => '2'],
                     ['name' => 'bedrooms', 'label' => 'Chambres', 'type' => 'number', 'min' => 0, 'placeholder' => '1'],
                     ['name' => 'bathrooms', 'label' => 'Salles de bain', 'type' => 'number', 'min' => 1, 'placeholder' => '1'],
-                    ['name' => 'area', 'label' => 'Superficie (mÂ²)', 'type' => 'number', 'min' => 1, 'placeholder' => '45'],
-                    ['name' => 'check_in_time', 'label' => 'Heure d\'arrivÃ©e', 'type' => 'time', 'min' => null, 'placeholder' => ''],
-                    ['name' => 'check_out_time', 'label' => 'Heure de dÃ©part', 'type' => 'time', 'min' => null, 'placeholder' => ''],
+                    ['name' => 'area', 'label' => 'Superficie (m²)', 'type' => 'number', 'min' => 1, 'placeholder' => '45'],
+                    ['name' => 'check_in_time', 'label' => "Heure d'arrivée", 'type' => 'time', 'min' => null, 'placeholder' => ''],
+                    ['name' => 'check_out_time', 'label' => 'Heure de départ', 'type' => 'time', 'min' => null, 'placeholder' => ''],
                 ] as $field)
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1.5">{{ $field['label'] }}</label>
@@ -179,17 +179,17 @@
                 </div>
                 @endforeach
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Type de rÃ©servation</label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Type de réservation</label>
                     <select name="booking_type" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="request" {{ old('booking_type') === 'request' ? 'selected' : '' }}>Sur demande</option>
-                        <option value="instant" {{ old('booking_type') === 'instant' ? 'selected' : '' }}>InstantanÃ©e</option>
+                        <option value="instant" {{ old('booking_type') === 'instant' ? 'selected' : '' }}>Instantanée</option>
                     </select>
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1.5">Politique d'annulation</label>
                     <select name="cancellation_policy" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="flexible" {{ old('cancellation_policy') === 'flexible' ? 'selected' : '' }}>Flexible (24h)</option>
-                        <option value="moderate" {{ old('cancellation_policy') === 'moderate' ? 'selected' : '' }}>ModÃ©rÃ©e (5 jours)</option>
+                        <option value="moderate" {{ old('cancellation_policy') === 'moderate' ? 'selected' : '' }}>Modérée (5 jours)</option>
                         <option value="strict" {{ old('cancellation_policy') === 'strict' ? 'selected' : '' }}>Stricte</option>
                     </select>
                 </div>
@@ -202,13 +202,13 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 @foreach([
                     ['name' => 'price_per_night', 'label' => 'Prix par nuit', 'required' => true, 'hint' => 'Tarif de base obligatoire'],
-                    ['name' => 'price_per_week', 'label' => 'Prix par semaine', 'required' => false, 'hint' => 'Optionnel â€” avec rÃ©duction'],
-                    ['name' => 'price_per_month', 'label' => 'Prix par mois', 'required' => false, 'hint' => 'Optionnel â€” long sÃ©jour'],
-                    ['name' => 'deposit_amount', 'label' => 'Caution', 'required' => false, 'hint' => 'RemboursÃ©e Ã  la fin du sÃ©jour'],
+                    ['name' => 'price_per_week', 'label' => 'Prix par semaine', 'required' => false, 'hint' => 'Optionnel — avec réduction'],
+                    ['name' => 'price_per_month', 'label' => 'Prix par mois', 'required' => false, 'hint' => 'Optionnel — long séjour'],
+                    ['name' => 'deposit_amount', 'label' => 'Caution', 'required' => false, 'hint' => 'Remboursée à la fin du séjour'],
                 ] as $field)
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1.5">
-                        {{ $field['label'] }} {{ $field['required'] ? '<span class="text-red-500">*</span>' : '' }}
+                        {{ $field['label'] }} {!! $field['required'] ? '<span class="text-red-500">*</span>' : '' !!}
                     </label>
                     <div class="relative">
                         <input type="number" name="{{ $field['name'] }}" value="{{ old($field['name']) }}"
@@ -224,23 +224,23 @@
             </div>
             <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
                 <p class="text-sm text-blue-800">
-                    <strong>Note :</strong> Kolo Immo prÃ©lÃ¨ve 3% de frais de service sur chaque rÃ©servation, payÃ©s par le locataire. Vous recevez le montant total indiquÃ©.
+                    <strong>Note :</strong> Kolo Immo prélève 3% de frais de service sur chaque réservation, payés par le locataire. Vous recevez le montant total indiqué.
                 </p>
             </div>
         </div>
 
         <!-- STEP 5: Amenities -->
         <div x-show="step === 5" x-cloak class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <h2 class="text-lg font-bold text-gray-900 mb-2">Ã‰quipements disponibles</h2>
-            <p class="text-gray-500 text-sm mb-5">SÃ©lectionnez tout ce qui est disponible dans votre logement</p>
+            <h2 class="text-lg font-bold text-gray-900 mb-2">Équipements disponibles</h2>
+            <p class="text-gray-500 text-sm mb-5">Sélectionnez tout ce qui est disponible dans votre logement</p>
             @php
             $amenityGroups = [
-                'Internet & Tech' => ['wifi' => 'Wi-Fi', 'television' => 'TÃ©lÃ©vision', 'cable_tv' => 'TV cÃ¢ble/satellite'],
+                'Internet & Tech' => ['wifi' => 'Wi-Fi', 'television' => 'Télévision', 'cable_tv' => 'TV câble/satellite'],
                 'Confort' => ['climatisation' => 'Climatisation', 'ventilateur' => 'Ventilateur', 'chauffage' => 'Chauffage'],
-                'Cuisine' => ['cuisine' => 'Cuisine Ã©quipÃ©e', 'refrigerateur' => 'RÃ©frigÃ©rateur', 'four' => 'Four/Micro-ondes', 'machine_cafe' => 'Machine Ã  cafÃ©'],
-                'SÃ©curitÃ©' => ['gardien' => 'Gardien 24h/24', 'camera' => 'CamÃ©ras de sÃ©curitÃ©', 'interphone' => 'Interphone', 'coffre_fort' => 'Coffre-fort'],
-                'ExtÃ©rieur' => ['piscine' => 'Piscine', 'parking' => 'Parking privÃ©', 'balcon' => 'Balcon/Terrasse', 'jardin' => 'Jardin'],
-                'Services' => ['ascenseur' => 'Ascenseur', 'machine_a_laver' => 'Machine Ã  laver', 'generateur' => 'Groupe Ã©lectrogÃ¨ne', 'eau_chaude' => 'Eau chaude'],
+                'Cuisine' => ['cuisine' => 'Cuisine équipée', 'refrigerateur' => 'Réfrigérateur', 'four' => 'Four/Micro-ondes', 'machine_cafe' => 'Machine à café'],
+                'Sécurité' => ['gardien' => 'Gardien 24h/24', 'camera' => 'Caméras de sécurité', 'interphone' => 'Interphone', 'coffre_fort' => 'Coffre-fort'],
+                'Extérieur' => ['piscine' => 'Piscine', 'parking' => 'Parking privé', 'balcon' => 'Balcon/Terrasse', 'jardin' => 'Jardin'],
+                'Services' => ['ascenseur' => 'Ascenseur', 'machine_a_laver' => 'Machine à laver', 'generateur' => 'Groupe électrogène', 'eau_chaude' => 'Eau chaude'],
             ];
             @endphp
             @foreach($amenityGroups as $group => $items)
@@ -270,12 +270,12 @@
 
         <!-- STEP 6: Rules -->
         <div x-show="step === 6" x-cloak class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <h2 class="text-lg font-bold text-gray-900 mb-5">RÃ¨gles de la maison</h2>
+            <h2 class="text-lg font-bold text-gray-900 mb-5">Règles de la maison</h2>
             <div class="space-y-4" x-data="{ pets: '{{ old('pets_allowed', '0') }}', smoking: '{{ old('smoking_allowed', '0') }}', parties: '{{ old('parties_allowed', '0') }}' }">
                 @foreach([
-                    ['name' => 'pets_allowed', 'label' => 'Animaux de compagnie', 'model' => 'pets', 'icon' => 'ðŸ¾', 'yes' => 'AutorisÃ©s', 'no' => 'Non autorisÃ©s'],
-                    ['name' => 'smoking_allowed', 'label' => 'Tabac/Cigarettes', 'model' => 'smoking', 'icon' => 'ðŸš¬', 'yes' => 'AutorisÃ©', 'no' => 'Interdit'],
-                    ['name' => 'parties_allowed', 'label' => 'FÃªtes et Ã©vÃ¨nements', 'model' => 'parties', 'icon' => 'ðŸŽ‰', 'yes' => 'AutorisÃ©es', 'no' => 'Non autorisÃ©es'],
+                    ['name' => 'pets_allowed', 'label' => 'Animaux de compagnie', 'model' => 'pets', 'icon' => '🐾', 'yes' => 'Autorisés', 'no' => 'Non autorisés'],
+                    ['name' => 'smoking_allowed', 'label' => 'Tabac/Cigarettes', 'model' => 'smoking', 'icon' => '🚬', 'yes' => 'Autorisé', 'no' => 'Interdit'],
+                    ['name' => 'parties_allowed', 'label' => 'Fêtes et événements', 'model' => 'parties', 'icon' => '🎉', 'yes' => 'Autorisées', 'no' => 'Non autorisées'],
                 ] as $rule)
                 <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
                     <div class="flex items-center gap-3">
@@ -305,8 +305,8 @@
             </div>
 
             <div class="mt-5">
-                <label class="block text-sm font-semibold text-gray-700 mb-1.5">RÃ¨gles supplÃ©mentaires (optionnel)</label>
-                <textarea name="additional_rules" rows="3" placeholder="Ex: Pas de bruit aprÃ¨s 22h, chaussures Ã  l'entrÃ©e..."
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Règles supplémentaires (optionnel)</label>
+                <textarea name="additional_rules" rows="3" placeholder="Ex: Pas de bruit après 22h, chaussures à l'entrée..."
                     class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none">{{ old('additional_rules') }}</textarea>
             </div>
         </div>
@@ -314,7 +314,7 @@
         <!-- STEP 7: Photos -->
         <div x-show="step === 7" x-cloak class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             <h2 class="text-lg font-bold text-gray-900 mb-2">Photos de votre logement</h2>
-            <p class="text-gray-500 text-sm mb-5">Les annonces avec au moins 5 photos reÃ§oivent 3Ã— plus de rÃ©servations</p>
+            <p class="text-gray-500 text-sm mb-5">Les annonces avec au moins 5 photos reçoivent 3× plus de réservations</p>
 
             <div class="border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center hover:border-blue-400 transition-colors cursor-pointer"
                 @click="$refs.photoInput.click()"
@@ -325,7 +325,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
                 </svg>
                 <p class="font-semibold text-gray-700 mb-1">Cliquez ou glissez vos photos ici</p>
-                <p class="text-gray-400 text-xs">JPG, PNG, WebP â€” Max 5MB par photo â€” Min 5 photos recommandÃ©es</p>
+                <p class="text-gray-400 text-xs">JPG, PNG, WebP — Max 5MB par photo — Min 5 photos recommandées</p>
                 <input type="file" name="photos[]" multiple accept="image/*" x-ref="photoInput"
                     @change="handlePhotos($event)" class="hidden">
             </div>
@@ -341,7 +341,7 @@
                 </template>
             </div>
             <p x-show="previewPhotos.length > 0" class="text-xs text-gray-400 mt-2 text-center">
-                <span x-text="previewPhotos.length"></span> photo(s) sÃ©lectionnÃ©e(s). La premiÃ¨re sera la photo principale.
+                <span x-text="previewPhotos.length"></span> photo(s) sélectionnée(s). La première sera la photo principale.
             </p>
 
             @error('photos')<p class="text-red-500 text-xs mt-2">{{ $message }}</p>@enderror
@@ -355,12 +355,12 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                 </svg>
-                PrÃ©cÃ©dent
+                Précédent
             </button>
             <div x-show="step === 1"></div>
 
             <div class="flex items-center gap-3">
-                <span class="text-sm text-gray-400">Ã‰tape <span x-text="step"></span> / {{ 7 }}</span>
+                <span class="text-sm text-gray-400">Étape <span x-text="step"></span> / {{ 7 }}</span>
                 <button type="button" @click="nextStep()" x-show="step < totalSteps"
                     class="flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white font-semibold px-5 py-3 rounded-xl transition-colors">
                     Suivant

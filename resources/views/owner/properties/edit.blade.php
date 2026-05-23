@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Modifier : ' . $property->title . ' - Kolo Immo')
 
@@ -43,7 +43,7 @@
     <!-- Step indicator -->
     <div class="mb-8">
         <div class="flex items-center gap-2 overflow-x-auto pb-2">
-            @foreach(['Type', 'Localisation', 'DÃ©tails', 'Tarifs', 'Ã‰quipements', 'RÃ¨gles', 'Photos'] as $i => $label)
+            @foreach(['Type', 'Localisation', 'Détails', 'Tarifs', 'Équipements', 'Règles', 'Photos'] as $i => $label)
             <div class="flex items-center gap-2 flex-shrink-0">
                 <div class="flex items-center gap-1.5">
                     <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all"
@@ -70,7 +70,7 @@
 
         <!-- STEP 1: Type & Basic Info -->
         <div x-show="step === 1" class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <h2 class="text-lg font-bold text-gray-900 mb-5">Type et prÃ©sentation</h2>
+            <h2 class="text-lg font-bold text-gray-900 mb-5">Type et présentation</h2>
             <div class="mb-5">
                 <label class="block text-sm font-semibold text-gray-700 mb-3">Type de logement</label>
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -106,7 +106,7 @@
                 <div class="sm:col-span-2">
                     <label class="block text-sm font-semibold text-gray-700 mb-1.5">Pays</label>
                     <select name="country" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        @foreach(['CI' => 'CÃ´te d\'Ivoire', 'SN' => 'SÃ©nÃ©gal', 'BF' => 'Burkina Faso', 'ML' => 'Mali', 'TG' => 'Togo', 'BJ' => 'BÃ©nin'] as $code => $name)
+                        @foreach(['CI' => "Côte d'Ivoire", 'SN' => 'Sénégal', 'BF' => 'Burkina Faso', 'ML' => 'Mali', 'TG' => 'Togo', 'BJ' => 'Bénin'] as $code => $name)
                         <option value="{{ $code }}" {{ old('country', $property->country) === $code ? 'selected' : '' }}>{{ $name }}</option>
                         @endforeach
                     </select>
@@ -131,13 +131,13 @@
 
         <!-- STEP 3: Details -->
         <div x-show="step === 3" x-cloak class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <h2 class="text-lg font-bold text-gray-900 mb-5">CaractÃ©ristiques</h2>
+            <h2 class="text-lg font-bold text-gray-900 mb-5">Caractéristiques</h2>
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 @foreach([
-                    ['name' => 'capacity', 'label' => 'CapacitÃ©'],
+                    ['name' => 'capacity', 'label' => 'Capacité'],
                     ['name' => 'bedrooms', 'label' => 'Chambres'],
                     ['name' => 'bathrooms', 'label' => 'Salles de bain'],
-                    ['name' => 'area', 'label' => 'Superficie (mÂ²)'],
+                    ['name' => 'area', 'label' => 'Superficie (m²)'],
                 ] as $field)
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1.5">{{ $field['label'] }}</label>
@@ -147,17 +147,17 @@
                 </div>
                 @endforeach
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Type de rÃ©servation</label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Type de réservation</label>
                     <select name="booking_type" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="request" {{ old('booking_type', $property->booking_type) === 'request' ? 'selected' : '' }}>Sur demande</option>
-                        <option value="instant" {{ old('booking_type', $property->booking_type) === 'instant' ? 'selected' : '' }}>InstantanÃ©e</option>
+                        <option value="instant" {{ old('booking_type', $property->booking_type) === 'instant' ? 'selected' : '' }}>Instantanée</option>
                     </select>
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1.5">Annulation</label>
                     <select name="cancellation_policy" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="flexible" {{ old('cancellation_policy', $property->cancellation_policy) === 'flexible' ? 'selected' : '' }}>Flexible</option>
-                        <option value="moderate" {{ old('cancellation_policy', $property->cancellation_policy) === 'moderate' ? 'selected' : '' }}>ModÃ©rÃ©e</option>
+                        <option value="moderate" {{ old('cancellation_policy', $property->cancellation_policy) === 'moderate' ? 'selected' : '' }}>Modérée</option>
                         <option value="strict" {{ old('cancellation_policy', $property->cancellation_policy) === 'strict' ? 'selected' : '' }}>Stricte</option>
                     </select>
                 </div>
@@ -185,9 +185,16 @@
 
         <!-- STEP 5: Amenities -->
         <div x-show="step === 5" x-cloak class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <h2 class="text-lg font-bold text-gray-900 mb-5">Ã‰quipements</h2>
+            <h2 class="text-lg font-bold text-gray-900 mb-5">Équipements</h2>
             @php
-            $allAmenities = ['wifi' => 'Wi-Fi', 'climatisation' => 'Climatisation', 'parking' => 'Parking', 'piscine' => 'Piscine', 'cuisine' => 'Cuisine Ã©quipÃ©e', 'television' => 'TÃ©lÃ©vision', 'machine_a_laver' => 'Machine Ã  laver', 'gardien' => 'Gardien 24h/24', 'ascenseur' => 'Ascenseur', 'generateur' => 'Groupe Ã©lectrogÃ¨ne', 'eau_chaude' => 'Eau chaude', 'balcon' => 'Balcon/Terrasse', 'refrigerateur' => 'RÃ©frigÃ©rateur', 'four' => 'Four/Micro-ondes'];
+            $allAmenities = [
+                'wifi' => 'Wi-Fi', 'climatisation' => 'Climatisation', 'parking' => 'Parking',
+                'piscine' => 'Piscine', 'cuisine' => 'Cuisine équipée', 'television' => 'Télévision',
+                'machine_a_laver' => 'Machine à laver', 'gardien' => 'Gardien 24h/24',
+                'ascenseur' => 'Ascenseur', 'generateur' => 'Groupe électrogène',
+                'eau_chaude' => 'Eau chaude', 'balcon' => 'Balcon/Terrasse',
+                'refrigerateur' => 'Réfrigérateur', 'four' => 'Four/Micro-ondes',
+            ];
             @endphp
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 @foreach($allAmenities as $val => $label)
@@ -211,16 +218,16 @@
 
         <!-- STEP 6: Rules -->
         <div x-show="step === 6" x-cloak class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <h2 class="text-lg font-bold text-gray-900 mb-5">RÃ¨gles de la maison</h2>
+            <h2 class="text-lg font-bold text-gray-900 mb-5">Règles de la maison</h2>
             <div class="space-y-4" x-data="{
                 pets: '{{ old('pets_allowed', $property->pets_allowed ? '1' : '0') }}',
                 smoking: '{{ old('smoking_allowed', $property->smoking_allowed ? '1' : '0') }}',
                 parties: '{{ old('parties_allowed', $property->parties_allowed ? '1' : '0') }}'
             }">
                 @foreach([
-                    ['name' => 'pets_allowed', 'label' => 'Animaux de compagnie', 'model' => 'pets', 'icon' => 'ðŸ¾'],
-                    ['name' => 'smoking_allowed', 'label' => 'Fumeur', 'model' => 'smoking', 'icon' => 'ðŸš¬'],
-                    ['name' => 'parties_allowed', 'label' => 'FÃªtes', 'model' => 'parties', 'icon' => 'ðŸŽ‰'],
+                    ['name' => 'pets_allowed', 'label' => 'Animaux de compagnie', 'model' => 'pets', 'icon' => '🐾'],
+                    ['name' => 'smoking_allowed', 'label' => 'Fumeur', 'model' => 'smoking', 'icon' => '🚬'],
+                    ['name' => 'parties_allowed', 'label' => 'Fêtes', 'model' => 'parties', 'icon' => '🎉'],
                 ] as $rule)
                 <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
                     <div class="flex items-center gap-3">
@@ -257,7 +264,7 @@
                             class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             @csrf @method('DELETE')
                             <button type="submit" class="w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600"
-                                onclick="return confirm('Supprimer cette photo ?')">Ã—</button>
+                                onclick="return confirm('Supprimer cette photo ?')">×</button>
                         </form>
                     </div>
                     @endforeach
@@ -285,11 +292,11 @@
             <button type="button" @click="step--" x-show="step > 1"
                 class="flex items-center gap-2 border border-gray-200 text-gray-700 font-semibold px-5 py-3 rounded-xl hover:bg-gray-50 transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                PrÃ©cÃ©dent
+                Précédent
             </button>
             <div x-show="step === 1"></div>
             <div class="flex items-center gap-3">
-                <span class="text-sm text-gray-400">Ã‰tape <span x-text="step"></span> / {{ 7 }}</span>
+                <span class="text-sm text-gray-400">Étape <span x-text="step"></span> / {{ 7 }}</span>
                 <button type="button" @click="step++" x-show="step < totalSteps"
                     class="flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white font-semibold px-5 py-3 rounded-xl transition-colors">
                     Suivant <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
