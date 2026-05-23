@@ -140,9 +140,14 @@ class AdminController extends Controller
             return back()->with('success', 'Document KYC approuvé. L\'utilisateur est maintenant vérifié.');
         }
 
+        $reason = $request->rejection_reason;
+        if ($request->filled('rejection_details')) {
+            $reason .= ' — ' . trim($request->rejection_details);
+        }
+
         $kycDocument->update([
             'status'           => 'rejected',
-            'rejection_reason' => $request->rejection_reason,
+            'rejection_reason' => $reason,
             'verified_at'      => now(),
             'verified_by'      => auth()->id(),
         ]);
@@ -159,12 +164,19 @@ class AdminController extends Controller
     {
         $status = $request->get('status', 'pending');
 
-        $documents = KycDocument::where('status', $status)
+        $kycDocuments = KycDocument::when($status !== '', fn($q) => $q->where('status', $status))
             ->with('user')
             ->latest()
-            ->paginate(20);
+            ->paginate(20)
+            ->withQueryString();
 
-        return view('admin.kyc.index', compact('documents', 'status'));
+        $stats = [
+            'pending'  => KycDocument::where('status', 'pending')->count(),
+            'approved' => KycDocument::where('status', 'approved')->count(),
+            'rejected' => KycDocument::where('status', 'rejected')->count(),
+        ];
+
+        return view('admin.kyc.index', compact('kycDocuments', 'stats', 'status'));
     }
 
     /**
