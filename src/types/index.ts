@@ -3,7 +3,7 @@ export interface User {
   name: string;
   email: string | null;
   phone: string | null;
-  role: 'tenant' | 'owner' | 'both' | 'admin';
+  role: 'tenant' | 'owner' | 'both' | 'admin' | 'agent';
   city: string | null;
   country: string | null;
   trust_score: number;

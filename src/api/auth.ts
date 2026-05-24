@@ -12,7 +12,7 @@ export interface RegisterPayload {
   email?: string;
   phone?: string;
   password: string;
-  role: 'tenant' | 'owner' | 'both';
+  role: 'tenant' | 'owner' | 'both' | 'agent';
   country?: string;
   city?: string;
 }
@@ -33,6 +33,7 @@ interface RegisterData {
   user_id: number;
   phone: string | null;
   email: string | null;
+  needs_activation: boolean;
 }
 
 export const authApi = {

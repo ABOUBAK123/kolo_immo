@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   StatusBar,
@@ -23,10 +23,11 @@ type Props = {
 };
 
 const STEPS = ['Infos', 'Sécurité', 'Profil'];
-const ROLES: {value: 'tenant' | 'owner' | 'both'; emoji: string; label: string; desc: string}[] = [
-  {value: 'tenant', emoji: '🏠', label: 'Locataire',            desc: 'Je cherche un logement'},
-  {value: 'owner',  emoji: '🔑', label: 'Propriétaire',         desc: 'Je loue mon bien'},
-  {value: 'both',   emoji: '🔄', label: 'Les deux',             desc: 'Locataire et propriétaire'},
+const ROLES: {value: 'tenant' | 'owner' | 'both' | 'agent'; emoji: string; label: string; desc: string}[] = [
+  {value: 'tenant', emoji: '🏠', label: 'Locataire',        desc: 'Je cherche un logement'},
+  {value: 'owner',  emoji: '🔑', label: 'Propriétaire',     desc: 'Je loue mon bien'},
+  {value: 'both',   emoji: '🔄', label: 'Les deux',         desc: 'Locataire et propriétaire'},
+  {value: 'agent',  emoji: '💼', label: 'Agent immobilier', desc: 'Je gère des biens (3% commission)'},
 ];
 const COUNTRIES: {name: string; capital: string}[] = [
   {name: "Bénin",          capital: 'Porto-Novo'},
@@ -60,11 +61,14 @@ export const RegisterScreen: React.FC<Props> = ({navigation}) => {
   const [confirm, setConfirm]     = useState('');
   const [showPwd, setShowPwd]     = useState(false);
   // Step 2 — Profil
-  const [role, setRole]           = useState<'tenant' | 'owner' | 'both'>('tenant');
+  const [role, setRole]           = useState<'tenant' | 'owner' | 'both' | 'agent'>('tenant');
   const [country, setCountry]     = useState("Côte d'Ivoire");
 
   const [errors, setErrors]   = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [modal, setModal]     = useState<{visible: boolean; message: string; needsActivation: boolean; phone: string | null; userId: number | null}>({
+    visible: false, message: '', needsActivation: false, phone: null, userId: null,
+  });
 
   const validateStep = () => {
     const e: Record<string, string> = {};
@@ -96,13 +100,13 @@ export const RegisterScreen: React.FC<Props> = ({navigation}) => {
       const regData = res.data.data;
       const userPhone: string | null = regData.phone ?? phone ?? null;
 
-      if (userPhone) {
-        navigation.navigate('OTP', {phone: userPhone, userId: regData.user_id});
-      } else {
-        Alert.alert('Compte créé !', res.data.message ?? 'Vous pouvez vous connecter.', [
-          {text: 'Se connecter', onPress: () => navigation.navigate('Login')},
-        ]);
-      }
+      setModal({
+        visible: true,
+        message: res.data.message ?? 'Votre compte a bien été créé.',
+        needsActivation: regData.needs_activation ?? false,
+        phone: userPhone,
+        userId: regData.user_id,
+      });
     } catch (err: any) {
       const apiErrors = err.response?.data?.errors ?? {};
       if (Object.keys(apiErrors).length > 0) {
@@ -113,10 +117,26 @@ export const RegisterScreen: React.FC<Props> = ({navigation}) => {
         setErrors(mapped);
         setStep(0);
       } else {
-        Alert.alert('Erreur', err.response?.data?.message ?? 'Inscription échouée.');
+        setModal({
+          visible: true,
+          message: err.response?.data?.message ?? 'Inscription échouée. Veuillez réessayer.',
+          needsActivation: false,
+          phone: null,
+          userId: null,
+        });
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleModalClose = () => {
+    const {phone: p, userId, needsActivation} = modal;
+    setModal(m => ({...m, visible: false}));
+    if (p && userId && !needsActivation) {
+      navigation.navigate('OTP', {phone: p, userId});
+    } else {
+      navigation.navigate('Login');
     }
   };
 
@@ -277,6 +297,14 @@ export const RegisterScreen: React.FC<Props> = ({navigation}) => {
               ))}
             </View>
 
+            {(role === 'owner' || role === 'agent') && (
+              <View style={styles.activationNotice}>
+                <Text style={styles.activationNoticeText}>
+                  ⏳ Ce type de compte sera activé par l'administrateur après vérification.
+                </Text>
+              </View>
+            )}
+
             <Button
               title="Créer mon compte"
               onPress={handleRegister}
@@ -296,6 +324,24 @@ export const RegisterScreen: React.FC<Props> = ({navigation}) => {
           <Text style={styles.footerLink}>Se connecter</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Post-registration modal */}
+      <Modal transparent animationType="fade" visible={modal.visible} onRequestClose={handleModalClose}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalIcon}>{modal.needsActivation ? '⏳' : '✅'}</Text>
+            <Text style={styles.modalTitle}>
+              {modal.needsActivation ? 'Compte créé !' : 'Bienvenue !'}
+            </Text>
+            <Text style={styles.modalMessage}>{modal.message}</Text>
+            <TouchableOpacity style={styles.modalBtn} onPress={handleModalClose} activeOpacity={0.85}>
+              <Text style={styles.modalBtnText}>
+                {modal.needsActivation ? 'Se connecter' : modal.phone ? 'Vérifier mon téléphone' : 'Se connecter'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 };
@@ -409,4 +455,41 @@ const styles = StyleSheet.create({
   },
   footerText: { ...typography.body, color: colors.textSecondary },
   footerLink: { ...typography.body, color: colors.primary, fontWeight: '700' },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.xl,
+  },
+  modalCard: {
+    width: '100%',
+    backgroundColor: colors.surface,
+    borderRadius: radius.xxl,
+    padding: spacing.xl,
+    alignItems: 'center',
+    ...shadows.md,
+  },
+  modalIcon:    { fontSize: 48, marginBottom: spacing.md },
+  modalTitle:   { ...typography.h2, color: colors.text, marginBottom: 8, textAlign: 'center' },
+  modalMessage: { ...typography.body, color: colors.textSecondary, textAlign: 'center', marginBottom: spacing.xl, lineHeight: 22 },
+  modalBtn: {
+    width: '100%',
+    backgroundColor: colors.primary,
+    borderRadius: radius.lg,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  modalBtnText: { ...typography.label, color: '#fff', fontSize: 16 },
+
+  activationNotice: {
+    backgroundColor: '#fef9c3',
+    borderWidth: 1,
+    borderColor: '#fde047',
+    borderRadius: radius.lg,
+    padding: 12,
+    marginTop: spacing.md,
+  },
+  activationNoticeText: { ...typography.bodySm, color: '#854d0e', lineHeight: 20 },
 });
