@@ -19,6 +19,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'kyc'   => \App\Http\Middleware\KycVerifiedMiddleware::class,
         ]);
 
+        $middleware->web(append: [
+            \App\Http\Middleware\SetLocale::class,
+        ]);
+
         // Exclude CinetPay webhook from CSRF verification
         $middleware->validateCsrfTokens(except: [
             'payments/notify',

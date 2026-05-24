@@ -11,7 +11,11 @@ use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\LocaleController;
 use Illuminate\Support\Facades\Route;
+
+// ─── LOCALE ───────────────────────────────────────────────────────────────────
+Route::post('/language/{locale}', [LocaleController::class, 'change'])->name('language.change');
 
 // ─── PUBLIC ROUTES ────────────────────────────────────────────────────────────
 

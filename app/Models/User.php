@@ -21,6 +21,7 @@ class User extends Authenticatable
         'kyc_status',
         'avatar',
         'country',
+        'language',
         'city',
         'trust_score',
         'is_active',

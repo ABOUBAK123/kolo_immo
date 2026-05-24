@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,7 +19,12 @@
 <body class="bg-gray-50 text-gray-800 antialiased">
 
 <!-- Navigation -->
-<nav class="bg-white shadow-sm sticky top-0 z-50" x-data="{ mobileOpen: false, userDropdown: false }">
+@php
+    $allLanguages = \App\Http\Controllers\LocaleController::LANGUAGES;
+    $currentLocale = app()->getLocale();
+    $currentLang = $allLanguages[$currentLocale] ?? $allLanguages['fr'];
+@endphp
+<nav class="bg-white shadow-sm sticky top-0 z-50" x-data="{ mobileOpen: false, userDropdown: false, langOpen: false }">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
 
@@ -59,6 +64,36 @@
                     </svg>
                     Publier un bien
                 </a>
+
+                <!-- Language Switcher -->
+                <div class="relative" @click.away="langOpen = false">
+                    <button @click="langOpen = !langOpen"
+                        class="flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 border border-gray-200 rounded-full px-3 py-1.5 hover:border-gray-300 transition-colors">
+                        <span>{{ $currentLang['flag'] }}</span>
+                        <span class="font-medium hidden lg:inline">{{ $currentLang['native'] }}</span>
+                        <svg class="w-3 h-3 transition-transform" :class="langOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    <div x-show="langOpen" x-cloak x-transition
+                        class="absolute right-0 mt-2 w-44 bg-white rounded-xl shadow-lg border border-gray-100 py-1.5 z-50">
+                        @foreach($allLanguages as $code => $lang)
+                        <form action="{{ route('language.change', $code) }}" method="POST">
+                            @csrf
+                            <button type="submit"
+                                class="flex items-center gap-3 w-full px-4 py-2 text-sm hover:bg-gray-50 transition-colors {{ $currentLocale === $code ? 'font-semibold text-blue-700 bg-blue-50' : 'text-gray-700' }}">
+                                <span class="text-base">{{ $lang['flag'] }}</span>
+                                <span>{{ $lang['native'] }}</span>
+                                @if($currentLocale === $code)
+                                <svg class="w-3.5 h-3.5 ml-auto text-blue-700" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                                @endif
+                            </button>
+                        </form>
+                        @endforeach
+                    </div>
+                </div>
 
                 @auth
                 <a href="{{ route('messages.index') }}" class="nav-link text-sm relative">
@@ -155,6 +190,21 @@
                     </svg>
                 </button>
             </form>
+            <!-- Mobile Language Switcher -->
+            <div class="flex flex-wrap gap-2 mb-3 pb-3 border-b border-gray-100">
+                <span class="text-xs text-gray-400 font-semibold uppercase tracking-wide w-full">{{ __('app.nav.language') }}</span>
+                @foreach($allLanguages as $code => $lang)
+                <form action="{{ route('language.change', $code) }}" method="POST">
+                    @csrf
+                    <button type="submit"
+                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm border transition-colors {{ $currentLocale === $code ? 'bg-blue-700 text-white border-blue-700 font-semibold' : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300' }}">
+                        <span>{{ $lang['flag'] }}</span>
+                        <span>{{ $lang['native'] }}</span>
+                    </button>
+                </form>
+                @endforeach
+            </div>
+
             <div class="space-y-1">
                 <a href="{{ route('owner.properties.create') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-700 hover:bg-gray-50 font-medium">
                     <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
