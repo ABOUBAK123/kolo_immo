@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Mes réservations - Kolo Immo')
 
@@ -19,7 +19,7 @@
         <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
             <div class="flex">
                 @if($booking->property && $booking->property->cover_photo)
-                <img src="{{ Storage::url($booking->property->cover_photo) }}" alt=""
+                <img src="{{ $booking->property->coverPhotoUrl() }}" alt=""
                      class="w-28 h-28 object-cover flex-shrink-0">
                 @else
                 <div class="w-28 h-28 bg-gray-100 flex items-center justify-center flex-shrink-0">

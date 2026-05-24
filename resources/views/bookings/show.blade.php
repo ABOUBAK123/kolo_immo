@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Réservation #' . $booking->reference . ' - Kolo Immo')
 
@@ -38,7 +38,7 @@
                 <div class="flex gap-4 p-5">
                     <div class="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0">
                         @if($booking->property->photos->first())
-                        <img src="{{ asset('storage/' . $booking->property->photos->first()->path) }}"
+                        <img src="{{ $booking->property->photos->first()->photoUrl() }}"
                             alt="{{ $booking->property->title }}" class="w-full h-full object-cover">
                         @else
                         <div class="w-full h-full bg-gradient-to-br from-blue-400 to-indigo-600"></div>

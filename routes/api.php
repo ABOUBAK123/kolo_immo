@@ -77,6 +77,44 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::delete('/{property}/photos/{photo}', [OwnerPropertyController::class, 'deletePhoto'])->name('photos.delete');
     });
 
+    // ─── OWNER COMMISSIONS ───────────────────────────────────────────────────
+    Route::middleware('auth:sanctum')->get('/owner/commissions', function (\Illuminate\Http\Request $request) {
+        $user  = $request->user();
+        $rate  = 0.03;
+
+        $bookings = \App\Models\Booking::whereHas('property', fn($q) => $q->where('owner_id', $user->id))
+            ->whereIn('status', ['confirmed', 'completed'])
+            ->with(['property:id,title', 'tenant:id,name'])
+            ->orderByDesc('created_at')
+            ->get();
+
+        $rows = $bookings->map(fn($b) => [
+            'id'         => $b->id,
+            'reference'  => $b->reference,
+            'property'   => $b->property?->title,
+            'tenant'     => $b->tenant?->name,
+            'check_in'   => $b->check_in,
+            'check_out'  => $b->check_out,
+            'nights'     => $b->nights,
+            'total'      => (float) $b->total_amount,
+            'commission' => round((float) $b->total_amount * $rate),
+            'status'     => $b->status,
+        ]);
+
+        $now = now();
+        return response()->json([
+            'data' => [
+                'commission_rate'  => $rate,
+                'total_commission' => $rows->sum('commission'),
+                'total_revenue'    => $rows->sum('total'),
+                'monthly_commission' => $rows->filter(fn($r) => substr($r['check_in'], 0, 7) === $now->format('Y-m'))->sum('commission'),
+                'monthly_revenue'    => $rows->filter(fn($r) => substr($r['check_in'], 0, 7) === $now->format('Y-m'))->sum('total'),
+                'bookings_count'   => $rows->count(),
+                'rows'             => $rows->values(),
+            ],
+        ]);
+    })->name('owner.commissions');
+
     // ─── PAYMENTS ─────────────────────────────────────────────────────────────
     Route::middleware('auth:sanctum')->prefix('payments')->name('payments.')->group(function () {
         Route::post('/initiate/{booking}', [PaymentController::class, 'process'])->name('initiate');

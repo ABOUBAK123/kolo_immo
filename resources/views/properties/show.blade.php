@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', $property->title . ' - Kolo Immo')
 @section('description', Str::limit($property->description, 155))
@@ -33,9 +33,9 @@
     <!-- Photo Gallery -->
     <div class="grid grid-cols-4 grid-rows-2 gap-2 rounded-2xl overflow-hidden mb-8 h-64 md:h-96">
         <!-- Main photo -->
-        <div class="col-span-4 md:col-span-2 row-span-2 cursor-pointer" @click="openLightbox('{{ $property->photos->first() ? asset('storage/'.$property->photos->first()->path) : '' }}')">
+        <div class="col-span-4 md:col-span-2 row-span-2 cursor-pointer" @click="openLightbox('{{ $property->photos->first() ? $property->photos->first()->photoUrl() : '' }}')">
             @if($property->photos->first())
-            <img src="{{ asset('storage/' . $property->photos->first()->path) }}" alt="{{ $property->title }}"
+            <img src="{{ $property->photos->first()->photoUrl() }}" alt="{{ $property->title }}"
                 class="w-full h-full object-cover hover:brightness-90 transition-all">
             @else
             <div class="w-full h-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center">
@@ -45,8 +45,8 @@
         </div>
         <!-- Thumbnails -->
         @foreach($property->photos->skip(1)->take(4) as $photo)
-        <div class="hidden md:block cursor-pointer" @click="openLightbox('{{ asset('storage/'.$photo->path) }}')">
-            <img src="{{ asset('storage/' . $photo->path) }}" alt="{{ $property->title }}"
+        <div class="hidden md:block cursor-pointer" @click="openLightbox('{{ $photo->photoUrl() }}')">
+            <img src="{{ $photo->photoUrl() }}" alt="{{ $property->title }}"
                 class="w-full h-full object-cover hover:brightness-90 transition-all">
         </div>
         @endforeach

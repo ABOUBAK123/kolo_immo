@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Tableau de bord propriétaire - Kolo Immo')
 
@@ -143,7 +143,7 @@
                     <div class="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors">
                         <div class="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0">
                             @if($property->photos->first())
-                            <img src="{{ asset('storage/' . $property->photos->first()->path) }}" alt="{{ $property->title }}" class="w-full h-full object-cover">
+                            <img src="{{ $property->photos->first()->photoUrl() }}" alt="{{ $property->title }}" class="w-full h-full object-cover">
                             @else
                             <div class="w-full h-full bg-gradient-to-br from-blue-400 to-indigo-600"></div>
                             @endif

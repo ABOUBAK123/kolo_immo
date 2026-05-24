@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Mes logements - Kolo Immo')
 
@@ -47,7 +47,7 @@
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm mb-4 overflow-hidden">
         <div class="flex flex-col sm:flex-row">
             @if($property->cover_photo)
-            <img src="{{ Storage::url($property->cover_photo) }}" alt="{{ $property->title }}"
+            <img src="{{ $property->coverPhotoUrl() }}" alt="{{ $property->title }}"
                  class="w-full sm:w-40 h-32 sm:h-auto object-cover flex-shrink-0">
             @else
             <div class="w-full sm:w-40 h-32 bg-gray-100 flex items-center justify-center flex-shrink-0">

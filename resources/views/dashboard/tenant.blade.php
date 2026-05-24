@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Mon espace - Kolo Immo')
 
@@ -137,7 +137,7 @@
                     <div class="flex items-center gap-4 px-5 py-4">
                         <div class="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0">
                             @if($booking->property->photos->first())
-                            <img src="{{ asset('storage/' . $booking->property->photos->first()->path) }}" alt="" class="w-full h-full object-cover">
+                            <img src="{{ $booking->property->photos->first()->photoUrl() }}" alt="" class="w-full h-full object-cover">
                             @else
                             <div class="w-full h-full bg-gradient-to-br from-blue-400 to-indigo-600"></div>
                             @endif

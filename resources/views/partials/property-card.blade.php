@@ -1,9 +1,9 @@
-{{-- Reusable property card partial. Variable: $property --}}
+﻿{{-- Reusable property card partial. Variable: $property --}}
 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300 group">
     <!-- Photo -->
     <a href="{{ route('properties.show', $property) }}" class="block relative overflow-hidden">
         @if($property->photos->isNotEmpty())
-        <img src="{{ asset('storage/' . $property->photos->first()->path) }}"
+        <img src="{{ $property->photos->first()->photoUrl() }}"
             alt="{{ $property->title }}"
             class="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-300"
             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">

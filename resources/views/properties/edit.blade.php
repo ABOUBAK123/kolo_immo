@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Modifier : ' . $property->title . ' - Kolo Immo')
 
@@ -252,7 +252,7 @@
                 <div class="grid grid-cols-3 sm:grid-cols-5 gap-2">
                     @foreach($property->photos as $photo)
                     <div class="relative group">
-                        <img src="{{ asset('storage/' . $photo->path) }}" class="w-full h-20 object-cover rounded-lg">
+                        <img src="{{ $photo->photoUrl() }}" class="w-full h-20 object-cover rounded-lg">
                         <form action="{{ route('properties.photos.delete', [$property, $photo]) }}" method="POST"
                             class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             @csrf @method('DELETE')
