@@ -5,6 +5,11 @@
 
     RewriteEngine On
 
+    # Route URL paths that share a name with upload directories to Laravel.
+    # public/properties/ exists for photo storage but the /properties route must reach PHP.
+    # This rule runs before the !-d checks so the directory presence doesn't block routing.
+    RewriteRule ^properties/?$ index.php [L,QSA]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
