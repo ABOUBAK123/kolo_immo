@@ -141,16 +141,22 @@
                 <div class="sm:col-span-2">
                     <label class="block text-sm font-semibold text-gray-700 mb-1.5">Pays</label>
                     <select name="country" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                        <option value="">Sélectionner...</option>
-                        @foreach(['CI' => "Côte d'Ivoire", 'SN' => 'Sénégal', 'BF' => 'Burkina Faso', 'ML' => 'Mali', 'TG' => 'Togo', 'BJ' => 'Bénin', 'GN' => 'Guinée', 'GH' => 'Ghana'] as $code => $name)
-                        <option value="{{ $code }}" {{ old('country') === $code ? 'selected' : '' }}>{{ $name }}</option>
+                        <option value="">Sélectionner un pays...</option>
+                        @foreach(\App\Helpers\WestAfrica::countries() as $name => $capital)
+                        <option value="{{ $name }}" {{ old('country') === $name ? 'selected' : '' }}>{{ $name }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1.5">Ville</label>
-                    <input type="text" name="city" value="{{ old('city') }}" placeholder="Abidjan" required
+                    <input type="text" name="city" id="create-city" value="{{ old('city') }}" placeholder="Abidjan" required
+                        list="capitals-list"
                         class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <datalist id="capitals-list">
+                        @foreach(\App\Helpers\WestAfrica::countries() as $name => $capital)
+                        <option value="{{ $capital }}">{{ $name }}</option>
+                        @endforeach
+                    </datalist>
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1.5">Quartier / District</label>

@@ -161,14 +161,12 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
                     <div>
                         <label for="country" class="block text-sm font-semibold text-gray-700 mb-1.5">Pays</label>
-                        <select id="country" name="country" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white {{ $errors->has('country') ? 'border-red-300' : '' }}">
+                        <select id="country" name="country"
+                            onchange="(function(s){var c=@json(\App\Helpers\WestAfrica::countries());var cap=c[s.value]||'';var ci=document.getElementById('city');ci.placeholder=cap?'Ex: '+cap:'Votre ville';})(this)"
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white {{ $errors->has('country') ? 'border-red-300' : '' }}">
                             <option value="">Sélectionner...</option>
-                            @foreach([
-                                'CI' => 'Côte d\'Ivoire', 'SN' => 'Sénégal', 'BF' => 'Burkina Faso',
-                                'ML' => 'Mali', 'TG' => 'Togo', 'BJ' => 'Bénin',
-                                'GN' => 'Guinée', 'GH' => 'Ghana', 'NG' => 'Nigéria'
-                            ] as $code => $name)
-                            <option value="{{ $code }}" {{ old('country') === $code ? 'selected' : '' }}>{{ $name }}</option>
+                            @foreach(\App\Helpers\WestAfrica::countries() as $countryName => $capital)
+                            <option value="{{ $countryName }}" {{ old('country') === $countryName ? 'selected' : '' }}>{{ $countryName }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -176,7 +174,13 @@
                         <label for="city" class="block text-sm font-semibold text-gray-700 mb-1.5">Ville</label>
                         <input type="text" id="city" name="city" value="{{ old('city') }}"
                             placeholder="Abidjan"
+                            list="reg-capitals-list"
                             class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm {{ $errors->has('city') ? 'border-red-300 bg-red-50' : '' }}">
+                        <datalist id="reg-capitals-list">
+                            @foreach(\App\Helpers\WestAfrica::countries() as $countryName => $capital)
+                            <option value="{{ $capital }}">
+                            @endforeach
+                        </datalist>
                     </div>
                 </div>
 

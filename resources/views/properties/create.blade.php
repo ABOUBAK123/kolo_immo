@@ -120,19 +120,28 @@
         <div x-show="step === 2" x-cloak class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             <h2 class="text-lg font-bold text-gray-900 mb-5">Localisation</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                @php $currentCountry = old('country', ''); @endphp
                 <div class="sm:col-span-2">
                     <label class="block text-sm font-semibold text-gray-700 mb-1.5">Pays</label>
-                    <select name="country" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    <select name="country" id="prop-country"
+                        onchange="(function(s){var c=@json(\App\Helpers\WestAfrica::countries());var cap=c[s.value]||'';var ci=document.getElementById('prop-city');ci.placeholder=cap?'Ex: '+cap:'Votre ville';if(!ci.value&&cap)ci.value=cap;})(this)"
+                        class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                         <option value="">Sélectionner...</option>
-                        @foreach(['CI' => 'Côte d\'Ivoire', 'SN' => 'Sénégal', 'BF' => 'Burkina Faso', 'ML' => 'Mali', 'TG' => 'Togo', 'BJ' => 'Bénin', 'GN' => 'Guinée', 'GH' => 'Ghana'] as $code => $name)
-                        <option value="{{ $code }}" {{ old('country') === $code ? 'selected' : '' }}>{{ $name }}</option>
+                        @foreach(\App\Helpers\WestAfrica::countries() as $countryName => $capital)
+                        <option value="{{ $countryName }}" {{ $currentCountry === $countryName ? 'selected' : '' }}>{{ $countryName }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1.5">Ville</label>
-                    <input type="text" name="city" value="{{ old('city') }}" placeholder="Abidjan" required
+                    <input type="text" name="city" id="prop-city" value="{{ old('city') }}" placeholder="Abidjan" required
+                        list="prop-capitals-list"
                         class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <datalist id="prop-capitals-list">
+                        @foreach(\App\Helpers\WestAfrica::countries() as $countryName => $capital)
+                        <option value="{{ $capital }}">
+                        @endforeach
+                    </datalist>
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1.5">Quartier / District</label>

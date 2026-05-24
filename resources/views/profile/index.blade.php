@@ -183,27 +183,24 @@
                         <label class="block text-sm font-semibold text-gray-700 mb-1.5">Ville</label>
                         <input type="text" name="city" value="{{ old('city', $user->city) }}"
                             class="input-field"
+                            list="profile-capitals-list"
                             placeholder="Ex: Abidjan, Dakar, Bamako...">
+                        <datalist id="profile-capitals-list">
+                            @foreach(\App\Helpers\WestAfrica::countries() as $countryName => $capital)
+                            <option value="{{ $capital }}">
+                            @endforeach
+                        </datalist>
                     </div>
 
                     <!-- Pays -->
+                    @php $currentCountry = \App\Helpers\WestAfrica::resolve(old('country', $user->country ?? '')); @endphp
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-1.5">Pays</label>
                         <select name="country" class="input-field">
-                            @foreach([
-                                'CI' => "Côte d'Ivoire",
-                                'SN' => 'Sénégal',
-                                'ML' => 'Mali',
-                                'BF' => 'Burkina Faso',
-                                'GN' => 'Guinée',
-                                'TG' => 'Togo',
-                                'BJ' => 'Bénin',
-                                'GH' => 'Ghana',
-                                'CM' => 'Cameroun',
-                                'MA' => 'Maroc',
-                            ] as $code => $label)
-                            <option value="{{ $code }}" {{ old('country', $user->country) === $code ? 'selected' : '' }}>
-                                {{ $label }}
+                            <option value="">Sélectionner...</option>
+                            @foreach(\App\Helpers\WestAfrica::countries() as $countryName => $capital)
+                            <option value="{{ $countryName }}" {{ $currentCountry === $countryName ? 'selected' : '' }}>
+                                {{ $countryName }}
                             </option>
                             @endforeach
                         </select>

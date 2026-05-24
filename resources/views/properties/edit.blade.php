@@ -105,16 +105,25 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="sm:col-span-2">
                     <label class="block text-sm font-semibold text-gray-700 mb-1.5">Pays</label>
-                    <select name="country" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        @foreach(['CI' => 'Côte d\'Ivoire', 'SN' => 'Sénégal', 'BF' => 'Burkina Faso', 'ML' => 'Mali', 'TG' => 'Togo', 'BJ' => 'Bénin'] as $code => $name)
-                        <option value="{{ $code }}" {{ old('country', $property->country) === $code ? 'selected' : '' }}>{{ $name }}</option>
+                    @php $currentCountry = \App\Helpers\WestAfrica::resolve(old('country', $property->country)); @endphp
+                    <select name="country"
+                        onchange="var c=this.value,city=this.closest('.grid').querySelector('input[name=city]');if(!city.value){var cap={'Bénin':'Porto-Novo','Burkina Faso':'Ouagadougou','Cap-Vert':'Praia',"Côte d'Ivoire":'Abidjan','Gambie':'Banjul','Ghana':'Accra','Guinée':'Conakry','Guinée-Bissau':'Bissau','Libéria':'Monrovia','Mali':'Bamako','Mauritanie':'Nouakchott','Niger':'Niamey','Nigeria':'Abuja','Sénégal':'Dakar','Sierra Leone':'Freetown','Togo':'Lomé'};city.placeholder=cap[c]||'';};"
+                        class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        @foreach(\App\Helpers\WestAfrica::countries() as $name => $capital)
+                        <option value="{{ $name }}" {{ $currentCountry === $name ? 'selected' : '' }}>{{ $name }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1.5">Ville</label>
                     <input type="text" name="city" value="{{ old('city', $property->city) }}"
+                        list="capitals-list"
                         class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <datalist id="capitals-list">
+                        @foreach(\App\Helpers\WestAfrica::countries() as $name => $capital)
+                        <option value="{{ $capital }}">{{ $name }}</option>
+                        @endforeach
+                    </datalist>
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1.5">Quartier</label>
