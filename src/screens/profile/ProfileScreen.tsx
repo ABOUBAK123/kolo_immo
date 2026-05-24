@@ -163,7 +163,24 @@ export const ProfileScreen: React.FC<Props> = ({navigation}) => {
         </View>
 
         {/* ── KYC Banner ── */}
-        {user?.kyc_status !== 'verified' && (
+        {user?.kyc_status === 'verified' ? (
+          <View style={[styles.kycBanner, styles.kycBannerVerified]}>
+            <View style={styles.kycLeft}>
+              <Text style={[styles.kycTitle, {color: colors.success}]}>Identité vérifiée</Text>
+              <Text style={styles.kycDesc}>Votre compte est pleinement vérifié.</Text>
+            </View>
+            <View style={styles.kycBtnVerified}>
+              <Text style={styles.kycBtnVerifiedText}>✓ Vérifié</Text>
+            </View>
+          </View>
+        ) : user?.kyc_status === 'pending' ? (
+          <View style={[styles.kycBanner, styles.kycBannerPending]}>
+            <View style={styles.kycLeft}>
+              <Text style={[styles.kycTitle, {color: colors.warning}]}>Vérification en cours</Text>
+              <Text style={styles.kycDesc}>Nos équipes examinent vos documents (24-48h).</Text>
+            </View>
+          </View>
+        ) : (
           <View style={styles.kycBanner}>
             <View style={styles.kycLeft}>
               <Text style={styles.kycTitle}>Vérifiez votre identité</Text>
@@ -343,6 +360,14 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: colors.accentLight,
   },
+  kycBannerVerified: {
+    backgroundColor: '#f0fdf4',
+    borderColor: '#86efac',
+  },
+  kycBannerPending: {
+    backgroundColor: '#fffbeb',
+    borderColor: '#fcd34d',
+  },
   kycLeft: {flex: 1},
   kycTitle: {...typography.h4, color: colors.accent},
   kycDesc: {...typography.caption, color: colors.textSecondary, marginTop: 3},
@@ -353,6 +378,13 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
   },
   kycBtnText: {color: '#fff', fontWeight: '700', fontSize: 13},
+  kycBtnVerified: {
+    backgroundColor: '#16a34a',
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: radius.lg,
+  },
+  kycBtnVerifiedText: {color: '#fff', fontWeight: '700', fontSize: 13},
 
   actionList: {gap: 0},
   actionRow: {
