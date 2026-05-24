@@ -192,6 +192,16 @@ export const ProfileScreen: React.FC<Props> = ({navigation}) => {
                 </View>
                 <Text style={styles.actionChevron}>›</Text>
               </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.actionRow}
+                activeOpacity={0.7}
+                onPress={() => navigation.navigate('OwnerCommissions')}>
+                <View style={styles.actionLeft}>
+                  <Text style={styles.actionIcon}>💰</Text>
+                  <Text style={styles.actionLabel}>Mes commissions (3%)</Text>
+                </View>
+                <Text style={styles.actionChevron}>›</Text>
+              </TouchableOpacity>
             </View>
           </View>
         )}

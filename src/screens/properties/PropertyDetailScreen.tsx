@@ -32,10 +32,10 @@ export const PropertyDetailScreen: React.FC<Props> = ({navigation, route}) => {
   const photos = property.photos ?? [];
   const coverUrl = property.cover_photo_url
     ? property.cover_photo_url
-    : photos[0]?.path ? getImageUrl(photos[0].path) : null;
+    : photos[0]?.url ?? null;
 
   const allPhotos = photos.length > 0
-    ? photos.map(p => getImageUrl(p.path))
+    ? photos.map(p => p.url || getImageUrl(p.path))
     : coverUrl ? [coverUrl] : [];
 
   const handleBook = () => {

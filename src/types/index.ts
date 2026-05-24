@@ -15,9 +15,11 @@ export interface User {
 
 export interface PropertyPhoto {
   id: number;
-  path: string;
+  url: string;
+  path?: string;
   is_cover: boolean;
-  sort_order: number;
+  sort_order?: number;
+  caption?: string | null;
 }
 
 export interface PropertyAmenity {
@@ -186,4 +188,5 @@ export type ProfileStackParamList = {
   KycScreen: undefined;
   OwnerProperties: undefined;
   OwnerAddProperty: undefined;
+  OwnerCommissions: undefined;
 };
