@@ -253,12 +253,9 @@
                     @foreach($property->photos as $photo)
                     <div class="relative group">
                         <img src="{{ $photo->photoUrl() }}" class="w-full h-20 object-cover rounded-lg">
-                        <form action="{{ route('properties.photos.delete', [$property, $photo]) }}" method="POST"
-                            class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            @csrf @method('DELETE')
-                            <button type="submit" class="w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600"
-                                onclick="return confirm('Supprimer cette photo ?')">×</button>
-                        </form>
+                        <button type="button"
+                            onclick="if(confirm('Supprimer cette photo ?')){var f=document.createElement('form');f.method='POST';f.action='{{ route('properties.photos.delete', [$property, $photo]) }}';f.innerHTML='<input name=_token value={{ csrf_token() }}><input name=_method value=DELETE>';document.body.appendChild(f);f.submit();}"
+                            class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600">×</button>
                     </div>
                     @endforeach
                 </div>
