@@ -50,6 +50,11 @@ class AuthController extends Controller
             return back()->withErrors(['email' => 'Votre compte a été suspendu. Contactez le support.']);
         }
 
+        if (!$user->is_active) {
+            Auth::logout();
+            return back()->withErrors(['email' => 'Votre compte est en attente d\'activation par l\'administrateur.']);
+        }
+
         $request->session()->regenerate();
 
         return redirect($this->redirectAfterLogin($user))
@@ -73,7 +78,7 @@ class AuthController extends Controller
             'email'    => ['required', 'email', 'unique:users,email'],
             'phone'    => ['required', 'string', 'max:20', 'unique:users,phone'],
             'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
-            'role'     => ['required', 'in:tenant,owner,both'],
+            'role'     => ['required', 'in:tenant,owner,both,agent'],
             'country'  => ['nullable', 'string', 'max:100'],
             'city'     => ['nullable', 'string', 'max:100'],
         ], [
@@ -97,7 +102,7 @@ class AuthController extends Controller
             'country'    => $data['country'] ?? null,
             'city'       => $data['city'] ?? null,
             'kyc_status' => 'pending',
-            'is_active'  => true,
+            'is_active'  => !in_array($data['role'], ['owner', 'agent']),
             'is_banned'  => false,
             'trust_score'=> 50,
         ]);
@@ -108,8 +113,13 @@ class AuthController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
+        $regMessage = in_array($data['role'], ['owner', 'agent'])
+            ? 'Votre compte a bien été créé et sera activé par l\'administrateur.'
+            : 'Votre compte a bien été créé. Bienvenue sur Kolo Immo !';
+
         return redirect()->route('verify.phone')
-            ->with('success', 'Compte créé ! Veuillez vérifier votre numéro de téléphone.');
+            ->with('reg_message', $regMessage)
+            ->with('reg_role', $data['role']);
     }
 
     // ─── Logout ───────────────────────────────────────────────────────────────
@@ -175,7 +185,7 @@ class AuthController extends Controller
             return '/admin/dashboard';
         }
 
-        if ($user->isOwner()) {
+        if ($user->isOwner() || $user->role === 'agent') {
             return '/owner/dashboard';
         }
 

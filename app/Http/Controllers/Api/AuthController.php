@@ -26,10 +26,12 @@ class AuthController extends Controller
             'email'    => ['nullable', 'email', 'unique:users,email'],
             'phone'    => ['required_without:email', 'nullable', 'string', 'max:20', 'unique:users,phone'],
             'password' => ['required', Password::min(8)->letters()->numbers()],
-            'role'     => ['required', 'in:tenant,owner,both'],
-            'country'  => ['nullable', 'string', 'max:2'],
+            'role'     => ['required', 'in:tenant,owner,both,agent'],
+            'country'  => ['nullable', 'string', 'max:100'],
             'city'     => ['nullable', 'string', 'max:100'],
         ]);
+
+        $needsAdminActivation = in_array($data['role'], ['owner', 'agent']);
 
         $user = User::create([
             'name'        => $data['name'],
@@ -37,30 +39,35 @@ class AuthController extends Controller
             'phone'       => $data['phone'] ?? null,
             'password'    => Hash::make($data['password']),
             'role'        => $data['role'],
-            'country'     => $data['country'] ?? 'CI',
+            'country'     => $data['country'] ?? "Côte d'Ivoire",
             'city'        => $data['city'] ?? null,
             'kyc_status'  => 'pending',
-            'is_active'   => true,
+            'is_active'   => !$needsAdminActivation,
             'is_banned'   => false,
             'trust_score' => 50,
         ]);
 
-        // Send OTP for phone verification (all active channels including email)
+        // Send OTP for phone verification
         if ($user->phone) {
             $this->otpService->generate($user->phone, 'phone_verify', $user, $user->email);
         }
 
-        $message = $user->phone
-            ? 'Compte créé. Veuillez vérifier votre téléphone avec le code OTP envoyé.'
-            : 'Compte créé avec succès.';
+        if ($needsAdminActivation) {
+            $message = 'Votre compte a bien été créé et sera activé par l\'administrateur avant que vous puissiez vous connecter.';
+        } elseif ($user->phone) {
+            $message = 'Compte créé. Veuillez vérifier votre téléphone avec le code OTP envoyé.';
+        } else {
+            $message = 'Compte créé avec succès.';
+        }
 
         return response()->json([
             'success' => true,
             'message' => $message,
             'data'    => [
-                'user_id' => $user->id,
-                'phone'   => $user->phone,
-                'email'   => $user->email,
+                'user_id'            => $user->id,
+                'phone'              => $user->phone,
+                'email'              => $user->email,
+                'needs_activation'   => $needsAdminActivation,
             ],
         ], 201);
     }
@@ -99,6 +106,13 @@ class AuthController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Votre compte a été suspendu.',
+            ], 403);
+        }
+
+        if (!$user->is_active) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Votre compte est en attente d\'activation par l\'administrateur.',
             ], 403);
         }
 

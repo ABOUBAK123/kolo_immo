@@ -305,6 +305,29 @@
 </div>
 @endif
 
+<!-- Registration success modal -->
+@if(session('reg_message'))
+@php $regRole = session('reg_role', 'tenant'); $needsActivation = in_array($regRole, ['owner', 'agent']); @endphp
+<div x-data="{ open: true }" x-show="open" x-cloak
+    class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div x-show="open" x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100"
+        class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center">
+        <div class="text-5xl mb-4">{{ $needsActivation ? '⏳' : '🎉' }}</div>
+        <h2 class="text-xl font-bold text-gray-900 mb-2">
+            {{ $needsActivation ? 'Compte créé !' : 'Bienvenue sur Kolo Immo !' }}
+        </h2>
+        <p class="text-gray-600 text-sm leading-relaxed mb-6">{{ session('reg_message') }}</p>
+        <button @click="open = false"
+            class="w-full py-3 px-6 rounded-xl font-semibold text-white text-sm
+                {{ $needsActivation ? 'bg-amber-500 hover:bg-amber-600' : 'bg-primary-700 hover:bg-primary-800' }}
+                transition-colors">
+            {{ $needsActivation ? 'Compris' : 'Vérifier mon téléphone' }}
+        </button>
+    </div>
+</div>
+@endif
+
 <!-- Main Content -->
 <main>
     @yield('content')

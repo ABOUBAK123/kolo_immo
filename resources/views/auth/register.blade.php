@@ -39,38 +39,62 @@
                 <!-- Role selector -->
                 <div class="mb-6">
                     <p class="text-sm font-semibold text-gray-700 mb-3">Je suis :</p>
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="grid grid-cols-3 gap-3">
                         <!-- Tenant -->
                         <label class="cursor-pointer">
                             <input type="radio" name="role" value="tenant" x-model="role" class="sr-only peer">
-                            <div class="p-4 border-2 border-gray-200 rounded-xl text-center transition-all
+                            <div class="p-3 border-2 border-gray-200 rounded-xl text-center transition-all
                                 peer-checked:border-blue-700 peer-checked:bg-blue-50 hover:border-blue-300">
-                                <div class="w-12 h-12 mx-auto mb-2 rounded-xl flex items-center justify-center"
+                                <div class="w-10 h-10 mx-auto mb-2 rounded-xl flex items-center justify-center"
                                     :class="role === 'tenant' ? 'bg-blue-700' : 'bg-gray-100'">
-                                    <svg class="w-6 h-6" :class="role === 'tenant' ? 'text-white' : 'text-gray-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-5 h-5" :class="role === 'tenant' ? 'text-white' : 'text-gray-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                                     </svg>
                                 </div>
-                                <p class="font-semibold text-sm" :class="role === 'tenant' ? 'text-blue-700' : 'text-gray-700'">Je suis Locataire</p>
-                                <p class="text-xs text-gray-400 mt-0.5">Je cherche un logement</p>
+                                <p class="font-semibold text-xs" :class="role === 'tenant' ? 'text-blue-700' : 'text-gray-700'">Locataire</p>
+                                <p class="text-xs text-gray-400 mt-0.5 hidden sm:block">Je cherche un logement</p>
                             </div>
                         </label>
 
                         <!-- Owner -->
                         <label class="cursor-pointer">
                             <input type="radio" name="role" value="owner" x-model="role" class="sr-only peer">
-                            <div class="p-4 border-2 border-gray-200 rounded-xl text-center transition-all
+                            <div class="p-3 border-2 border-gray-200 rounded-xl text-center transition-all
                                 peer-checked:border-orange-400 peer-checked:bg-orange-50 hover:border-orange-200">
-                                <div class="w-12 h-12 mx-auto mb-2 rounded-xl flex items-center justify-center"
+                                <div class="w-10 h-10 mx-auto mb-2 rounded-xl flex items-center justify-center"
                                     :class="role === 'owner' ? 'bg-orange-400' : 'bg-gray-100'">
-                                    <svg class="w-6 h-6" :class="role === 'owner' ? 'text-white' : 'text-gray-400'" fill="currentColor" viewBox="0 0 20 20">
+                                    <svg class="w-5 h-5" :class="role === 'owner' ? 'text-white' : 'text-gray-400'" fill="currentColor" viewBox="0 0 20 20">
                                         <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
                                     </svg>
                                 </div>
-                                <p class="font-semibold text-sm" :class="role === 'owner' ? 'text-orange-600' : 'text-gray-700'">Je suis Propriétaire</p>
-                                <p class="text-xs text-gray-400 mt-0.5">Je loue un logement</p>
+                                <p class="font-semibold text-xs" :class="role === 'owner' ? 'text-orange-600' : 'text-gray-700'">Propriétaire</p>
+                                <p class="text-xs text-gray-400 mt-0.5 hidden sm:block">Je loue mon bien</p>
                             </div>
                         </label>
+
+                        <!-- Agent -->
+                        <label class="cursor-pointer">
+                            <input type="radio" name="role" value="agent" x-model="role" class="sr-only peer">
+                            <div class="p-3 border-2 border-gray-200 rounded-xl text-center transition-all
+                                peer-checked:border-purple-600 peer-checked:bg-purple-50 hover:border-purple-200">
+                                <div class="w-10 h-10 mx-auto mb-2 rounded-xl flex items-center justify-center"
+                                    :class="role === 'agent' ? 'bg-purple-600' : 'bg-gray-100'">
+                                    <svg class="w-5 h-5" :class="role === 'agent' ? 'text-white' : 'text-gray-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+                                <p class="font-semibold text-xs" :class="role === 'agent' ? 'text-purple-700' : 'text-gray-700'">Agent Immo</p>
+                                <p class="text-xs text-gray-400 mt-0.5 hidden sm:block">Commission 3%</p>
+                            </div>
+                        </label>
+                    </div>
+                    <!-- Notice pour owner/agent -->
+                    <div x-show="role === 'owner' || role === 'agent'" x-cloak
+                        class="mt-3 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5">
+                        <svg class="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <p class="text-xs text-amber-700">Ce type de compte sera activé par l'administrateur après vérification.</p>
                     </div>
                 </div>
 

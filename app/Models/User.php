@@ -106,6 +106,11 @@ class User extends Authenticatable
         return in_array($this->role, ['tenant', 'both', 'admin']);
     }
 
+    public function isAgent(): bool
+    {
+        return $this->role === 'agent';
+    }
+
     public function isKycVerified(): bool
     {
         return $this->kyc_status === 'verified';
