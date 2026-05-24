@@ -41,7 +41,8 @@
                 <input type="text" name="city" placeholder="Ville, quartier..." value="{{ request('city') }}"
                     class="bg-transparent flex-1 text-sm outline-none text-gray-700 placeholder-gray-400">
                 <div class="h-4 w-px bg-gray-300"></div>
-                <input type="date" name="check_in" value="{{ request('check_in') }}"
+                <input type="date" name="check_in"
+                    value="{{ preg_match('/^\d{4}-\d{2}-\d{2}$/', request('check_in', '')) ? request('check_in') : '' }}"
                     class="bg-transparent text-sm outline-none text-gray-500 w-28">
                 <button type="submit" class="bg-accent-500 text-white rounded-full p-1.5 flex-shrink-0 hover:bg-accent-600 transition-colors">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

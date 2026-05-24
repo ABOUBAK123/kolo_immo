@@ -26,7 +26,8 @@ class PropertyController extends Controller
             $query->byType($request->type);
         }
 
-        if ($request->filled('check_in') && $request->filled('check_out')) {
+        $isDate = fn(?string $v) => $v && preg_match('/^\d{4}-\d{2}-\d{2}$/', $v);
+        if ($isDate($request->check_in) && $isDate($request->check_out)) {
             $query->availableBetween($request->check_in, $request->check_out);
         }
 

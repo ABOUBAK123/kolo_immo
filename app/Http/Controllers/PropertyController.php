@@ -27,6 +27,16 @@ class PropertyController extends Controller
 
     public function index(Request $request)
     {
+        // Strip malformed date params — redirect to clean URL to avoid WAF 403
+        $isDate = fn(?string $v) => $v && preg_match('/^\d{4}-\d{2}-\d{2}$/', $v);
+        if (($request->filled('check_in')  && !$isDate($request->check_in)) ||
+            ($request->filled('check_out') && !$isDate($request->check_out))) {
+            return redirect()->route('properties.index', array_filter(
+                $request->except(['check_in', 'check_out']),
+                fn($v) => $v !== null && $v !== ''
+            ));
+        }
+
         $query = Property::active()
             ->with(['photos', 'amenities', 'owner'])
             ->withCount('reviews');
@@ -39,7 +49,7 @@ class PropertyController extends Controller
             $query->byType($request->type);
         }
 
-        if ($request->filled('check_in') && $request->filled('check_out')) {
+        if ($isDate($request->check_in) && $isDate($request->check_out)) {
             $query->availableBetween($request->check_in, $request->check_out);
         }
 

@@ -15,12 +15,14 @@
             </div>
             <div class="min-w-32">
                 <label class="block text-xs font-semibold text-gray-500 mb-1">ARRIVÉE</label>
-                <input type="date" name="check_in" value="{{ request('check_in') }}"
+                <input type="date" name="check_in"
+                    value="{{ preg_match('/^\d{4}-\d{2}-\d{2}$/', request('check_in', '')) ? request('check_in') : '' }}"
                     class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             <div class="min-w-32">
                 <label class="block text-xs font-semibold text-gray-500 mb-1">DÉPART</label>
-                <input type="date" name="check_out" value="{{ request('check_out') }}"
+                <input type="date" name="check_out"
+                    value="{{ preg_match('/^\d{4}-\d{2}-\d{2}$/', request('check_out', '')) ? request('check_out') : '' }}"
                     class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             <div class="min-w-28">
@@ -62,8 +64,13 @@
                 :class="{ 'hidden lg:block': !filtersOpen, 'block': filtersOpen }">
 
                 <input type="hidden" name="city" value="{{ request('city') }}">
-                <input type="hidden" name="check_in" value="{{ request('check_in') }}">
-                <input type="hidden" name="check_out" value="{{ request('check_out') }}">
+                @php
+                    $dateRe = '/^\d{4}-\d{2}-\d{2}$/';
+                    $validIn  = request('check_in')  && preg_match($dateRe, request('check_in'));
+                    $validOut = request('check_out') && preg_match($dateRe, request('check_out'));
+                @endphp
+                @if($validIn)  <input type="hidden" name="check_in"  value="{{ request('check_in') }}">  @endif
+                @if($validOut) <input type="hidden" name="check_out" value="{{ request('check_out') }}"> @endif
                 <input type="hidden" name="guests" value="{{ request('guests') }}">
 
                 <!-- Price Range -->
