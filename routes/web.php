@@ -158,6 +158,9 @@ Route::middleware(['auth', 'owner'])->prefix('owner')->name('owner.')->group(fun
     Route::delete('/properties/{property}/availability/{blockedDate}', [PropertyController::class, 'deleteBlockedDate'])->name('properties.availability.delete');
     Route::post('/properties/{property}/toggle-status', [PropertyController::class, 'toggleStatus'])->name('properties.toggle-status');
 
+    // Commissions
+    Route::get('/commissions', [DashboardController::class, 'ownerCommissions'])->name('commissions');
+
     // Bookings management (owner)
     Route::get('/bookings', [BookingController::class, 'ownerBookings'])->name('bookings.index');
     Route::get('/bookings/pending', [BookingController::class, 'pendingBookings'])->name('bookings.pending');

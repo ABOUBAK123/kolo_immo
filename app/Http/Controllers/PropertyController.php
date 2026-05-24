@@ -10,10 +10,19 @@ use App\Models\PropertyPhoto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class PropertyController extends Controller
 {
+    private function storePhoto($file, string $subdir): string
+    {
+        $dir = public_path($subdir);
+        if (!is_dir($dir)) mkdir($dir, 0755, true);
+        $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+        $file->move($dir, $filename);
+        return $subdir . '/' . $filename;
+    }
+
     // ─── PUBLIC ──────────────────────────────────────────────────────────────
 
     public function index(Request $request)
@@ -137,7 +146,7 @@ class PropertyController extends Controller
             if ($request->hasFile('photos')) {
                 $sortOrder = 0;
                 foreach ($request->file('photos') as $photo) {
-                    $path = $photo->store('properties/photos', 'public');
+                    $path = $this->storePhoto($photo, 'properties/photos');
                     $sortOrder++;
                     PropertyPhoto::create([
                         'property_id' => $property->id,
@@ -173,10 +182,9 @@ class PropertyController extends Controller
 
         if ($request->hasFile('cover_photo')) {
             if ($property->cover_photo) {
-                Storage::disk('public')->delete($property->cover_photo);
+                @unlink(public_path($property->cover_photo));
             }
-            $data['cover_photo'] = $request->file('cover_photo')
-                ->store('properties/covers', 'public');
+            $data['cover_photo'] = $this->storePhoto($request->file('cover_photo'), 'properties/covers');
         } else {
             unset($data['cover_photo']);
         }
@@ -203,7 +211,7 @@ class PropertyController extends Controller
         if ($request->hasFile('photos')) {
             $sortOrder = $property->photos()->max('sort_order') ?? 0;
             foreach ($request->file('photos') as $photo) {
-                $path = $photo->store('properties/photos', 'public');
+                $path = $this->storePhoto($photo, 'properties/photos');
                 $sortOrder++;
                 $isFirst = $sortOrder === 1 && $property->photos()->count() === 1;
                 PropertyPhoto::create([
@@ -243,7 +251,7 @@ class PropertyController extends Controller
         $sortOrder = $property->photos()->max('sort_order') ?? 0;
 
         foreach ($request->file('photos') as $photo) {
-            $path = $photo->store('properties/photos', 'public');
+            $path = $this->storePhoto($photo, 'properties/photos');
             $sortOrder++;
             $isFirst = $property->photos()->count() === 0;
 
@@ -266,7 +274,7 @@ class PropertyController extends Controller
             abort(403);
         }
 
-        Storage::disk('public')->delete($photo->path);
+        @unlink(public_path($photo->path));
 
         if ($photo->is_cover) {
             $next = $property->photos()->where('id', '!=', $photo->id)->first();

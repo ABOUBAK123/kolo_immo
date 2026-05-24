@@ -132,11 +132,11 @@ class Property extends Model
                  ?? $this->photos()->first();
 
         if ($cover) {
-            return asset('storage/' . $cover->path);
+            return asset($cover->path);
         }
 
         if ($this->cover_photo) {
-            return asset('storage/' . $this->cover_photo);
+            return asset($this->cover_photo);
         }
 
         return asset('images/property-placeholder.jpg');

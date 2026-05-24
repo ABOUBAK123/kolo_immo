@@ -8,10 +8,19 @@ use App\Models\PropertyAmenity;
 use App\Models\PropertyPhoto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class OwnerPropertyController extends Controller
 {
+    private function storePhoto($file, string $subdir = 'properties/photos'): string
+    {
+        $dir = public_path($subdir);
+        if (!is_dir($dir)) mkdir($dir, 0755, true);
+        $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+        $file->move($dir, $filename);
+        return $subdir . '/' . $filename;
+    }
+
     // ─── LIST OWNER'S PROPERTIES ─────────────────────────────────────────────
 
     public function index(Request $request)
@@ -94,7 +103,7 @@ class OwnerPropertyController extends Controller
             if ($request->hasFile('photos')) {
                 $sortOrder = 0;
                 foreach ($request->file('photos') as $photo) {
-                    $path = $photo->store('properties/photos', 'public');
+                    $path = $this->storePhoto($photo);
                     $sortOrder++;
                     PropertyPhoto::create([
                         'property_id' => $property->id,
@@ -202,7 +211,7 @@ class OwnerPropertyController extends Controller
         if ($request->hasFile('photos')) {
             $sortOrder = $property->photos()->max('sort_order') ?? 0;
             foreach ($request->file('photos') as $photo) {
-                $path = $photo->store('properties/photos', 'public');
+                $path = $this->storePhoto($photo);
                 $sortOrder++;
                 PropertyPhoto::create([
                     'property_id' => $property->id,
@@ -301,7 +310,7 @@ class OwnerPropertyController extends Controller
         $added = [];
 
         foreach ($request->file('photos') as $photo) {
-            $path = $photo->store('properties/photos', 'public');
+            $path = $this->storePhoto($photo);
             $sortOrder++;
             $isFirst = $sortOrder === 1 && $property->photos()->count() === 0;
 
@@ -338,7 +347,7 @@ class OwnerPropertyController extends Controller
             return response()->json(['success' => false, 'message' => 'Photo introuvable.'], 404);
         }
 
-        Storage::disk('public')->delete($photo->path);
+        @unlink(public_path($photo->path));
 
         if ($photo->is_cover) {
             $next = $property->photos()->where('id', '!=', $photo->id)->first();

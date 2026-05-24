@@ -235,7 +235,8 @@
                 <div class="space-y-2">
                     @foreach([
                         ['href' => 'owner.properties.create', 'label' => 'Publier un nouveau bien', 'icon' => 'M12 4v16m8-8H4', 'color' => 'text-blue-700'],
-                        ['href' => 'messages.index', 'label' => 'Mes messages', 'icon' => 'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z', 'color' => 'text-green-700'],
+                        ['href' => 'owner.commissions', 'label' => 'Mes commissions (3%)', 'icon' => 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'color' => 'text-green-700'],
+                        ['href' => 'messages.index', 'label' => 'Mes messages', 'icon' => 'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z', 'color' => 'text-indigo-700'],
                         ['href' => 'profile.kyc', 'label' => 'Verification KYC', 'icon' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', 'color' => 'text-purple-700'],
                         ['href' => 'profile.kyc', 'label' => 'Mon profil', 'icon' => 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z', 'color' => 'text-gray-700'],
                     ] as $link)

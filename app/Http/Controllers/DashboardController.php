@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\Conversation;
 use App\Models\Payment;
+use App\Models\Property;
 use App\Models\Review;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -212,6 +213,65 @@ class DashboardController extends Controller
             'kycVerified',
             'phoneVerified',
             'reviewsCount'
+        ));
+    }
+
+    /**
+     * Owner commission statement: 3% of all confirmed/completed booking totals.
+     */
+    public function ownerCommissions(Request $request)
+    {
+        $user = Auth::user();
+
+        $properties = Property::where('owner_id', $user->id)->pluck('id');
+
+        // All confirmed/completed bookings for owner's properties
+        $bookings = Booking::whereIn('property_id', $properties)
+            ->whereIn('status', ['confirmed', 'completed'])
+            ->with(['property', 'tenant', 'payment'])
+            ->orderByDesc('created_at')
+            ->get();
+
+        $commissionRate = 0.03;
+
+        $rows = $bookings->map(function (Booking $b) use ($commissionRate) {
+            return [
+                'id'          => $b->id,
+                'reference'   => $b->reference,
+                'property'    => $b->property?->title ?? '—',
+                'tenant'      => $b->tenant?->name ?? '—',
+                'check_in'    => $b->check_in,
+                'check_out'   => $b->check_out,
+                'nights'      => $b->nights,
+                'total'       => $b->total_amount,
+                'commission'  => round($b->total_amount * $commissionRate),
+                'status'      => $b->status,
+                'paid_at'     => $b->payment?->paid_at,
+            ];
+        });
+
+        // Period filter (optional)
+        $period = $request->get('period', 'all');
+        if ($period === 'month') {
+            $rows = $rows->filter(fn($r) => $r['check_in'] >= now()->startOfMonth()->toDateString());
+        } elseif ($period === 'year') {
+            $rows = $rows->filter(fn($r) => $r['check_in'] >= now()->startOfYear()->toDateString());
+        }
+
+        $totalRevenue    = $rows->sum('total');
+        $totalCommission = $rows->sum('commission');
+        $monthlyRows     = $bookings->filter(fn($b) => $b->check_in >= now()->startOfMonth()->toDateString());
+        $monthlyRevenue  = $monthlyRows->sum('total_amount');
+        $monthlyCommission = round($monthlyRevenue * $commissionRate);
+
+        return view('owner.commissions', compact(
+            'rows',
+            'period',
+            'totalRevenue',
+            'totalCommission',
+            'monthlyRevenue',
+            'monthlyCommission',
+            'commissionRate'
         ));
     }
 }
