@@ -5,8 +5,43 @@
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-    <!-- KYC Prompt -->
-    @if(!$kycVerified)
+    <!-- KYC Banner -->
+    @if($kycVerified)
+    <div class="bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl p-5 mb-6 text-white flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-white bg-opacity-20 rounded-xl flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+            </div>
+            <div>
+                <p class="font-bold">Identité vérifiée</p>
+                <p class="text-sm text-white text-opacity-90">Votre compte est pleinement vérifié. Accès complet à toutes les fonctionnalités.</p>
+            </div>
+        </div>
+        <span class="bg-white bg-opacity-20 border border-white border-opacity-30 text-white font-bold px-5 py-2 rounded-xl text-sm flex-shrink-0 flex items-center gap-2">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+            Vérifié
+        </span>
+    </div>
+    @elseif(Auth::user()->kyc_status === 'pending')
+    <div class="bg-gradient-to-r from-yellow-400 to-amber-500 rounded-2xl p-5 mb-6 text-white flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-white bg-opacity-20 rounded-xl flex items-center justify-center flex-shrink-0 animate-pulse">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <div>
+                <p class="font-bold">Vérification en cours</p>
+                <p class="text-sm text-white text-opacity-90">Nos équipes examinent vos documents. Délai : 24-48h ouvrées.</p>
+            </div>
+        </div>
+        <span class="bg-white bg-opacity-20 border border-white border-opacity-30 text-white font-semibold px-5 py-2 rounded-xl text-sm flex-shrink-0">
+            En attente…
+        </span>
+    </div>
+    @else
     <div class="bg-gradient-to-r from-orange-400 to-yellow-500 rounded-2xl p-5 mb-6 text-white flex flex-wrap items-center justify-between gap-4">
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 bg-white bg-opacity-20 rounded-xl flex items-center justify-center flex-shrink-0">
