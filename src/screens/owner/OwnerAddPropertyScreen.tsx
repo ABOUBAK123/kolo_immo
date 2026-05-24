@@ -23,6 +23,25 @@ type Props = NativeStackScreenProps<ProfileStackParamList, 'OwnerAddProperty'>;
 
 // ─── Static data ─────────────────────────────────────────────────────────────
 
+const WEST_AFRICA: {name: string; capital: string}[] = [
+  {name: "Bénin",          capital: 'Porto-Novo'},
+  {name: "Burkina Faso",   capital: 'Ouagadougou'},
+  {name: "Cap-Vert",       capital: 'Praia'},
+  {name: "Côte d'Ivoire",  capital: 'Abidjan'},
+  {name: "Gambie",         capital: 'Banjul'},
+  {name: "Ghana",          capital: 'Accra'},
+  {name: "Guinée",         capital: 'Conakry'},
+  {name: "Guinée-Bissau",  capital: 'Bissau'},
+  {name: "Libéria",        capital: 'Monrovia'},
+  {name: "Mali",           capital: 'Bamako'},
+  {name: "Mauritanie",     capital: 'Nouakchott'},
+  {name: "Niger",          capital: 'Niamey'},
+  {name: "Nigeria",        capital: 'Abuja'},
+  {name: "Sénégal",        capital: 'Dakar'},
+  {name: "Sierra Leone",   capital: 'Freetown'},
+  {name: "Togo",           capital: 'Lomé'},
+];
+
 const PROPERTY_TYPES = [
   {value: 'studio',    label: 'Studio'},
   {value: 'apartment', label: 'Appartement'},
@@ -290,12 +309,19 @@ export const OwnerAddPropertyScreen: React.FC<Props> = ({navigation}) => {
           <SectionHeader title="Localisation" />
           <View style={styles.card}>
             <Field label="Pays" required>
-              <TextInput
-                style={styles.input}
-                value={country}
-                onChangeText={setCountry}
-                placeholderTextColor={colors.textTertiary}
-              />
+              <View style={styles.countryGrid}>
+                {WEST_AFRICA.map(c => (
+                  <TouchableOpacity
+                    key={c.name}
+                    style={[styles.countryChip, country === c.name && styles.countryChipActive]}
+                    onPress={() => { setCountry(c.name); if (!city.trim()) setCity(c.capital); }}
+                    activeOpacity={0.7}>
+                    <Text style={[styles.countryChipText, country === c.name && styles.countryChipTextActive]}>
+                      {c.name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </Field>
             <Field label="Ville" required>
               <TextInput
@@ -628,6 +654,18 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   photoRemoveText: {color: '#fff', fontSize: 15, fontWeight: '700', lineHeight: 17},
+
+  // Country picker
+  countryGrid: {flexDirection: 'row', flexWrap: 'wrap', gap: 8},
+  countryChip: {
+    paddingHorizontal: 12, paddingVertical: 7,
+    borderRadius: radius.full,
+    borderWidth: 1.5, borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  countryChipActive: {backgroundColor: colors.primary, borderColor: colors.primary},
+  countryChipText: {...typography.label, color: colors.textMed, fontSize: 12},
+  countryChipTextActive: {color: '#fff'},
 
   // Submit
   submitBtn: {

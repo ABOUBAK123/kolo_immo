@@ -28,7 +28,24 @@ const ROLES: {value: 'tenant' | 'owner' | 'both'; emoji: string; label: string; 
   {value: 'owner',  emoji: '🔑', label: 'Propriétaire',         desc: 'Je loue mon bien'},
   {value: 'both',   emoji: '🔄', label: 'Les deux',             desc: 'Locataire et propriétaire'},
 ];
-const COUNTRIES = ['CI', 'SN', 'BF', 'ML', 'BJ', 'TG', 'GN', 'NE'];
+const COUNTRIES: {name: string; capital: string}[] = [
+  {name: "Bénin",          capital: 'Porto-Novo'},
+  {name: "Burkina Faso",   capital: 'Ouagadougou'},
+  {name: "Cap-Vert",       capital: 'Praia'},
+  {name: "Côte d'Ivoire",  capital: 'Abidjan'},
+  {name: "Gambie",         capital: 'Banjul'},
+  {name: "Ghana",          capital: 'Accra'},
+  {name: "Guinée",         capital: 'Conakry'},
+  {name: "Guinée-Bissau",  capital: 'Bissau'},
+  {name: "Libéria",        capital: 'Monrovia'},
+  {name: "Mali",           capital: 'Bamako'},
+  {name: "Mauritanie",     capital: 'Nouakchott'},
+  {name: "Niger",          capital: 'Niamey'},
+  {name: "Nigeria",        capital: 'Abuja'},
+  {name: "Sénégal",        capital: 'Dakar'},
+  {name: "Sierra Leone",   capital: 'Freetown'},
+  {name: "Togo",           capital: 'Lomé'},
+];
 
 export const RegisterScreen: React.FC<Props> = ({navigation}) => {
   useAuth();
@@ -44,7 +61,7 @@ export const RegisterScreen: React.FC<Props> = ({navigation}) => {
   const [showPwd, setShowPwd]     = useState(false);
   // Step 2 — Profil
   const [role, setRole]           = useState<'tenant' | 'owner' | 'both'>('tenant');
-  const [country, setCountry]     = useState('CI');
+  const [country, setCountry]     = useState("Côte d'Ivoire");
 
   const [errors, setErrors]   = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -250,11 +267,11 @@ export const RegisterScreen: React.FC<Props> = ({navigation}) => {
             <View style={styles.countriesRow}>
               {COUNTRIES.map(c => (
                 <TouchableOpacity
-                  key={c}
-                  style={[styles.countryChip, country === c && styles.countryChipActive]}
-                  onPress={() => setCountry(c)}>
-                  <Text style={[styles.countryText, country === c && styles.countryTextActive]}>
-                    {c}
+                  key={c.name}
+                  style={[styles.countryChip, country === c.name && styles.countryChipActive]}
+                  onPress={() => setCountry(c.name)}>
+                  <Text style={[styles.countryText, country === c.name && styles.countryTextActive]}>
+                    {c.name}
                   </Text>
                 </TouchableOpacity>
               ))}
