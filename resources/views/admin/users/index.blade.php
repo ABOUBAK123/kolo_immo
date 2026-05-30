@@ -17,8 +17,17 @@
             <select name="role" class="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">Tous les rôles</option>
                 <option value="tenant" {{ request('role') === 'tenant' ? 'selected' : '' }}>Locataires</option>
-                <option value="owner" {{ request('role') === 'owner' ? 'selected' : '' }}>Propriétaires</option>
-                <option value="admin" {{ request('role') === 'admin' ? 'selected' : '' }}>Admins</option>
+                <option value="owner"  {{ request('role') === 'owner'  ? 'selected' : '' }}>Propriétaires</option>
+                <option value="both"   {{ request('role') === 'both'   ? 'selected' : '' }}>Les deux</option>
+                <option value="agent"  {{ request('role') === 'agent'  ? 'selected' : '' }}>Agents immobiliers</option>
+                <option value="admin"  {{ request('role') === 'admin'  ? 'selected' : '' }}>Admins</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-gray-500 mb-1">ACTIVATION</label>
+            <select name="activation" class="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Tous</option>
+                <option value="pending" {{ request('activation') === 'pending' ? 'selected' : '' }}>⏳ En attente d'activation</option>
             </select>
         </div>
         <div>
@@ -26,8 +35,8 @@
             <select name="kyc" class="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">Tous</option>
                 <option value="verified" {{ request('kyc') === 'verified' ? 'selected' : '' }}>Vérifiés</option>
-                <option value="pending" {{ request('kyc') === 'pending' ? 'selected' : '' }}>En attente</option>
-                <option value="none" {{ request('kyc') === 'none' ? 'selected' : '' }}>Non soumis</option>
+                <option value="pending"  {{ request('kyc') === 'pending'  ? 'selected' : '' }}>En attente</option>
+                <option value="none"     {{ request('kyc') === 'none'     ? 'selected' : '' }}>Non soumis</option>
             </select>
         </div>
         <button type="submit" class="bg-blue-700 hover:bg-blue-800 text-white font-semibold px-4 py-2 rounded-lg text-sm transition-colors">
@@ -81,9 +90,17 @@
                         <p class="text-gray-400 text-xs">{{ $user->phone ?? '—' }}</p>
                     </td>
                     <td class="px-5 py-3 text-center">
-                        <span class="inline-block px-2.5 py-1 rounded-full text-xs font-semibold
-                            {{ $user->role === 'admin' ? 'bg-red-100 text-red-800' : ($user->role === 'owner' ? 'bg-orange-100 text-orange-800' : 'bg-blue-100 text-blue-800') }}">
-                            {{ $user->role === 'admin' ? 'Admin' : ($user->role === 'owner' ? 'Propriétaire' : 'Locataire') }}
+                        @php
+                            $roleLabel = match($user->role) {
+                                'admin'  => ['Admin',            'bg-red-100 text-red-800'],
+                                'owner'  => ['Propriétaire',     'bg-orange-100 text-orange-800'],
+                                'agent'  => ['Agent immo',       'bg-purple-100 text-purple-800'],
+                                'both'   => ['Proprio/Locataire','bg-teal-100 text-teal-800'],
+                                default  => ['Locataire',        'bg-blue-100 text-blue-800'],
+                            };
+                        @endphp
+                        <span class="inline-block px-2.5 py-1 rounded-full text-xs font-semibold {{ $roleLabel[1] }}">
+                            {{ $roleLabel[0] }}
                         </span>
                     </td>
                     <td class="px-5 py-3 text-center">
@@ -105,15 +122,37 @@
                         {{ $user->bookings_count ?? 0 }}
                     </td>
                     <td class="px-5 py-3 text-center">
-                        <span class="inline-block w-2 h-2 rounded-full {{ $user->is_banned ? 'bg-red-500' : 'bg-green-500' }}"></span>
-                        <span class="text-xs text-gray-600 ml-1">{{ $user->is_banned ? 'Banni' : 'Actif' }}</span>
+                        @if($user->is_banned)
+                            <span class="inline-flex items-center gap-1 bg-red-100 text-red-700 text-xs font-semibold px-2 py-1 rounded-full">
+                                <span class="w-1.5 h-1.5 rounded-full bg-red-500 inline-block"></span>Banni
+                            </span>
+                        @elseif(!$user->is_active)
+                            <span class="inline-flex items-center gap-1 bg-amber-100 text-amber-700 text-xs font-semibold px-2 py-1 rounded-full">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block"></span>En attente
+                            </span>
+                        @else
+                            <span class="inline-flex items-center gap-1 bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full">
+                                <span class="w-1.5 h-1.5 rounded-full bg-green-500 inline-block"></span>Actif
+                            </span>
+                        @endif
                     </td>
                     <td class="px-5 py-3">
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 flex-wrap">
                             <a href="{{ route('admin.users.show', $user) }}"
                                 class="text-blue-600 hover:text-blue-800 text-xs font-medium px-2 py-1 rounded bg-blue-50 hover:bg-blue-100 transition-colors">
                                 Voir
                             </a>
+                            @if(!$user->is_banned)
+                            <form action="{{ route('admin.users.toggle-active', $user) }}" method="POST">
+                                @csrf @method('PATCH')
+                                <button type="submit"
+                                    class="text-xs font-semibold px-2 py-1 rounded transition-colors
+                                    {{ $user->is_active ? 'text-orange-700 bg-orange-50 hover:bg-orange-100' : 'text-green-700 bg-green-50 hover:bg-green-100' }}"
+                                    onclick="return confirm('{{ $user->is_active ? 'Désactiver' : 'Activer' }} ce compte ?')">
+                                    {{ $user->is_active ? 'Désactiver' : '✓ Activer' }}
+                                </button>
+                            </form>
+                            @endif
                             <form action="{{ route('admin.users.toggle-ban', $user) }}" method="POST">
                                 @csrf @method('PATCH')
                                 <button type="submit"

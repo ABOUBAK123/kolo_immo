@@ -62,12 +62,16 @@ class AdminController extends Controller
             $query->where('role', $request->role);
         }
 
-        if ($request->filled('kyc_status')) {
-            $query->where('kyc_status', $request->kyc_status);
+        if ($request->filled('kyc')) {
+            $query->where('kyc_status', $request->kyc);
         }
 
         if ($request->filled('is_banned')) {
             $query->where('is_banned', (bool) $request->is_banned);
+        }
+
+        if ($request->filled('activation') && $request->activation === 'pending') {
+            $query->where('is_active', false)->where('is_banned', false);
         }
 
         $users = $query->withCount(['properties', 'bookingsAsTenant', 'bookingsAsOwner'])
@@ -100,6 +104,21 @@ class AdminController extends Controller
         $label = $user->is_banned ? 'banni' : 'débanni';
 
         return back()->with('success', "Utilisateur {$label}.");
+    }
+
+    /**
+     * Toggle user active status (activate / deactivate account).
+     */
+    public function toggleActive(User $user)
+    {
+        if ($user->isAdmin()) {
+            return back()->with('error', 'Impossible de modifier le statut d\'un administrateur.');
+        }
+
+        $user->update(['is_active' => !$user->is_active]);
+        $label = $user->is_active ? 'activé' : 'désactivé';
+
+        return back()->with('success', "Compte utilisateur {$label}.");
     }
 
     /**
