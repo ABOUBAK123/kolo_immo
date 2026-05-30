@@ -29,23 +29,23 @@ const ROLES: {value: 'tenant' | 'owner' | 'both' | 'agent'; emoji: string; label
   {value: 'both',   emoji: '🔄', label: 'Les deux',         desc: 'Locataire et propriétaire'},
   {value: 'agent',  emoji: '💼', label: 'Agent immobilier', desc: 'Je gère des biens (3% commission)'},
 ];
-const COUNTRIES: {name: string; capital: string}[] = [
-  {name: "Bénin",          capital: 'Porto-Novo'},
-  {name: "Burkina Faso",   capital: 'Ouagadougou'},
-  {name: "Cap-Vert",       capital: 'Praia'},
-  {name: "Côte d'Ivoire",  capital: 'Abidjan'},
-  {name: "Gambie",         capital: 'Banjul'},
-  {name: "Ghana",          capital: 'Accra'},
-  {name: "Guinée",         capital: 'Conakry'},
-  {name: "Guinée-Bissau",  capital: 'Bissau'},
-  {name: "Libéria",        capital: 'Monrovia'},
-  {name: "Mali",           capital: 'Bamako'},
-  {name: "Mauritanie",     capital: 'Nouakchott'},
-  {name: "Niger",          capital: 'Niamey'},
-  {name: "Nigeria",        capital: 'Abuja'},
-  {name: "Sénégal",        capital: 'Dakar'},
-  {name: "Sierra Leone",   capital: 'Freetown'},
-  {name: "Togo",           capital: 'Lomé'},
+const COUNTRIES: {name: string; code: string}[] = [
+  {name: "Bénin",         code: 'BJ'},
+  {name: "Burkina Faso",  code: 'BF'},
+  {name: "Cap-Vert",      code: 'CV'},
+  {name: "Côte d'Ivoire", code: 'CI'},
+  {name: "Gambie",        code: 'GM'},
+  {name: "Ghana",         code: 'GH'},
+  {name: "Guinée",        code: 'GN'},
+  {name: "Guinée-Bissau", code: 'GW'},
+  {name: "Libéria",       code: 'LR'},
+  {name: "Mali",          code: 'ML'},
+  {name: "Mauritanie",    code: 'MR'},
+  {name: "Niger",         code: 'NE'},
+  {name: "Nigeria",       code: 'NG'},
+  {name: "Sénégal",       code: 'SN'},
+  {name: "Sierra Leone",  code: 'SL'},
+  {name: "Togo",          code: 'TG'},
 ];
 
 export const RegisterScreen: React.FC<Props> = ({navigation}) => {
@@ -62,7 +62,7 @@ export const RegisterScreen: React.FC<Props> = ({navigation}) => {
   const [showPwd, setShowPwd]     = useState(false);
   // Step 2 — Profil
   const [role, setRole]           = useState<'tenant' | 'owner' | 'both' | 'agent'>('tenant');
-  const [country, setCountry]     = useState("Côte d'Ivoire");
+  const [country, setCountry]     = useState('CI');
 
   const [errors, setErrors]   = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -289,10 +289,10 @@ export const RegisterScreen: React.FC<Props> = ({navigation}) => {
             <View style={styles.countriesRow}>
               {COUNTRIES.map(c => (
                 <TouchableOpacity
-                  key={c.name}
-                  style={[styles.countryChip, country === c.name && styles.countryChipActive]}
-                  onPress={() => setCountry(c.name)}>
-                  <Text style={[styles.countryText, country === c.name && styles.countryTextActive]}>
+                  key={c.code}
+                  style={[styles.countryChip, country === c.code && styles.countryChipActive]}
+                  onPress={() => setCountry(c.code)}>
+                  <Text style={[styles.countryText, country === c.code && styles.countryTextActive]}>
                     {c.name}
                   </Text>
                 </TouchableOpacity>
