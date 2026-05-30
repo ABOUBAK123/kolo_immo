@@ -33,19 +33,33 @@ class AuthController extends Controller
 
         $needsAdminActivation = in_array($data['role'], ['owner', 'agent']);
 
-        $user = User::create([
-            'name'        => $data['name'],
-            'email'       => $data['email'] ?? null,
-            'phone'       => $data['phone'] ?? null,
-            'password'    => Hash::make($data['password']),
-            'role'        => $data['role'],
-            'country'     => $data['country'] ?? "Côte d'Ivoire",
-            'city'        => $data['city'] ?? null,
-            'kyc_status'  => 'pending',
-            'is_active'   => !$needsAdminActivation,
-            'is_banned'   => false,
-            'trust_score' => 50,
-        ]);
+        // Truncate country to 2 chars if column hasn't been migrated yet
+        $country = $data['country'] ?? 'CI';
+        if (mb_strlen($country) > 2) {
+            $country = mb_substr($country, 0, 2);
+        }
+
+        try {
+            $user = User::create([
+                'name'        => $data['name'],
+                'email'       => $data['email'] ?? null,
+                'phone'       => $data['phone'] ?? null,
+                'password'    => Hash::make($data['password']),
+                'role'        => $data['role'],
+                'country'     => $country,
+                'city'        => $data['city'] ?? null,
+                'kyc_status'  => 'pending',
+                'is_active'   => !$needsAdminActivation,
+                'is_banned'   => false,
+                'trust_score' => 50,
+            ]);
+        } catch (\Illuminate\Database\QueryException $e) {
+            \Illuminate\Support\Facades\Log::error('[Register] DB error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la création du compte. Veuillez réessayer.',
+            ], 500);
+        }
 
         // Send OTP for phone verification
         if ($user->phone) {
