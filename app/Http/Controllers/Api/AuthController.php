@@ -171,6 +171,32 @@ class AuthController extends Controller
     }
 
     /**
+     * Resend OTP to phone number.
+     */
+    public function resendOtp(Request $request)
+    {
+        $request->validate([
+            'phone' => ['required', 'string'],
+        ]);
+
+        $user = User::where('phone', $request->phone)->first();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Numéro de téléphone introuvable.',
+            ], 404);
+        }
+
+        $this->otpService->generate($user->phone, 'phone_verify', $user, $user->email);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Un nouveau code a été envoyé au ' . $user->phone,
+        ]);
+    }
+
+    /**
      * Logout (revoke current token).
      */
     public function logout(Request $request)
