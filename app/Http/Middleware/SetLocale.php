@@ -16,7 +16,7 @@ class SetLocale
     {
         $locale = 'fr';
 
-        if (Auth::check() && in_array(Auth::user()->language, self::SUPPORTED)) {
+        if (Auth::check() && isset(Auth::user()->language) && in_array(Auth::user()->language, self::SUPPORTED)) {
             $locale = Auth::user()->language;
         } elseif ($request->session()->has('locale') && in_array($request->session()->get('locale'), self::SUPPORTED)) {
             $locale = $request->session()->get('locale');
