@@ -78,6 +78,8 @@ export const RegisterScreen: React.FC<Props> = ({navigation}) => {
     }
     if (step === 1) {
       if (!password || password.length < 8) e.password = 'Minimum 8 caractères';
+      else if (!/[a-zA-Z]/.test(password)) e.password = 'Le mot de passe doit contenir des lettres';
+      else if (!/[0-9]/.test(password)) e.password = 'Le mot de passe doit contenir des chiffres';
       if (password !== confirm) e.confirm = 'Les mots de passe ne correspondent pas';
     }
     setErrors(e);
@@ -248,7 +250,7 @@ export const RegisterScreen: React.FC<Props> = ({navigation}) => {
             />
 
             <View style={styles.pwdTips}>
-              {['8 caractères minimum', 'Lettres et chiffres', 'Sensible à la casse'].map(tip => (
+              {['8 caractères minimum', 'Au moins une lettre (a-z)', 'Au moins un chiffre (0-9)'].map(tip => (
                 <View key={tip} style={styles.pwdTip}>
                   <Text style={styles.pwdTipDot}>•</Text>
                   <Text style={styles.pwdTipText}>{tip}</Text>

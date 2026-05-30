@@ -28,8 +28,15 @@ export const OtpScreen: React.FC<Props> = ({navigation, route}) => {
   const {login} = useAuth();
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
   const [countdown, setCountdown] = useState(RESEND_DELAY);
-  const refs = Array.from({length: 6}, () => useRef<TextInput>(null));
+  const ref0 = useRef<TextInput>(null);
+  const ref1 = useRef<TextInput>(null);
+  const ref2 = useRef<TextInput>(null);
+  const ref3 = useRef<TextInput>(null);
+  const ref4 = useRef<TextInput>(null);
+  const ref5 = useRef<TextInput>(null);
+  const refs = [ref0, ref1, ref2, ref3, ref4, ref5];
 
   useEffect(() => {
     if (countdown <= 0) return;
@@ -133,8 +140,22 @@ export const OtpScreen: React.FC<Props> = ({navigation, route}) => {
               <Text style={styles.resendTimerBold}>{countdown}s</Text>
             </Text>
           ) : (
-            <TouchableOpacity onPress={() => setCountdown(RESEND_DELAY)}>
-              <Text style={styles.resendLink}>Renvoyer le code</Text>
+            <TouchableOpacity
+              disabled={resending}
+              onPress={async () => {
+                setResending(true);
+                try {
+                  await authApi.resendOtp(phone);
+                  setCountdown(RESEND_DELAY);
+                  setOtp(['', '', '', '', '', '']);
+                  refs[0].current?.focus();
+                } catch {
+                  Alert.alert('Erreur', 'Impossible de renvoyer le code. Réessayez.');
+                } finally {
+                  setResending(false);
+                }
+              }}>
+              <Text style={styles.resendLink}>{resending ? 'Envoi...' : 'Renvoyer le code'}</Text>
             </TouchableOpacity>
           )}
         </View>

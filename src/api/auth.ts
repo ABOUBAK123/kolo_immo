@@ -46,6 +46,9 @@ export const authApi = {
   verifyOtp: (phone: string, code: string) =>
     apiClient.post<ApiResponse<AuthData>>('/auth/verify-otp', {phone, code, purpose: 'phone_verify'}),
 
+  resendOtp: (phone: string) =>
+    apiClient.post('/auth/resend-otp', {phone}),
+
   logout: () => apiClient.post('/auth/logout'),
 
   me: () => apiClient.get<ApiResponse<User>>('/auth/me'),
