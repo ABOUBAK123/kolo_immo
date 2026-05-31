@@ -73,7 +73,29 @@ class Property extends Model
         return $this->hasMany(Review::class)->where('type', 'tenant_to_property');
     }
 
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class);
+    }
+
+    public function isFavedBy(?int $userId): bool
+    {
+        if (!$userId) return false;
+        return $this->favorites()->where('user_id', $userId)->exists();
+    }
+
     // ─── Scopes ───────────────────────────────────────────────────────────────
+
+    public function scopeWithinRadius($query, float $lat, float $lng, float $radiusKm)
+    {
+        return $query->selectRaw(
+            '*, (6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude)))) AS distance',
+            [$lat, $lng, $lat]
+        )->whereNotNull('latitude')
+         ->whereNotNull('longitude')
+         ->having('distance', '<=', $radiusKm)
+         ->orderBy('distance');
+    }
 
     public function scopeActive($query)
     {

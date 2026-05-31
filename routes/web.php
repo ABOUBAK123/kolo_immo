@@ -5,6 +5,7 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DisputeController;
+use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
@@ -41,6 +42,8 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/properties', [PropertyController::class, 'index'])->name('properties.index');
+Route::get('/properties/map', [PropertyController::class, 'mapView'])->name('properties.map');
+Route::get('/properties/map-data', [PropertyController::class, 'mapData'])->name('properties.map-data');
 Route::get('/properties/{property}', [PropertyController::class, 'show'])->name('properties.show');
 
 Route::get('/about', function () {
@@ -109,6 +112,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/disputes/create/{booking}', [DisputeController::class, 'create'])->name('disputes.create');
     Route::post('/disputes/{booking}', [DisputeController::class, 'store'])->name('disputes.store');
     Route::get('/disputes/{dispute}', [DisputeController::class, 'show'])->name('disputes.show');
+
+    // Favorites
+    Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
+    Route::post('/favorites/{property}/toggle', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
 
     // Profile
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');

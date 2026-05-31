@@ -392,4 +392,60 @@ class PropertyController extends Controller
         $label = $newStatus === 'active' ? 'activé' : 'désactivé';
         return back()->with('success', "Logement {$label}.");
     }
+
+    // ─── MAP ─────────────────────────────────────────────────────────────────
+
+    public function mapView()
+    {
+        $cities = Property::active()->distinct()->pluck('city')->sort()->values();
+        return view('properties.map', compact('cities'));
+    }
+
+    public function mapData(Request $request)
+    {
+        $query = Property::active()
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->with(['photos', 'owner'])
+            ->withCount('reviews');
+
+        if ($request->filled('city')) {
+            $query->byCity($request->city);
+        }
+
+        if ($request->filled('type')) {
+            $query->byType($request->type);
+        }
+
+        if ($request->filled('price_max')) {
+            $query->where('price_per_night', '<=', (float) $request->price_max);
+        }
+
+        // Radius filter (Haversine)
+        if ($request->filled('lat') && $request->filled('lng') && $request->filled('radius')) {
+            $lat    = (float) $request->lat;
+            $lng    = (float) $request->lng;
+            $radius = min((float) $request->radius, 50); // cap 50 km
+            $query->withinRadius($lat, $lng, $radius);
+        }
+
+        $properties = $query->limit(200)->get();
+
+        $markers = $properties->map(fn($p) => [
+            'id'         => $p->id,
+            'title'      => $p->title,
+            'city'       => $p->city,
+            'district'   => $p->district,
+            'lat'        => $p->latitude,
+            'lng'        => $p->longitude,
+            'price'      => $p->price_per_night,
+            'type'       => $p->type,
+            'rating'     => $p->rating_avg,
+            'photo'      => $p->cover_photo_url,
+            'url'        => route('properties.show', $p),
+            'distance'   => isset($p->distance) ? round($p->distance, 1) : null,
+        ]);
+
+        return response()->json(['markers' => $markers]);
+    }
 }

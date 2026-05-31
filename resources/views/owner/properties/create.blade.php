@@ -169,15 +169,22 @@
                         class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <p class="text-xs text-gray-400 mt-1">L'adresse exacte ne sera visible qu'après réservation confirmée</p>
                 </div>
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Latitude (optionnel)</label>
-                    <input type="number" step="any" name="latitude" value="{{ old('latitude') }}" placeholder="5.3497"
-                        class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Longitude (optionnel)</label>
-                    <input type="number" step="any" name="longitude" value="{{ old('longitude') }}" placeholder="-4.0167"
-                        class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <div class="sm:col-span-2">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-sm font-semibold text-gray-700">Position GPS (pour la carte)</label>
+                        <button type="button" id="geocode-btn"
+                            onclick="geocodeAddress()"
+                            class="text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold px-3 py-1.5 rounded-lg transition-colors">
+                            📍 Géolocaliser automatiquement
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <input type="number" step="any" name="latitude" id="field-lat" value="{{ old('latitude') }}" placeholder="Latitude ex: 5.3497"
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="number" step="any" name="longitude" id="field-lng" value="{{ old('longitude') }}" placeholder="Longitude ex: -4.0167"
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <p id="geocode-status" class="text-xs text-gray-400 mt-1">Cliquez sur "Géolocaliser" pour remplir automatiquement depuis l'adresse saisie.</p>
                 </div>
             </div>
         </div>
@@ -407,3 +414,40 @@
     </form>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+async function geocodeAddress() {
+    const city    = document.getElementById('create-city')?.value || '';
+    const address = document.querySelector('[name="address"]')?.value || '';
+    const query   = [address, city, 'Afrique de l\'Ouest'].filter(Boolean).join(', ');
+
+    const btn    = document.getElementById('geocode-btn');
+    const status = document.getElementById('geocode-status');
+    btn.textContent = '⏳ Recherche...';
+    btn.disabled = true;
+
+    try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`, {
+            headers: { 'Accept-Language': 'fr', 'User-Agent': 'KoloImmo/1.0' }
+        });
+        const data = await res.json();
+        if (data.length > 0) {
+            document.getElementById('field-lat').value = parseFloat(data[0].lat).toFixed(6);
+            document.getElementById('field-lng').value = parseFloat(data[0].lon).toFixed(6);
+            status.textContent = '✅ Position trouvée : ' + data[0].display_name.substring(0, 60) + '...';
+            status.className = 'text-xs text-green-600 mt-1';
+        } else {
+            status.textContent = '⚠️ Adresse introuvable. Entrez les coordonnées manuellement.';
+            status.className = 'text-xs text-amber-600 mt-1';
+        }
+    } catch {
+        status.textContent = '❌ Erreur de géocodage. Vérifiez votre connexion.';
+        status.className = 'text-xs text-red-500 mt-1';
+    } finally {
+        btn.textContent = '📍 Géolocaliser automatiquement';
+        btn.disabled = false;
+    }
+}
+</script>
+@endpush

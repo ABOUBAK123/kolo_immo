@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BookingController;
+use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\OwnerPropertyController;
 use App\Http\Controllers\Api\PropertyController;
 use App\Http\Controllers\PaymentController;
@@ -54,6 +55,12 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::get('/', [PropertyController::class, 'index'])->name('index');
         Route::get('/featured', [PropertyController::class, 'featured'])->name('featured');
         Route::get('/{property}', [PropertyController::class, 'show'])->name('show');
+    });
+
+    // ─── FAVORITES (Protected) ────────────────────────────────────────────────
+    Route::middleware('auth:sanctum')->prefix('favorites')->name('favorites.')->group(function () {
+        Route::get('/', [FavoriteController::class, 'index'])->name('index');
+        Route::post('/{property}/toggle', [FavoriteController::class, 'toggle'])->name('toggle');
     });
 
     // ─── BOOKINGS (Protected) ─────────────────────────────────────────────────

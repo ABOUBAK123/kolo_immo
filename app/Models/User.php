@@ -89,6 +89,18 @@ class User extends Authenticatable
         return $this->hasMany(KycDocument::class);
     }
 
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class);
+    }
+
+    public function favoriteProperties()
+    {
+        return $this->belongsToMany(Property::class, 'favorites')
+                    ->withPivot('price_at_save')
+                    ->withTimestamps();
+    }
+
     // ─── Helpers ──────────────────────────────────────────────────────────────
 
     public function isAdmin(): bool
