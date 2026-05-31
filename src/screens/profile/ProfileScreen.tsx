@@ -194,6 +194,20 @@ export const ProfileScreen: React.FC<Props> = ({navigation}) => {
           </View>
         )}
 
+        {/* ── Favorites shortcut ── */}
+        <View style={styles.section}>
+          <TouchableOpacity
+            style={[styles.actionRow, {borderRadius: radius.lg}]}
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate('Favorites')}>
+            <View style={styles.actionLeft}>
+              <Text style={styles.actionIcon}>♥</Text>
+              <Text style={styles.actionLabel}>Mes favoris</Text>
+            </View>
+            <Text style={styles.actionChevron}>›</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* ── Owner section ── */}
         {(user?.role === 'owner' || user?.role === 'both') && (
           <View style={styles.section}>

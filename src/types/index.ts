@@ -189,4 +189,5 @@ export type ProfileStackParamList = {
   OwnerProperties: undefined;
   OwnerAddProperty: undefined;
   OwnerCommissions: undefined;
+  Favorites: undefined;
 };

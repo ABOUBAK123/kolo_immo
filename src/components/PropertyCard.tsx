@@ -1,20 +1,28 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {Property} from '../types';
 import {colors, radius, shadows, spacing, typography} from '../utils/theme';
 import {formatCFA, getImageUrl} from '../utils/helpers';
+import {favoritesApi} from '../api/favorites';
+import {useAuth} from '../store/AuthContext';
 
 interface PropertyCardProps {
   property: Property;
   onPress: () => void;
   horizontal?: boolean;
+  initialFaved?: boolean;
 }
 
 export const PropertyCard: React.FC<PropertyCardProps> = ({
   property,
   onPress,
   horizontal = false,
+  initialFaved = false,
 }) => {
+  const {user} = useAuth();
+  const [faved, setFaved] = useState(initialFaved);
+  const [toggling, setToggling] = useState(false);
+
   const coverUrl =
     property.cover_photo_url
       ? getImageUrl(property.cover_photo_url)
@@ -23,6 +31,25 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
       : null;
 
   const rating = property.rating_avg > 0;
+
+  const handleFav = async () => {
+    if (!user || toggling) return;
+    setToggling(true);
+    try {
+      const res = await favoritesApi.toggle(property.id);
+      setFaved(res.data.faved);
+    } catch { /* ignore */ }
+    finally { setToggling(false); }
+  };
+
+  const HeartBtn = () => (
+    <TouchableOpacity
+      onPress={handleFav}
+      hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
+      style={[styles.heartBtn, faved && styles.heartBtnActive]}>
+      <Text style={{fontSize: 13, color: faved ? '#fff' : '#ef4444'}}>{faved ? '♥' : '♡'}</Text>
+    </TouchableOpacity>
+  );
 
   if (horizontal) {
     return (
@@ -49,6 +76,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             )}
           </View>
         </View>
+        {user && <HeartBtn />}
       </TouchableOpacity>
     );
   }
@@ -73,6 +101,12 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           <View style={styles.ratingBadge}>
             <Text style={styles.ratingStar}>★</Text>
             <Text style={styles.ratingBadgeText}>{property.rating_avg.toFixed(1)}</Text>
+          </View>
+        )}
+        {/* Heart */}
+        {user && (
+          <View style={styles.heartWrap}>
+            <HeartBtn />
           </View>
         )}
       </View>
@@ -146,7 +180,7 @@ const styles = StyleSheet.create({
   ratingBadge: {
     position: 'absolute',
     top: 12,
-    right: 12,
+    right: 52,
     backgroundColor: 'rgba(255,255,255,0.95)',
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -158,6 +192,18 @@ const styles = StyleSheet.create({
   },
   ratingStar: { color: '#F59E0B', fontSize: 12, fontWeight: '700' },
   ratingBadgeText: { ...typography.labelSm, color: colors.text, fontWeight: '700' },
+
+  heartWrap: { position: 'absolute', top: 10, right: 10 },
+  heartBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: radius.full,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shadows.xs,
+  },
+  heartBtnActive: { backgroundColor: '#ef4444' },
 
   content: { padding: spacing.md },
   cityRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
