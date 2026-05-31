@@ -33,11 +33,9 @@ class AuthController extends Controller
 
         $needsAdminActivation = in_array($data['role'], ['owner', 'agent']);
 
-        // Truncate country to 2 chars if column hasn't been migrated yet
-        $country = $data['country'] ?? 'CI';
-        if (mb_strlen($country) > 2) {
-            $country = mb_substr($country, 0, 2);
-        }
+        // Keep only valid 2-letter ISO code for backward compat with VARCHAR(2) column
+        $raw = $data['country'] ?? 'CI';
+        $country = (preg_match('/^[A-Za-z]{2}$/', $raw)) ? strtoupper($raw) : 'CI';
 
         try {
             $user = User::create([
