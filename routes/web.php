@@ -11,6 +11,8 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\SearchAlertController;
+use App\Http\Controllers\WalletController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\DisputeController as AdminDisputeController;
 use App\Http\Controllers\Admin\SettingsController;
@@ -116,6 +118,18 @@ Route::middleware('auth')->group(function () {
     // Favorites
     Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
     Route::post('/favorites/{property}/toggle', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
+
+    // Wallet
+    Route::get('/wallet', [WalletController::class, 'index'])->name('wallet.index');
+    Route::post('/wallet/topup', [WalletController::class, 'topup'])->name('wallet.topup');
+    Route::get('/wallet/topup/success', [WalletController::class, 'topupSuccess'])->name('wallet.topup.success');
+    Route::post('/wallet/{booking}/pay', [WalletController::class, 'payBooking'])->name('wallet.pay-booking');
+
+    // Search alerts
+    Route::get('/search-alerts', [SearchAlertController::class, 'index'])->name('search-alerts.index');
+    Route::post('/search-alerts', [SearchAlertController::class, 'store'])->name('search-alerts.store');
+    Route::patch('/search-alerts/{alert}/toggle', [SearchAlertController::class, 'toggle'])->name('search-alerts.toggle');
+    Route::delete('/search-alerts/{alert}', [SearchAlertController::class, 'destroy'])->name('search-alerts.destroy');
 
     // Profile
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
@@ -231,7 +245,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::delete('/settings/payment-logos', [SettingsController::class, 'deletePaymentLogo'])->name('settings.payment-logos.delete');
 });
 
-// ─── PAYMENT WEBHOOK (public, no CSRF) ────────────────────────────────────────
+// ─── PAYMENT / WALLET WEBHOOKS (public, no CSRF) ─────────────────────────────
 Route::post('/payments/notify', [PaymentController::class, 'notify'])
     ->name('payments.notify')
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+
+Route::post('/wallet/topup/webhook', [WalletController::class, 'topupWebhook'])
+    ->name('wallet.topup.webhook')
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);

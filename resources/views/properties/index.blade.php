@@ -39,7 +39,43 @@
                 </svg>
                 Rechercher
             </button>
+            @auth
+            <button type="button"
+                onclick="document.getElementById('save-alert-panel').classList.toggle('hidden')"
+                class="border border-blue-200 text-blue-700 hover:bg-blue-50 font-semibold px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2">
+                🔔 Sauvegarder
+            </button>
+            @endauth
         </form>
+
+        {{-- Save search alert panel --}}
+        @auth
+        <div id="save-alert-panel" class="hidden border-t border-gray-100 mt-4 pt-4">
+            <form action="{{ route('search-alerts.store') }}" method="POST" class="flex flex-wrap gap-3 items-end">
+                @csrf
+                <input type="hidden" name="city"      value="{{ request('city') }}">
+                <input type="hidden" name="type"      value="{{ request('type') }}">
+                <input type="hidden" name="price_min" value="{{ request('price_min') }}">
+                <input type="hidden" name="price_max" value="{{ request('price_max') }}">
+                <input type="hidden" name="guests"    value="{{ request('guests') }}">
+                <div class="flex-1 min-w-48">
+                    <label class="block text-xs font-semibold text-gray-500 mb-1">NOM DE L'ALERTE</label>
+                    <input type="text" name="name" required placeholder="ex: Studio Abidjan pas cher"
+                        class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 mb-1">FRÉQUENCE</label>
+                    <select name="frequency" class="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="daily">Quotidienne</option>
+                        <option value="weekly">Hebdomadaire</option>
+                    </select>
+                </div>
+                <button type="submit" class="bg-blue-700 hover:bg-blue-800 text-white font-semibold px-4 py-2 rounded-lg text-sm transition-colors">
+                    🔔 Créer l'alerte
+                </button>
+            </form>
+        </div>
+        @endauth
     </div>
 
     <div class="flex flex-col lg:flex-row gap-6">

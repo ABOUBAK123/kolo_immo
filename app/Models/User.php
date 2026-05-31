@@ -101,6 +101,25 @@ class User extends Authenticatable
                     ->withTimestamps();
     }
 
+    public function wallet()
+    {
+        return $this->hasOne(Wallet::class);
+    }
+
+    public function searchAlerts()
+    {
+        return $this->hasMany(SearchAlert::class);
+    }
+
+    /** Get or create the user's wallet. */
+    public function getOrCreateWallet(): Wallet
+    {
+        return $this->wallet ?? $this->wallet()->create([
+            'balance'  => 0,
+            'currency' => 'XOF',
+        ]);
+    }
+
     // ─── Helpers ──────────────────────────────────────────────────────────────
 
     public function isAdmin(): bool

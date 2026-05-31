@@ -180,6 +180,38 @@
 
             <!-- Actions -->
             <div class="flex flex-wrap gap-3">
+                {{-- Pay with wallet --}}
+                @if($booking->payment_status === 'pending' && Auth::id() === $booking->tenant_id)
+                @php $wallet = Auth::user()->getOrCreateWallet(); @endphp
+                <div class="w-full bg-blue-50 border border-blue-200 rounded-xl p-4 mb-1">
+                    <div class="flex items-center justify-between flex-wrap gap-3">
+                        <div>
+                            <p class="font-bold text-blue-900 text-sm">💳 Payer avec votre portefeuille</p>
+                            <p class="text-xs text-blue-700 mt-0.5">
+                                Solde : <strong>{{ $wallet->formattedBalance() }}</strong>
+                                @if(!$wallet->hasSufficientBalance((float)$booking->total_amount))
+                                · <span class="text-red-600 font-semibold">Solde insuffisant</span>
+                                @endif
+                            </p>
+                        </div>
+                        @if($wallet->hasSufficientBalance((float)$booking->total_amount))
+                        <form action="{{ route('wallet.pay-booking', $booking) }}" method="POST"
+                              onsubmit="return confirm('Confirmer le paiement de {{ number_format($booking->total_amount, 0, ',', ' ') }} FCFA depuis votre portefeuille ?')">
+                            @csrf
+                            <button type="submit" class="bg-blue-700 hover:bg-blue-800 text-white font-bold px-5 py-2 rounded-lg text-sm transition-colors">
+                                Payer {{ number_format($booking->total_amount, 0, ',', ' ') }} FCFA →
+                            </button>
+                        </form>
+                        @else
+                        <a href="{{ route('wallet.index') }}"
+                           class="bg-white border border-blue-300 text-blue-700 font-semibold px-4 py-2 rounded-lg text-sm hover:bg-blue-50 transition-colors">
+                            + Recharger le portefeuille
+                        </a>
+                        @endif
+                    </div>
+                </div>
+                @endif
+
                 @if($booking->status === 'pending' || $booking->status === 'confirmed')
                 <form action="{{ route('bookings.cancel', $booking) }}" method="POST"
                     onsubmit="return confirm('Êtes-vous sûr de vouloir annuler cette réservation ?')">

@@ -125,8 +125,22 @@ class BookingController extends Controller
             $request->reason ?? 'Annulée par le locataire'
         );
 
+        // Auto-refund to wallet if payment was via wallet
+        $message = 'Réservation annulée avec succès.';
+        if ($booking->payment_status === 'wallet') {
+            $wallet = Auth::user()->getOrCreateWallet();
+            $wallet->credit(
+                (float) $booking->total_amount,
+                "Remboursement annulation #{$booking->reference}",
+                $booking->id,
+                'refund'
+            );
+            $booking->update(['payment_status' => 'refunded']);
+            $message = 'Réservation annulée. ' . number_format($booking->total_amount, 0, ',', ' ') . ' XOF remboursés sur votre portefeuille.';
+        }
+
         return redirect()->route('bookings.my-bookings')
-            ->with('success', 'Réservation annulée avec succès.');
+            ->with('success', $message);
     }
 
     // ─── OWNER ────────────────────────────────────────────────────────────────
