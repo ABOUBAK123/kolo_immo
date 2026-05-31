@@ -89,6 +89,16 @@ class Booking extends Model
         return $this->hasMany(Dispute::class);
     }
 
+    public function renewals()
+    {
+        return $this->hasMany(ContractRenewal::class);
+    }
+
+    public function pendingRenewal()
+    {
+        return $this->hasOne(ContractRenewal::class)->where('status', 'pending')->latest();
+    }
+
     // ─── Scopes ───────────────────────────────────────────────────────────────
 
     public function scopePending($query)

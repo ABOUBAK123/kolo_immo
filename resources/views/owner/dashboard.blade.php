@@ -255,4 +255,176 @@
         </div>
     </div>
 </div>
+
+    {{-- ── ANALYTICS SECTION ─────────────────────────────────────────────── --}}
+    <div class="mt-10">
+        <div class="flex items-center justify-between mb-5">
+            <div>
+                <h2 class="text-xl font-bold text-gray-900">📊 Tableau de bord analytique</h2>
+                <p class="text-sm text-gray-500 mt-0.5">Suivi des performances de vos biens</p>
+            </div>
+            <div class="flex gap-2">
+                <a href="{{ route('owner.analytics.csv', ['year' => now()->year]) }}"
+                   class="flex items-center gap-1.5 border border-gray-200 text-gray-600 font-semibold px-3 py-2 rounded-xl text-xs hover:bg-gray-50 transition-colors">
+                    ⬇ CSV
+                </a>
+                <a href="{{ route('owner.analytics.pdf', ['year' => now()->year]) }}" target="_blank"
+                   class="flex items-center gap-1.5 border border-gray-200 text-gray-600 font-semibold px-3 py-2 rounded-xl text-xs hover:bg-gray-50 transition-colors">
+                    🖨 PDF
+                </a>
+            </div>
+        </div>
+
+        {{-- Comparison cards --}}
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            @php $growth = $analyticsData['revenue_growth']; @endphp
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Ce mois-ci</p>
+                <p class="text-2xl font-black text-gray-900">{{ number_format($analyticsData['this_month_revenue'], 0, ',', ' ') }}</p>
+                <p class="text-xs text-gray-400 mt-0.5">FCFA</p>
+            </div>
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Mois dernier</p>
+                <p class="text-2xl font-black text-gray-900">{{ number_format($analyticsData['last_month_revenue'], 0, ',', ' ') }}</p>
+                <p class="text-xs text-gray-400 mt-0.5">FCFA</p>
+            </div>
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Évolution</p>
+                <p class="text-2xl font-black {{ $growth >= 0 ? 'text-green-600' : 'text-red-500' }}">
+                    {{ $growth >= 0 ? '+' : '' }}{{ $growth }}%
+                </p>
+                <p class="text-xs {{ $growth >= 0 ? 'text-green-500' : 'text-red-400' }} mt-0.5">
+                    vs mois précédent
+                </p>
+            </div>
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Total annuel</p>
+                <p class="text-2xl font-black text-gray-900">
+                    {{ number_format(collect($analyticsData['revenue_chart'])->sum('amount'), 0, ',', ' ') }}
+                </p>
+                <p class="text-xs text-gray-400 mt-0.5">FCFA (12 mois)</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            {{-- Revenue chart --}}
+            <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                <h3 class="font-bold text-gray-900 mb-4">Revenus mensuels (12 derniers mois)</h3>
+                <canvas id="revenueChart" height="100"></canvas>
+            </div>
+
+            {{-- Booking breakdown --}}
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                <h3 class="font-bold text-gray-900 mb-4">Réservations par statut</h3>
+                <canvas id="statusChart" height="200"></canvas>
+                <div class="mt-3 space-y-1.5">
+                    @php
+                        $statusColors = ['pending'=>'#F59E0B','confirmed'=>'#3B82F6','completed'=>'#10B981','cancelled'=>'#EF4444','disputed'=>'#8B5CF6'];
+                        $statusLabels = ['pending'=>'En attente','confirmed'=>'Confirmées','completed'=>'Terminées','cancelled'=>'Annulées','disputed'=>'Litiges'];
+                    @endphp
+                    @foreach($analyticsData['booking_breakdown'] as $status => $cnt)
+                    <div class="flex items-center justify-between text-xs">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-3 h-3 rounded-sm inline-block" style="background:{{ $statusColors[$status] ?? '#9CA3AF' }}"></span>
+                            <span class="text-gray-600">{{ $statusLabels[$status] ?? ucfirst($status) }}</span>
+                        </div>
+                        <span class="font-bold text-gray-900">{{ $cnt }}</span>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+
+        {{-- Occupancy per property --}}
+        @if($analyticsData['occupancy_per_property']->isNotEmpty())
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <h3 class="font-bold text-gray-900 mb-4">Taux d'occupation ce mois — par bien</h3>
+            <div class="space-y-4">
+                @foreach($analyticsData['occupancy_per_property'] as $prop)
+                <div class="flex items-center gap-4">
+                    @if($prop['photo'])
+                    <img src="{{ $prop['photo'] }}" class="w-10 h-10 rounded-lg object-cover flex-shrink-0">
+                    @else
+                    <div class="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center flex-shrink-0">
+                        <span class="text-lg">🏠</span>
+                    </div>
+                    @endif
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-sm font-semibold text-gray-800">{{ $prop['title'] }}</span>
+                            <span class="text-sm font-bold {{ $prop['rate'] >= 60 ? 'text-green-600' : ($prop['rate'] >= 30 ? 'text-amber-600' : 'text-red-500') }}">
+                                {{ $prop['rate'] }}% ({{ $prop['nights'] }} nuits)
+                            </span>
+                        </div>
+                        <div class="w-full bg-gray-100 rounded-full h-2">
+                            <div class="h-2 rounded-full {{ $prop['rate'] >= 60 ? 'bg-green-500' : ($prop['rate'] >= 30 ? 'bg-amber-400' : 'bg-red-400') }}"
+                                 style="width: {{ $prop['rate'] }}%"></div>
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+    </div>
+</div>
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+@php
+    $chartLabels  = collect($analyticsData['revenue_chart'])->pluck('month')->toJson();
+    $chartData    = collect($analyticsData['revenue_chart'])->pluck('amount')->toJson();
+    $breakdownLabels = collect($analyticsData['booking_breakdown'])->keys()->map(fn($s) => ['pending'=>'En attente','confirmed'=>'Confirmées','completed'=>'Terminées','cancelled'=>'Annulées','disputed'=>'Litiges'][$s] ?? ucfirst($s))->toJson();
+    $breakdownData   = collect($analyticsData['booking_breakdown'])->values()->toJson();
+@endphp
+
+// Revenue chart
+new Chart(document.getElementById('revenueChart'), {
+    type: 'bar',
+    data: {
+        labels: {!! $chartLabels !!},
+        datasets: [{
+            label: 'Revenus (FCFA)',
+            data: {!! $chartData !!},
+            backgroundColor: 'rgba(27,79,114,0.75)',
+            borderColor: '#1B4F72',
+            borderWidth: 1.5,
+            borderRadius: 6,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { callback: v => v.toLocaleString('fr-FR') + ' F' },
+                grid: { color: 'rgba(0,0,0,0.04)' }
+            },
+            x: { grid: { display: false } }
+        }
+    }
+});
+
+// Status donut
+new Chart(document.getElementById('statusChart'), {
+    type: 'doughnut',
+    data: {
+        labels: {!! $breakdownLabels !!},
+        datasets: [{
+            data: {!! $breakdownData !!},
+            backgroundColor: ['#F59E0B','#3B82F6','#10B981','#EF4444','#8B5CF6'],
+            borderWidth: 2,
+            borderColor: '#fff',
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        cutout: '65%',
+    }
+});
+</script>
+@endpush
 @endsection

@@ -10,6 +10,7 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PropertyController;
+use App\Http\Controllers\RenewalController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\SearchAlertController;
 use App\Http\Controllers\WalletController;
@@ -84,6 +85,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
     Route::get('/bookings/{booking}', [BookingController::class, 'show'])->name('bookings.show');
     Route::patch('/bookings/{booking}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
+    Route::post('/bookings/{booking}/terminate', [RenewalController::class, 'terminate'])->name('bookings.terminate');
+
+    // Renewals
+    Route::get('/renewals/{renewal}', [RenewalController::class, 'show'])->name('renewals.show');
+    Route::get('/bookings/{booking}/renew', [RenewalController::class, 'create'])->name('renewals.create');
+    Route::post('/bookings/{booking}/renew', [RenewalController::class, 'store'])->name('renewals.store');
+    Route::patch('/renewals/{renewal}/accept', [RenewalController::class, 'accept'])->name('renewals.accept');
+    Route::patch('/renewals/{renewal}/reject', [RenewalController::class, 'reject'])->name('renewals.reject');
 
     // Payments
     Route::get('/payments/{booking}/initiate', [PaymentController::class, 'initiate'])->name('payments.initiate');
@@ -192,6 +201,10 @@ Route::middleware(['auth', 'owner'])->prefix('owner')->name('owner.')->group(fun
 
     // Commissions
     Route::get('/commissions', [DashboardController::class, 'ownerCommissions'])->name('commissions');
+
+    // Analytics exports
+    Route::get('/analytics/csv', [DashboardController::class, 'exportCsv'])->name('analytics.csv');
+    Route::get('/analytics/pdf', [DashboardController::class, 'exportPdf'])->name('analytics.pdf');
 
     // Bookings management (owner)
     Route::get('/bookings', [BookingController::class, 'ownerBookings'])->name('bookings.index');

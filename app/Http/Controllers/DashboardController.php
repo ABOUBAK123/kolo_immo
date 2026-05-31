@@ -9,6 +9,7 @@ use App\Models\Property;
 use App\Models\Review;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -68,22 +69,78 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        // Monthly revenue chart data (last 6 months)
+        // ── Analytics: 12 months revenue ────────────────────────────────────
         $revenueChart = [];
-        for ($i = 5; $i >= 0; $i--) {
+        for ($i = 11; $i >= 0; $i--) {
             $month = now()->subMonths($i);
-            $amount = Payment::whereHas('booking', fn($q) => $q->where('owner_id', $user->id))
-                ->where('status', 'success')
-                ->where('type', 'payment')
-                ->whereMonth('paid_at', $month->month)
-                ->whereYear('paid_at', $month->year)
-                ->sum('amount');
+            // Include wallet payments too
+            $amount = Booking::where('owner_id', $user->id)
+                ->whereIn('status', ['confirmed', 'completed'])
+                ->whereIn('payment_status', ['paid', 'escrowed', 'released', 'wallet'])
+                ->whereYear('confirmed_at', $month->year)
+                ->whereMonth('confirmed_at', $month->month)
+                ->sum('total_amount');
 
             $revenueChart[] = [
                 'month'  => $month->locale('fr')->isoFormat('MMM YY'),
-                'amount' => $amount,
+                'amount' => (float) $amount,
             ];
         }
+
+        // ── Comparison: this month vs last month ──────────────────────────────
+        $thisMonth  = Booking::where('owner_id', $user->id)
+            ->whereIn('status', ['confirmed', 'completed'])
+            ->whereIn('payment_status', ['paid', 'escrowed', 'released', 'wallet'])
+            ->whereYear('confirmed_at', now()->year)
+            ->whereMonth('confirmed_at', now()->month)
+            ->sum('total_amount');
+
+        $lastMonth  = Booking::where('owner_id', $user->id)
+            ->whereIn('status', ['confirmed', 'completed'])
+            ->whereIn('payment_status', ['paid', 'escrowed', 'released', 'wallet'])
+            ->whereYear('confirmed_at', now()->subMonth()->year)
+            ->whereMonth('confirmed_at', now()->subMonth()->month)
+            ->sum('total_amount');
+
+        $revenueGrowth = $lastMonth > 0
+            ? round((($thisMonth - $lastMonth) / $lastMonth) * 100, 1)
+            : ($thisMonth > 0 ? 100 : 0);
+
+        // ── Occupancy per property ─────────────────────────────────────────────
+        $daysInMonth = now()->daysInMonth;
+        $occupancyPerProperty = $user->properties()
+            ->where('status', 'active')
+            ->with('photos')
+            ->get()
+            ->map(function ($p) use ($daysInMonth) {
+                $bookedNights = Booking::where('property_id', $p->id)
+                    ->whereIn('status', ['confirmed', 'completed'])
+                    ->whereYear('check_in', now()->year)
+                    ->whereMonth('check_in', now()->month)
+                    ->sum('nights');
+                return [
+                    'id'    => $p->id,
+                    'title' => \Illuminate\Support\Str::limit($p->title, 25),
+                    'rate'  => min(100, round(($bookedNights / $daysInMonth) * 100)),
+                    'nights'=> (int) $bookedNights,
+                    'photo' => $p->cover_photo_url,
+                ];
+            });
+
+        // ── Booking status breakdown (pie chart) ──────────────────────────────
+        $bookingBreakdown = Booking::where('owner_id', $user->id)
+            ->selectRaw('status, count(*) as cnt')
+            ->groupBy('status')
+            ->pluck('cnt', 'status');
+
+        $analyticsData = [
+            'revenue_chart'         => $revenueChart,
+            'this_month_revenue'    => (float) $thisMonth,
+            'last_month_revenue'    => (float) $lastMonth,
+            'revenue_growth'        => $revenueGrowth,
+            'occupancy_per_property'=> $occupancyPerProperty,
+            'booking_breakdown'     => $bookingBreakdown,
+        ];
 
         // Upcoming check-ins
         $upcomingCheckIns = $user->bookingsAsOwner()
@@ -138,7 +195,8 @@ class DashboardController extends Controller
             'revenueChart',
             'upcomingCheckIns',
             'recentBookings',
-            'myProperties'
+            'myProperties',
+            'analyticsData'
         ));
     }
 
@@ -214,6 +272,80 @@ class DashboardController extends Controller
             'phoneVerified',
             'reviewsCount'
         ));
+    }
+
+    /**
+     * Export owner analytics as CSV.
+     */
+    public function exportCsv(Request $request)
+    {
+        $user  = Auth::user();
+        $year  = (int) $request->get('year', now()->year);
+
+        $bookings = Booking::where('owner_id', $user->id)
+            ->whereIn('status', ['confirmed', 'completed'])
+            ->whereYear('confirmed_at', $year)
+            ->with(['property', 'tenant'])
+            ->orderBy('confirmed_at')
+            ->get();
+
+        $filename = "kolo_immo_rapport_{$year}.csv";
+        $headers  = [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $callback = function () use ($bookings) {
+            $file = fopen('php://output', 'w');
+            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF)); // BOM UTF-8
+            fputcsv($file, ['Référence', 'Bien', 'Locataire', 'Arrivée', 'Départ', 'Nuits', 'Montant (FCFA)', 'Statut'], ';');
+
+            foreach ($bookings as $b) {
+                fputcsv($file, [
+                    $b->reference,
+                    $b->property?->title ?? '—',
+                    $b->tenant?->name ?? '—',
+                    $b->check_in->format('d/m/Y'),
+                    $b->check_out->format('d/m/Y'),
+                    $b->nights,
+                    number_format($b->total_amount, 0, ',', ' '),
+                    $b->status,
+                ], ';');
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Export owner analytics as printable PDF (HTML view for browser print).
+     */
+    public function exportPdf(Request $request)
+    {
+        $user  = Auth::user();
+        $year  = (int) $request->get('year', now()->year);
+
+        $bookings = Booking::where('owner_id', $user->id)
+            ->whereIn('status', ['confirmed', 'completed'])
+            ->whereYear('confirmed_at', $year)
+            ->with(['property', 'tenant'])
+            ->orderBy('confirmed_at')
+            ->get();
+
+        $totalRevenue = $bookings->sum('total_amount');
+
+        // Monthly breakdown
+        $byMonth = [];
+        for ($m = 1; $m <= 12; $m++) {
+            $byMonth[$m] = [
+                'label'  => now()->month($m)->locale('fr')->isoFormat('MMMM'),
+                'count'  => $bookings->filter(fn($b) => $b->confirmed_at?->month === $m)->count(),
+                'amount' => $bookings->filter(fn($b) => $b->confirmed_at?->month === $m)->sum('total_amount'),
+            ];
+        }
+
+        return view('owner.analytics-pdf', compact('bookings', 'totalRevenue', 'byMonth', 'year', 'user'));
     }
 
     /**

@@ -236,6 +236,65 @@
                 </a>
                 @endif
 
+                {{-- Renewal --}}
+                @if($booking->status === 'confirmed' && $booking->check_out && $booking->check_out->diffInDays(now()) <= 90)
+                @php $pendingRenewal = $booking->pendingRenewal; @endphp
+                @if($pendingRenewal)
+                <a href="{{ route('renewals.show', $pendingRenewal) }}"
+                   class="flex items-center gap-2 bg-green-50 border-2 border-green-200 text-green-700 font-semibold px-5 py-2.5 rounded-xl text-sm hover:bg-green-100 transition-colors">
+                    🔄 Voir la demande de renouvellement
+                </a>
+                @else
+                <a href="{{ route('renewals.create', $booking) }}"
+                   class="flex items-center gap-2 bg-emerald-50 border-2 border-emerald-200 text-emerald-700 font-semibold px-5 py-2.5 rounded-xl text-sm hover:bg-emerald-100 transition-colors">
+                    🔄 Renouveler le séjour
+                </a>
+                @endif
+                @endif
+
+                {{-- Termination --}}
+                @if($booking->status === 'confirmed' && !$booking->termination_notice_at)
+                <button type="button"
+                    onclick="document.getElementById('terminate-panel').classList.toggle('hidden')"
+                    class="flex items-center gap-2 border-2 border-amber-200 text-amber-700 font-semibold px-5 py-2.5 rounded-xl text-sm hover:bg-amber-50 transition-colors">
+                    📋 Donner un préavis
+                </button>
+                @elseif($booking->termination_notice_at)
+                <div class="w-full bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm">
+                    <p class="font-bold text-amber-800">📋 Préavis de résiliation en cours</p>
+                    <p class="text-amber-700 mt-0.5">Fin prévue le : <strong>{{ $booking->termination_date?->format('d/m/Y') }}</strong></p>
+                </div>
+                @endif
+
+                @if($booking->status === 'confirmed' && !$booking->termination_notice_at)
+                <div id="terminate-panel" class="hidden w-full bg-amber-50 border border-amber-200 rounded-xl p-4 mt-1">
+                    <p class="font-semibold text-amber-900 text-sm mb-3">Procédure de résiliation avec préavis</p>
+                    <form action="{{ route('bookings.terminate', $booking) }}" method="POST">
+                        @csrf
+                        <div class="space-y-3">
+                            <div>
+                                <label class="text-xs font-semibold text-gray-600">Délai de préavis</label>
+                                <select name="notice_days" class="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white">
+                                    <option value="30">30 jours</option>
+                                    <option value="60">60 jours</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs font-semibold text-gray-600">Motif de résiliation *</label>
+                                <textarea name="termination_reason" rows="2" required minlength="20"
+                                    class="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none"
+                                    placeholder="Expliquez la raison de la résiliation..."></textarea>
+                            </div>
+                            <button type="submit"
+                                onclick="return confirm('Confirmer le préavis de résiliation ?')"
+                                class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 rounded-lg text-sm transition-colors">
+                                Envoyer le préavis
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                @endif
+
                 @if(in_array($booking->status, ['confirmed', 'completed', 'refund_pending']) && $booking->status !== 'disputed')
                 @php $existingDispute = $booking->disputes()->where('opened_by', Auth::id())->first() ?? null; @endphp
                 @if(!$existingDispute)
