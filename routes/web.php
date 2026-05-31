@@ -76,7 +76,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/bookings/create', [BookingController::class, 'create'])->name('bookings.create');
     Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
     Route::get('/bookings/{booking}', [BookingController::class, 'show'])->name('bookings.show');
-    Route::post('/bookings/{booking}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
+    Route::patch('/bookings/{booking}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
 
     // Payments
     Route::get('/payments/{booking}/initiate', [PaymentController::class, 'initiate'])->name('payments.initiate');
@@ -168,8 +168,8 @@ Route::middleware(['auth', 'owner'])->prefix('owner')->name('owner.')->group(fun
     // Bookings management (owner)
     Route::get('/bookings', [BookingController::class, 'ownerBookings'])->name('bookings.index');
     Route::get('/bookings/pending', [BookingController::class, 'pendingBookings'])->name('bookings.pending');
-    Route::post('/bookings/{booking}/confirm', [BookingController::class, 'confirm'])->name('bookings.confirm');
-    Route::post('/bookings/{booking}/reject', [BookingController::class, 'reject'])->name('bookings.reject');
+    Route::patch('/bookings/{booking}/confirm', [BookingController::class, 'confirm'])->name('bookings.confirm');
+    Route::patch('/bookings/{booking}/reject', [BookingController::class, 'reject'])->name('bookings.reject');
 });
 
 // ─── ADMIN ROUTES ─────────────────────────────────────────────────────────────
@@ -180,8 +180,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Users
     Route::get('/users', [AdminController::class, 'users'])->name('users.index');
     Route::get('/users/{user}', [AdminController::class, 'showUser'])->name('users.show');
-    Route::post('/users/{user}/toggle-ban', [AdminController::class, 'toggleBan'])->name('users.toggle-ban');
-    Route::post('/users/{user}/toggle-active', [AdminController::class, 'toggleActive'])->name('users.toggle-active');
+    Route::patch('/users/{user}/toggle-ban', [AdminController::class, 'toggleBan'])->name('users.toggle-ban');
+    Route::patch('/users/{user}/toggle-active', [AdminController::class, 'toggleActive'])->name('users.toggle-active');
 
     // KYC
     Route::get('/kyc', [AdminController::class, 'kycList'])->name('kyc.index');
