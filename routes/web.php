@@ -4,12 +4,14 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DisputeController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\DisputeController as AdminDisputeController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\LocaleController;
 use Illuminate\Support\Facades\Route;
@@ -98,10 +100,15 @@ Route::middleware('auth')->group(function () {
     Route::post('/messages/{conversation}/send', [MessageController::class, 'send'])->name('messages.send');
     Route::post('/messages/{conversation}/read', [MessageController::class, 'markRead'])->name('messages.read');
 
-    // Reviews
+    // Reviews (tenant → property)
     Route::get('/reviews/create/{booking}', [ReviewController::class, 'create'])->name('reviews.create');
     Route::post('/reviews/{booking}', [ReviewController::class, 'store'])->name('reviews.store');
     Route::post('/reviews/{review}/reply', [ReviewController::class, 'reply'])->name('reviews.reply');
+
+    // Disputes
+    Route::get('/disputes/create/{booking}', [DisputeController::class, 'create'])->name('disputes.create');
+    Route::post('/disputes/{booking}', [DisputeController::class, 'store'])->name('disputes.store');
+    Route::get('/disputes/{dispute}', [DisputeController::class, 'show'])->name('disputes.show');
 
     // Profile
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
@@ -170,6 +177,10 @@ Route::middleware(['auth', 'owner'])->prefix('owner')->name('owner.')->group(fun
     Route::get('/bookings/pending', [BookingController::class, 'pendingBookings'])->name('bookings.pending');
     Route::patch('/bookings/{booking}/confirm', [BookingController::class, 'confirm'])->name('bookings.confirm');
     Route::patch('/bookings/{booking}/reject', [BookingController::class, 'reject'])->name('bookings.reject');
+
+    // Reviews owner → tenant
+    Route::get('/bookings/{booking}/review-tenant', [ReviewController::class, 'createOwnerReview'])->name('reviews.owner.create');
+    Route::post('/bookings/{booking}/review-tenant', [ReviewController::class, 'storeOwnerReview'])->name('reviews.owner.store');
 });
 
 // ─── ADMIN ROUTES ─────────────────────────────────────────────────────────────
@@ -198,7 +209,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/bookings', [AdminController::class, 'bookings'])->name('bookings.index');
 
     // Disputes
-    Route::get('/disputes', [AdminController::class, 'disputes'])->name('disputes.index');
+    Route::get('/disputes', [AdminDisputeController::class, 'index'])->name('disputes.index');
+    Route::get('/disputes/{dispute}', [AdminDisputeController::class, 'show'])->name('disputes.show');
+    Route::patch('/disputes/{dispute}/status', [AdminDisputeController::class, 'updateStatus'])->name('disputes.status');
+    Route::patch('/disputes/{dispute}/resolve', [AdminDisputeController::class, 'resolve'])->name('disputes.resolve');
 
     // Reports
     Route::get('/reports', [AdminController::class, 'reports'])->name('reports.index');

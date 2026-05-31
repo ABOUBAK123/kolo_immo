@@ -74,6 +74,23 @@
                         </form>
                     </div>
                     @endif
+
+                    {{-- Completed: rate tenant + dispute --}}
+                    @if($booking->status === 'completed')
+                    @php
+                        $alreadyRated = $booking->reviews()->where('reviewer_id', Auth::id())->where('type','owner_to_tenant')->exists();
+                    @endphp
+                    <div class="flex gap-2 mt-3 justify-end">
+                        @if(!$alreadyRated)
+                        <a href="{{ route('owner.reviews.create', $booking) }}"
+                           class="px-3 py-1.5 bg-amber-500 text-white rounded-lg text-xs font-semibold hover:bg-amber-600 transition">
+                            ⭐ Évaluer le locataire
+                        </a>
+                        @else
+                        <span class="px-3 py-1.5 bg-gray-100 text-gray-500 rounded-lg text-xs font-semibold">✓ Évaluation envoyée</span>
+                        @endif
+                    </div>
+                    @endif
                 </div>
             </div>
         </div>

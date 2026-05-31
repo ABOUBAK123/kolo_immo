@@ -84,6 +84,11 @@ class Booking extends Model
         return $this->hasOne(Conversation::class);
     }
 
+    public function disputes()
+    {
+        return $this->hasMany(Dispute::class);
+    }
+
     // ─── Scopes ───────────────────────────────────────────────────────────────
 
     public function scopePending($query)

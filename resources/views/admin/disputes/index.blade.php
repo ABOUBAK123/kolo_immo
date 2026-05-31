@@ -1,61 +1,99 @@
 @extends('layouts.admin')
-
-@section('title', 'Litiges')
-
+@section('title', 'Gestion des litiges')
 @section('content')
-<div class="flex items-center justify-between mb-6">
-    <h1 class="text-xl font-bold text-gray-900">Litiges ouverts</h1>
-    <span class="text-sm text-gray-500">{{ $disputes->total() }} litige(s)</span>
+
+{{-- Stats --}}
+<div class="grid grid-cols-3 gap-4 mb-6">
+    <div class="bg-red-50 border border-red-100 rounded-xl p-4 text-center">
+        <p class="text-2xl font-bold text-red-600">{{ $counts['open'] }}</p>
+        <p class="text-xs font-semibold text-red-500 mt-0.5">Ouverts</p>
+    </div>
+    <div class="bg-yellow-50 border border-yellow-100 rounded-xl p-4 text-center">
+        <p class="text-2xl font-bold text-yellow-600">{{ $counts['in_progress'] }}</p>
+        <p class="text-xs font-semibold text-yellow-500 mt-0.5">En cours</p>
+    </div>
+    <div class="bg-green-50 border border-green-100 rounded-xl p-4 text-center">
+        <p class="text-2xl font-bold text-green-600">{{ $counts['resolved'] }}</p>
+        <p class="text-xs font-semibold text-green-500 mt-0.5">Résolus</p>
+    </div>
 </div>
 
-@if($disputes->isEmpty())
-<div class="bg-white rounded-xl border border-gray-100 shadow-sm p-12 text-center">
-    <div class="text-5xl mb-4">✅</div>
-    <p class="text-lg font-semibold text-gray-900">Aucun litige ouvert</p>
-    <p class="text-gray-500 text-sm mt-1">Tous les litiges ont été résolus.</p>
+{{-- Filters --}}
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-5">
+    <form action="{{ route('admin.disputes.index') }}" method="GET" class="flex gap-3 items-end flex-wrap">
+        <div>
+            <label class="block text-xs font-semibold text-gray-500 mb-1">STATUT</label>
+            <select name="status" class="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Tous</option>
+                @foreach(\App\Models\Dispute::STATUSES as $val => $s)
+                <option value="{{ $val }}" {{ request('status') === $val ? 'selected' : '' }}>{{ $s['label'] }}</option>
+                @endforeach
+            </select>
+        </div>
+        <button type="submit" class="bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg text-sm">Filtrer</button>
+        <a href="{{ route('admin.disputes.index') }}" class="border border-gray-200 text-gray-600 font-semibold px-4 py-2 rounded-lg text-sm hover:bg-gray-50">Réinitialiser</a>
+    </form>
 </div>
-@else
+
+{{-- Table --}}
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+        <h2 class="font-bold text-gray-900">Litiges ({{ $disputes->total() }})</h2>
+    </div>
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
             <thead>
-                <tr class="bg-gray-50 text-xs font-semibold text-gray-400 uppercase">
-                    <th class="text-left px-5 py-3">Référence</th>
-                    <th class="text-left px-5 py-3">Logement</th>
-                    <th class="text-left px-5 py-3">Locataire</th>
-                    <th class="text-left px-5 py-3">Propriétaire</th>
-                    <th class="text-right px-5 py-3">Montant</th>
+                <tr class="bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    <th class="text-left px-5 py-3">ID</th>
+                    <th class="text-left px-5 py-3">Motif</th>
+                    <th class="text-left px-5 py-3">Plaignant</th>
+                    <th class="text-left px-5 py-3">Mis en cause</th>
+                    <th class="text-left px-5 py-3 hidden md:table-cell">Réservation</th>
+                    <th class="text-center px-5 py-3">Statut</th>
                     <th class="text-left px-5 py-3">Date</th>
-                    <th class="text-center px-5 py-3">Paiement</th>
+                    <th class="px-5 py-3"></th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-50">
-                @foreach($disputes as $booking)
-                @php
-                $pc = ['pending' => 'yellow', 'paid' => 'blue', 'escrowed' => 'indigo', 'released' => 'green', 'refunded' => 'gray'][$booking->payment_status] ?? 'gray';
-                $pl = ['pending' => 'Non payé', 'paid' => 'Payé', 'escrowed' => 'Séquestre', 'released' => 'Libéré', 'refunded' => 'Remboursé'][$booking->payment_status] ?? $booking->payment_status;
-                @endphp
-                <tr class="hover:bg-red-50">
-                    <td class="px-5 py-3 font-mono text-red-600 text-xs font-bold">{{ $booking->reference }}</td>
+                @forelse($disputes as $d)
+                @php $color = $d->statusColor(); @endphp
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-5 py-3 text-gray-400 text-xs font-mono">#{{ $d->id }}</td>
+                    <td class="px-5 py-3"><span class="text-xs font-medium text-gray-700">{{ $d->reasonLabel() }}</span></td>
                     <td class="px-5 py-3">
-                        <p class="font-medium text-gray-900">{{ Str::limit($booking->property->title ?? '—', 25) }}</p>
-                        <p class="text-xs text-gray-400">{{ $booking->property->city ?? '' }}</p>
+                        <p class="font-medium text-gray-900">{{ $d->openedBy->name }}</p>
+                        <p class="text-xs text-gray-400">{{ ucfirst($d->openedBy->role) }}</p>
                     </td>
-                    <td class="px-5 py-3 text-gray-700">{{ $booking->tenant->name ?? '—' }}</td>
-                    <td class="px-5 py-3 text-gray-700">{{ $booking->owner->name ?? '—' }}</td>
-                    <td class="px-5 py-3 text-right font-semibold">{{ number_format($booking->total_amount, 0, ',', ' ') }} FCFA</td>
-                    <td class="px-5 py-3 text-gray-500 text-xs">{{ $booking->check_in->format('d/m/Y') }} → {{ $booking->check_out->format('d/m/Y') }}</td>
+                    <td class="px-5 py-3">
+                        <p class="font-medium text-gray-900">{{ $d->againstUser->name }}</p>
+                        <p class="text-xs text-gray-400">{{ ucfirst($d->againstUser->role) }}</p>
+                    </td>
+                    <td class="px-5 py-3 hidden md:table-cell">
+                        <p class="text-xs font-mono text-gray-600">{{ $d->booking->reference }}</p>
+                        <p class="text-xs text-gray-400">{{ Str::limit($d->booking->property->title ?? '—', 25) }}</p>
+                    </td>
                     <td class="px-5 py-3 text-center">
-                        <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-{{ $pc }}-100 text-{{ $pc }}-800">{{ $pl }}</span>
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-{{ $color }}-100 text-{{ $color }}-700">
+                            <span class="w-1.5 h-1.5 rounded-full bg-{{ $color }}-500"></span>
+                            {{ $d->statusLabel() }}
+                        </span>
+                    </td>
+                    <td class="px-5 py-3 text-xs text-gray-500">{{ $d->created_at->format('d/m/Y') }}</td>
+                    <td class="px-5 py-3">
+                        <a href="{{ route('admin.disputes.show', $d) }}"
+                           class="text-blue-600 hover:text-blue-800 text-xs font-medium px-2 py-1 rounded bg-blue-50 hover:bg-blue-100 transition-colors">
+                            Examiner
+                        </a>
                     </td>
                 </tr>
-                @endforeach
+                @empty
+                <tr><td colspan="8" class="px-5 py-10 text-center text-gray-400">Aucun litige</td></tr>
+                @endforelse
             </tbody>
         </table>
     </div>
-    <div class="px-5 py-4 border-t border-gray-100">
-        {{ $disputes->links() }}
-    </div>
+    @if($disputes->hasPages())
+    <div class="px-5 py-4 border-t border-gray-100">{{ $disputes->withQueryString()->links() }}</div>
+    @endif
 </div>
-@endif
 @endsection

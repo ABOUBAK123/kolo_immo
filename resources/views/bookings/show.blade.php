@@ -203,6 +203,24 @@
                     Laisser un avis
                 </a>
                 @endif
+
+                @if(in_array($booking->status, ['confirmed', 'completed', 'refund_pending']) && $booking->status !== 'disputed')
+                @php $existingDispute = $booking->disputes()->where('opened_by', Auth::id())->first() ?? null; @endphp
+                @if(!$existingDispute)
+                <a href="{{ route('disputes.create', $booking) }}"
+                   class="flex items-center gap-2 border-2 border-orange-200 text-orange-700 font-semibold px-5 py-2.5 rounded-xl text-sm hover:bg-orange-50 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                    Ouvrir un litige
+                </a>
+                @else
+                <a href="{{ route('disputes.show', $existingDispute) }}"
+                   class="flex items-center gap-2 border-2 border-gray-200 text-gray-600 font-semibold px-5 py-2.5 rounded-xl text-sm hover:bg-gray-50 transition-colors">
+                    Voir mon litige
+                </a>
+                @endif
+                @endif
             </div>
         </div>
 

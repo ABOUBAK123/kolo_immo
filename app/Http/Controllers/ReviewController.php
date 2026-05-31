@@ -137,7 +137,118 @@ class ReviewController extends Controller
         return back()->with('success', 'Votre réponse a bien été publiée.');
     }
 
+    // ─── Owner → Tenant review ────────────────────────────────────────────────
+
+    /**
+     * Show the form for an owner to rate a tenant after a completed booking.
+     */
+    public function createOwnerReview(Booking $booking)
+    {
+        $user = Auth::user();
+
+        if ($user->id !== $booking->owner_id) {
+            abort(403);
+        }
+
+        if ($booking->status !== 'completed') {
+            return redirect()->route('owner.bookings.index')
+                ->with('error', 'Vous ne pouvez évaluer un locataire qu\'après la fin du séjour.');
+        }
+
+        $existing = Review::where('booking_id', $booking->id)
+            ->where('reviewer_id', $user->id)
+            ->where('type', 'owner_to_tenant')
+            ->first();
+
+        if ($existing) {
+            return redirect()->route('owner.bookings.index')
+                ->with('info', 'Vous avez déjà évalué ce locataire pour ce séjour.');
+        }
+
+        $booking->load(['tenant', 'property']);
+
+        return view('reviews.create-owner', compact('booking'));
+    }
+
+    /**
+     * Store an owner → tenant review and update the tenant's trust_score.
+     */
+    public function storeOwnerReview(Request $request, Booking $booking)
+    {
+        $user = Auth::user();
+
+        if ($user->id !== $booking->owner_id) {
+            abort(403);
+        }
+
+        if ($booking->status !== 'completed') {
+            return back()->with('error', 'Vous ne pouvez évaluer un locataire qu\'après la fin du séjour.');
+        }
+
+        $existing = Review::where('booking_id', $booking->id)
+            ->where('reviewer_id', $user->id)
+            ->where('type', 'owner_to_tenant')
+            ->first();
+
+        if ($existing) {
+            return redirect()->route('owner.bookings.index')
+                ->with('info', 'Vous avez déjà évalué ce locataire pour ce séjour.');
+        }
+
+        $data = $request->validate([
+            'rating_overall'       => ['required', 'integer', 'min:1', 'max:5'],
+            'rating_cleanliness'   => ['required', 'integer', 'min:1', 'max:5'],
+            'rating_communication' => ['required', 'integer', 'min:1', 'max:5'],
+            'rating_payment'       => ['required', 'integer', 'min:1', 'max:5'],
+            'comment'              => ['required', 'string', 'min:20', 'max:1000'],
+        ], [
+            'rating_overall.required'       => 'La note générale est obligatoire.',
+            'rating_cleanliness.required'   => 'La note de soin du logement est obligatoire.',
+            'rating_communication.required' => 'La note de communication est obligatoire.',
+            'rating_payment.required'       => 'La note de ponctualité de paiement est obligatoire.',
+            'comment.required'              => 'Un commentaire est obligatoire.',
+            'comment.min'                   => 'Le commentaire doit contenir au moins 20 caractères.',
+        ]);
+
+        Review::create([
+            'booking_id'           => $booking->id,
+            'reviewer_id'          => $user->id,
+            'reviewee_id'          => $booking->tenant_id,
+            'property_id'          => $booking->property_id,
+            'type'                 => 'owner_to_tenant',
+            'rating_overall'       => $data['rating_overall'],
+            'rating_cleanliness'   => $data['rating_cleanliness'],
+            'rating_communication' => $data['rating_communication'],
+            'rating_accuracy'      => $data['rating_payment'], // reuse existing column
+            'comment'              => $data['comment'],
+        ]);
+
+        // Recalculate tenant trust_score (0-100 scale, avg of owner_to_tenant reviews × 20)
+        $this->updateTenantTrustScore($booking->tenant_id);
+
+        return redirect()->route('owner.bookings.index')
+            ->with('success', 'Merci ! Votre évaluation du locataire a bien été enregistrée.');
+    }
+
     // ─── Helpers ──────────────────────────────────────────────────────────────
+
+    protected function updateTenantTrustScore(int $tenantId): void
+    {
+        $stats = Review::where('reviewee_id', $tenantId)
+            ->where('type', 'owner_to_tenant')
+            ->selectRaw('AVG(rating_overall) as avg_rating, COUNT(*) as cnt')
+            ->first();
+
+        if (!$stats || $stats->cnt === 0) {
+            return;
+        }
+
+        // Convert 1-5 scale → 0-100, capped between 20 and 100
+        $score = (int) round(($stats->avg_rating / 5) * 100);
+        $score = max(20, min(100, $score));
+
+        \App\Models\User::where('id', $tenantId)->update(['trust_score' => $score]);
+    }
 
     protected function updatePropertyRating(int $propertyId): void
     {
