@@ -17,6 +17,7 @@ use App\Http\Controllers\SearchAlertController;
 use App\Http\Controllers\WalletController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\DisputeController as AdminDisputeController;
+use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\SocialAuthController;
@@ -155,6 +156,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/reviews/create/{booking}', [ReviewController::class, 'create'])->name('reviews.create');
     Route::post('/reviews/{booking}', [ReviewController::class, 'store'])->name('reviews.store');
     Route::post('/reviews/{review}/reply', [ReviewController::class, 'reply'])->name('reviews.reply');
+    Route::post('/reviews/{review}/flag', [ReviewController::class, 'flag'])->name('reviews.flag');
 
     // Disputes
     Route::get('/disputes/create/{booking}', [DisputeController::class, 'create'])->name('disputes.create');
@@ -292,6 +294,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/disputes/{dispute}', [AdminDisputeController::class, 'show'])->name('disputes.show');
     Route::patch('/disputes/{dispute}/status', [AdminDisputeController::class, 'updateStatus'])->name('disputes.status');
     Route::patch('/disputes/{dispute}/resolve', [AdminDisputeController::class, 'resolve'])->name('disputes.resolve');
+
+    // Reviews moderation
+    Route::get('/reviews', [AdminReviewController::class, 'index'])->name('reviews.index');
+    Route::post('/reviews/{review}/approve', [AdminReviewController::class, 'approve'])->name('reviews.approve');
+    Route::delete('/reviews/{review}', [AdminReviewController::class, 'destroy'])->name('reviews.destroy');
 
     // Reports
     Route::get('/reports', [AdminController::class, 'reports'])->name('reports.index');

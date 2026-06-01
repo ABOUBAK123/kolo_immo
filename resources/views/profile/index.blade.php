@@ -134,6 +134,14 @@
                     </svg>
                     Identité (KYC)
                 </button>
+                <button @click="activeTab = 'reputation'"
+                    :class="activeTab === 'reputation' ? 'border-primary-700 text-primary-700 bg-primary-50' : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'"
+                    class="flex items-center gap-2 px-6 py-4 text-sm font-semibold border-b-2 transition-all duration-200">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                    </svg>
+                    Réputation
+                </button>
             </nav>
         </div>
 
@@ -504,6 +512,137 @@
                     </div>
                     @endforeach
                 </div>
+            </div>
+        </div>
+
+        <!-- ────────────────────── TAB: RÉPUTATION ────────────────────── -->
+        <div x-show="activeTab === 'reputation'" x-cloak class="p-6">
+            @php
+                $score      = (float) ($user->trust_score ?? 0);
+                $scoreColor = $score >= 80 ? 'emerald' : ($score >= 60 ? 'blue' : ($score >= 40 ? 'yellow' : 'red'));
+                $scoreLabel = $score >= 80 ? 'Locataire de confiance' : ($score >= 60 ? 'Bon locataire' : ($score >= 40 ? 'En progression' : 'Score à améliorer'));
+
+                $tenantReviews = $user->reviewsReceived()
+                    ->where('type', 'owner_to_tenant')
+                    ->where('is_flagged', false)
+                    ->with('reviewer:id,name')
+                    ->latest()
+                    ->get();
+            @endphp
+
+            <h3 class="text-lg font-bold text-gray-900 mb-6">Score de réputation</h3>
+
+            <!-- Score principal -->
+            <div class="bg-{{ $scoreColor }}-50 border border-{{ $scoreColor }}-100 rounded-2xl p-6 mb-6">
+                <div class="flex items-center gap-6">
+                    <!-- Cercle score -->
+                    <div class="relative w-24 h-24 flex-shrink-0">
+                        <svg class="w-24 h-24 -rotate-90" viewBox="0 0 36 36">
+                            <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#e5e7eb" stroke-width="2.5"/>
+                            <circle cx="18" cy="18" r="15.9155" fill="none"
+                                stroke="{{ ['emerald' => '#10b981', 'blue' => '#3b82f6', 'yellow' => '#f59e0b', 'red' => '#ef4444'][$scoreColor] }}"
+                                stroke-width="2.5"
+                                stroke-dasharray="{{ round($score, 1) }} {{ 100 - round($score, 1) }}"
+                                stroke-linecap="round"/>
+                        </svg>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center">
+                            <span class="text-xl font-bold text-{{ $scoreColor }}-700">{{ round($score) }}</span>
+                            <span class="text-xs text-{{ $scoreColor }}-500">/100</span>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-xl font-bold text-{{ $scoreColor }}-800">{{ $scoreLabel }}</p>
+                        <p class="text-sm text-{{ $scoreColor }}-600 mt-1">
+                            Basé sur {{ $tenantReviews->count() }} évaluation(s) de propriétaires
+                        </p>
+                        <div class="w-full bg-{{ $scoreColor }}-200 rounded-full h-2 mt-3 max-w-xs">
+                            <div class="bg-{{ $scoreColor }}-500 h-2 rounded-full transition-all duration-500"
+                                style="width: {{ $score }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grille des moyennes par critère -->
+            @if($tenantReviews->count() > 0)
+            @php
+                $avgOverall       = $tenantReviews->avg('rating_overall');
+                $avgCleanliness   = $tenantReviews->avg('rating_cleanliness');
+                $avgCommunication = $tenantReviews->avg('rating_communication');
+                $avgPayment       = $tenantReviews->avg('rating_payment');
+                $subCriteria = array_filter([
+                    'Comportement général' => $avgOverall,
+                    'Soin du logement'     => $avgCleanliness,
+                    'Communication'        => $avgCommunication,
+                    'Ponctualité paiement' => $avgPayment,
+                ]);
+            @endphp
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                @foreach($subCriteria as $label => $avg)
+                <div class="bg-gray-50 rounded-xl p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-semibold text-gray-700">{{ $label }}</span>
+                        <span class="text-sm font-bold text-gray-900">{{ number_format($avg, 1) }}<span class="text-gray-400 font-normal">/5</span></span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-yellow-400 h-2 rounded-full" style="width: {{ ($avg / 5) * 100 }}%"></div>
+                    </div>
+                    <div class="flex justify-end gap-0.5 mt-1.5">
+                        @for($i = 1; $i <= 5; $i++)
+                        <svg class="w-3 h-3 {{ $i <= round($avg) ? 'text-yellow-400' : 'text-gray-200' }}" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                        </svg>
+                        @endfor
+                    </div>
+                </div>
+                @endforeach
+            </div>
+
+            <!-- Historique des évaluations reçues -->
+            <h4 class="font-bold text-gray-800 mb-4">Évaluations reçues de propriétaires</h4>
+            <div class="space-y-4">
+                @foreach($tenantReviews as $review)
+                <div class="bg-white border border-gray-100 rounded-xl p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-sm">
+                                {{ strtoupper(substr($review->reviewer->name ?? 'P', 0, 1)) }}
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold text-gray-800">{{ $review->reviewer->name ?? '—' }}</p>
+                                <p class="text-xs text-gray-400">{{ $review->created_at->format('d/m/Y') }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1 bg-amber-50 px-2.5 py-1 rounded-full">
+                            <svg class="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                            </svg>
+                            <span class="text-xs font-bold text-amber-700">{{ number_format($review->rating_overall, 1) }}</span>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-600 leading-relaxed">{{ $review->comment }}</p>
+                </div>
+                @endforeach
+            </div>
+            @else
+            <div class="text-center py-10 text-gray-400">
+                <svg class="w-12 h-12 mx-auto mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                </svg>
+                <p class="text-sm font-medium">Aucune évaluation pour l'instant</p>
+                <p class="text-xs mt-1">Votre score de confiance sera calculé après votre premier séjour.</p>
+            </div>
+            @endif
+
+            <!-- Explication du score -->
+            <div class="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-xl">
+                <p class="text-sm font-semibold text-blue-800 mb-2">Comment est calculé votre score ?</p>
+                <ul class="space-y-1 text-xs text-blue-700">
+                    <li>· Moyenne de toutes les notes globales reçues des propriétaires (échelle 1→5)</li>
+                    <li>· Convertie sur 100 : (moyenne / 5) × 100</li>
+                    <li>· Score minimum : 20/100 · Score maximum : 100/100</li>
+                    <li>· Un score ≥ 80 vous donne le badge <strong>Locataire de confiance</strong></li>
+                </ul>
             </div>
         </div>
     </div>

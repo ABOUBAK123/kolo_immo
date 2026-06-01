@@ -224,13 +224,15 @@
             </div>
 
             <!-- Reviews -->
-            @if($property->reviews && $property->reviews->count() > 0)
+            @php
+                $visibleReviews = $property->reviews->where('is_flagged', false)->values();
+            @endphp
+            @if($visibleReviews->count() > 0)
             <div>
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-xl font-bold text-gray-900">
-                        Avis ({{ $property->reviews->count() }})
-                    </h2>
-                    <div class="flex items-center gap-2">
+                <!-- En-tête avec note globale -->
+                <div class="flex items-center justify-between mb-5">
+                    <h2 class="text-xl font-bold text-gray-900">Avis ({{ $visibleReviews->count() }})</h2>
+                    <div class="flex items-center gap-1.5">
                         <svg class="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                         </svg>
@@ -239,37 +241,134 @@
                     </div>
                 </div>
 
+                <!-- Tableau des moyennes par critère -->
+                @php
+                    $criteria = [
+                        'Propreté'        => $visibleReviews->avg('rating_cleanliness'),
+                        'Communication'   => $visibleReviews->avg('rating_communication'),
+                        'Conformité'      => $visibleReviews->avg('rating_accuracy'),
+                        'Localisation'    => $visibleReviews->avg('rating_location'),
+                        'Rapport Q/P'     => $visibleReviews->avg('rating_value'),
+                    ];
+                @endphp
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6 p-4 bg-gray-50 rounded-2xl">
+                    @foreach($criteria as $label => $avg)
+                    @if($avg)
+                    <div class="flex flex-col gap-1">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-gray-600 font-medium">{{ $label }}</span>
+                            <span class="font-bold text-gray-800">{{ number_format($avg, 1) }}</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-1.5">
+                            <div class="bg-yellow-400 h-1.5 rounded-full" style="width: {{ ($avg / 5) * 100 }}%"></div>
+                        </div>
+                    </div>
+                    @endif
+                    @endforeach
+                </div>
+
+                <!-- Liste des avis -->
                 <div class="space-y-6">
-                    @foreach($property->reviews->take(5) as $review)
+                    @foreach($visibleReviews->take(5) as $review)
                     <div class="border-b border-gray-100 pb-6 last:border-0">
+                        <!-- Auteur + note -->
                         <div class="flex items-start justify-between mb-3">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm" style="background: linear-gradient(135deg, #1B4F72, #3498DB);">
-                                    {{ substr($review->tenant->prenom ?? $review->tenant->name ?? 'A', 0, 1) }}
+                                <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0" style="background: linear-gradient(135deg, #1B4F72, #3498DB);">
+                                    {{ strtoupper(substr($review->reviewer->name ?? 'A', 0, 1)) }}
                                 </div>
                                 <div>
-                                    <p class="font-semibold text-gray-900 text-sm">{{ $review->tenant->prenom ?? $review->tenant->name ?? 'Anonyme' }}</p>
+                                    <p class="font-semibold text-gray-900 text-sm">{{ $review->reviewer->name ?? 'Anonyme' }}</p>
                                     <p class="text-gray-400 text-xs">{{ $review->created_at->format('d/m/Y') }}</p>
                                 </div>
                             </div>
                             <div class="flex items-center gap-0.5">
                                 @for($i = 1; $i <= 5; $i++)
-                                <svg class="w-4 h-4 {{ $i <= $review->overall_rating ? 'text-yellow-400' : 'text-gray-200' }}" fill="currentColor" viewBox="0 0 20 20">
+                                <svg class="w-4 h-4 {{ $i <= $review->rating_overall ? 'text-yellow-400' : 'text-gray-200' }}" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                                 </svg>
                                 @endfor
                             </div>
                         </div>
-                        <p class="text-gray-600 text-sm leading-relaxed">{{ $review->comment }}</p>
-                        @if($review->owner_reply)
-                        <div class="mt-3 ml-4 p-3 bg-gray-50 rounded-xl border-l-4 border-blue-200">
-                            <p class="text-xs font-semibold text-gray-700 mb-1">Réponse du propriétaire:</p>
-                            <p class="text-sm text-gray-600">{{ $review->owner_reply }}</p>
+
+                        <!-- Sous-notes -->
+                        @php
+                            $subRatings = array_filter([
+                                'Propreté'      => $review->rating_cleanliness,
+                                'Communication' => $review->rating_communication,
+                                'Conformité'    => $review->rating_accuracy,
+                                'Localisation'  => $review->rating_location,
+                                'Rapport Q/P'   => $review->rating_value,
+                            ]);
+                        @endphp
+                        @if(!empty($subRatings))
+                        <div class="flex flex-wrap gap-2 mb-2">
+                            @foreach($subRatings as $label => $note)
+                            <span class="text-xs bg-blue-50 text-blue-700 font-medium px-2 py-0.5 rounded-full">
+                                {{ $label }}: {{ number_format($note, 1) }}
+                            </span>
+                            @endforeach
                         </div>
                         @endif
+
+                        <!-- Commentaire -->
+                        <p class="text-gray-600 text-sm leading-relaxed">{{ $review->comment }}</p>
+
+                        <!-- Réponse du propriétaire -->
+                        @if($review->owner_reply)
+                        <div class="mt-3 ml-4 p-3 bg-gray-50 rounded-xl border-l-4 border-blue-200">
+                            <p class="text-xs font-semibold text-gray-700 mb-1">Réponse du propriétaire · {{ $review->owner_replied_at?->format('d/m/Y') }}</p>
+                            <p class="text-sm text-gray-600">{{ $review->owner_reply }}</p>
+                        </div>
+                        @elseif(Auth::check() && Auth::id() === $property->owner_id)
+                        <div class="mt-3" x-data="{ showReply: false }">
+                            <button @click="showReply = !showReply" class="text-xs text-blue-700 font-semibold hover:underline">
+                                Répondre à cet avis
+                            </button>
+                            <div x-show="showReply" x-cloak class="mt-2">
+                                <form action="{{ route('reviews.reply', $review) }}" method="POST" class="flex gap-2">
+                                    @csrf
+                                    <textarea name="owner_reply" rows="2" required minlength="10" maxlength="500"
+                                        placeholder="Votre réponse publique..."
+                                        class="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+                                    <button type="submit" class="self-end bg-blue-700 text-white font-semibold px-4 py-2 rounded-xl text-sm hover:bg-blue-800 transition">
+                                        Publier
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        @endif
+
+                        <!-- Signalement -->
+                        @auth
+                        @if($review->reviewer_id !== Auth::id())
+                        <div class="mt-2" x-data="{ showFlag: false }">
+                            <button @click="showFlag = !showFlag" class="text-xs text-gray-400 hover:text-red-500 transition-colors">
+                                Signaler cet avis
+                            </button>
+                            <div x-show="showFlag" x-cloak class="mt-2">
+                                <form action="{{ route('reviews.flag', $review) }}" method="POST" class="flex gap-2">
+                                    @csrf
+                                    <input type="text" name="flag_reason" required maxlength="500"
+                                        placeholder="Motif du signalement..."
+                                        class="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-red-400">
+                                    <button type="submit" class="self-end bg-red-50 border border-red-200 text-red-700 font-semibold px-3 py-2 rounded-xl text-xs hover:bg-red-100 transition">
+                                        Signaler
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        @endif
+                        @endauth
                     </div>
                     @endforeach
                 </div>
+
+                @if($visibleReviews->count() > 5)
+                <p class="text-sm text-gray-500 text-center mt-4">
+                    Affichage de 5 avis sur {{ $visibleReviews->count() }}.
+                </p>
+                @endif
             </div>
             @endif
 

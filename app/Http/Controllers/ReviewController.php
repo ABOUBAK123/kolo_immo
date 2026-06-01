@@ -219,7 +219,7 @@ class ReviewController extends Controller
             'rating_overall'       => $data['rating_overall'],
             'rating_cleanliness'   => $data['rating_cleanliness'],
             'rating_communication' => $data['rating_communication'],
-            'rating_accuracy'      => $data['rating_payment'], // reuse existing column
+            'rating_payment'       => $data['rating_payment'],
             'comment'              => $data['comment'],
         ]);
 
@@ -228,6 +228,29 @@ class ReviewController extends Controller
 
         return redirect()->route('owner.bookings.index')
             ->with('success', 'Merci ! Votre évaluation du locataire a bien été enregistrée.');
+    }
+
+    /**
+     * Flag a review as inappropriate.
+     */
+    public function flag(Request $request, Review $review)
+    {
+        if ($review->reviewer_id === Auth::id()) {
+            return back()->with('error', 'Vous ne pouvez pas signaler votre propre avis.');
+        }
+
+        $data = $request->validate([
+            'flag_reason' => ['required', 'string', 'max:500'],
+        ], [
+            'flag_reason.required' => 'Veuillez indiquer le motif du signalement.',
+        ]);
+
+        $review->update([
+            'is_flagged'  => true,
+            'flag_reason' => $data['flag_reason'],
+        ]);
+
+        return back()->with('success', 'Avis signalé. Notre équipe va l\'examiner.');
     }
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
