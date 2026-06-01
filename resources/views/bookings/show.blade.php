@@ -226,14 +226,45 @@
                 </form>
                 @endif
 
-                @if($booking->status === 'completed' && !$booking->review)
-                <a href="{{ route('reviews.create', $booking) }}"
-                    class="flex items-center gap-2 bg-yellow-400 hover:bg-yellow-500 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition-colors">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                    </svg>
-                    Laisser un avis
-                </a>
+                @if($booking->status === 'completed')
+                @php
+                    $myReview    = $booking->reviews->where('reviewer_id', Auth::id())->where('type', 'tenant_to_property')->first();
+                    $ownerReview = $booking->reviews->where('reviewer_id', Auth::id())->where('type', 'owner_to_tenant')->first();
+                    $isTenant    = Auth::id() === $booking->tenant_id;
+                    $isOwner     = Auth::id() === $booking->owner_id;
+                @endphp
+
+                {{-- Locataire : laisser un avis sur le logement --}}
+                @if($isTenant)
+                    @if(!$myReview)
+                    <a href="{{ route('reviews.create', $booking) }}"
+                        class="flex items-center gap-2 bg-amber-400 hover:bg-amber-500 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition-colors">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                        Noter le logement
+                    </a>
+                    @else
+                    <span class="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 font-semibold px-5 py-2.5 rounded-xl text-sm">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                        Avis publié — {{ $myReview->rating_overall }}/5 ★
+                    </span>
+                    @endif
+                @endif
+
+                {{-- Propriétaire : évaluer le locataire --}}
+                @if($isOwner)
+                    @if(!$ownerReview)
+                    <a href="{{ route('reviews.owner.create', $booking) }}"
+                        class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition-colors">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>
+                        Évaluer le locataire
+                    </a>
+                    @else
+                    <span class="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 font-semibold px-5 py-2.5 rounded-xl text-sm">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                        Locataire évalué — {{ $ownerReview->rating_overall }}/5 ★
+                    </span>
+                    @endif
+                @endif
                 @endif
 
                 {{-- Renewal --}}
@@ -315,6 +346,98 @@
             </div>
         </div>
 
+        {{-- ── Section avis publiés ──────────────────────────────────────── --}}
+        @if($booking->status === 'completed' && $booking->reviews->isNotEmpty())
+        <div class="space-y-4">
+            @foreach($booking->reviews as $review)
+            @php
+                $isMine = $review->reviewer_id === Auth::id();
+                $isPropertyReview = $review->type === 'tenant_to_property';
+            @endphp
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-full {{ $isPropertyReview ? 'bg-amber-100' : 'bg-blue-100' }} flex items-center justify-center font-bold text-sm {{ $isPropertyReview ? 'text-amber-700' : 'text-blue-700' }}">
+                            {{ strtoupper(substr($review->reviewer->name ?? 'U', 0, 1)) }}
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-900 text-sm">
+                                {{ $review->reviewer->name ?? '—' }}
+                                @if($isMine) <span class="text-xs text-gray-400">(vous)</span> @endif
+                            </p>
+                            <p class="text-xs text-gray-400">
+                                {{ $isPropertyReview ? 'Avis sur le logement' : 'Évaluation du locataire' }}
+                                · {{ $review->created_at->format('d/m/Y') }}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1.5 bg-amber-50 px-3 py-1.5 rounded-full">
+                        <svg class="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                        <span class="font-bold text-amber-700 text-sm">{{ number_format($review->rating_overall, 1) }}</span>
+                        <span class="text-amber-500 text-xs">/5</span>
+                    </div>
+                </div>
+
+                {{-- Critères détaillés (avis logement) --}}
+                @if($isPropertyReview)
+                <div class="grid grid-cols-3 gap-2 mb-3">
+                    @foreach(['Propreté' => $review->rating_cleanliness, 'Communication' => $review->rating_communication, 'Conformité' => $review->rating_accuracy, 'Emplacement' => $review->rating_location, 'Rapport Q/P' => $review->rating_value] as $label => $note)
+                    @if($note)
+                    <div class="bg-gray-50 rounded-lg px-2.5 py-1.5 text-center">
+                        <p class="text-xs text-gray-500">{{ $label }}</p>
+                        <p class="font-bold text-gray-800 text-sm">{{ number_format($note, 1) }}</p>
+                    </div>
+                    @endif
+                    @endforeach
+                </div>
+                @endif
+
+                <p class="text-sm text-gray-700 leading-relaxed">{{ $review->comment }}</p>
+
+                {{-- Réponse du propriétaire --}}
+                @if($review->owner_reply)
+                <div class="mt-3 pl-4 border-l-2 border-blue-200">
+                    <p class="text-xs font-semibold text-blue-700 mb-1">Réponse du propriétaire · {{ $review->owner_replied_at?->format('d/m/Y') }}</p>
+                    <p class="text-sm text-gray-600">{{ $review->owner_reply }}</p>
+                </div>
+                @elseif($isPropertyReview && Auth::id() === $booking->owner_id)
+                <div class="mt-3" x-data="{ showReply: false }">
+                    <button @click="showReply = !showReply" class="text-xs text-blue-700 font-semibold hover:underline">
+                        Répondre à cet avis
+                    </button>
+                    <div x-show="showReply" x-cloak class="mt-2">
+                        <form action="{{ route('reviews.reply', $review) }}" method="POST" class="flex gap-2">
+                            @csrf
+                            <textarea name="owner_reply" rows="2" required minlength="10" maxlength="500"
+                                placeholder="Votre réponse publique..."
+                                class="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+                            <button type="submit" class="self-end bg-blue-700 text-white font-semibold px-4 py-2 rounded-xl text-sm hover:bg-blue-800 transition">
+                                Publier
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                @endif
+
+                {{-- Signalement --}}
+                @if(!$review->is_flagged && !$isMine)
+                <div class="mt-2">
+                    <form action="{{ route('reviews.flag', $review) }}" method="POST"
+                        onsubmit="return confirm('Signaler cet avis comme inapproprié ?')">
+                        @csrf
+                        <button type="submit" class="text-xs text-gray-400 hover:text-red-500 transition-colors">
+                            Signaler cet avis
+                        </button>
+                    </form>
+                </div>
+                @elseif($review->is_flagged)
+                <p class="mt-2 text-xs text-red-400">⚑ Avis signalé — en cours de modération</p>
+                @endif
+            </div>
+            @endforeach
+        </div>
+        @endif
+
         <!-- Right: Price summary + contact -->
         <div class="space-y-4">
             <!-- Price card -->
@@ -359,7 +482,7 @@
                     Contacter le {{ Auth::id() === $booking->tenant_id ? 'propriétaire' : 'locataire' }}
                 </a>
                 @else
-                <a href="{{ route('messages.create', ['booking' => $booking->id]) }}"
+                <a href="{{ route('messages.index') }}"
                     class="flex items-center gap-3 w-full bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold px-4 py-3 rounded-xl text-sm transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
