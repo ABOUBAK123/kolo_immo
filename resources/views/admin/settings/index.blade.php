@@ -18,7 +18,8 @@
             ['id' => 'sms',         'label' => 'SMS',              'icon' => 'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-3 3v-3z'],
             ['id' => 'whatsapp',    'label' => 'WhatsApp',         'icon' => 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z'],
             ['id' => 'email',       'label' => 'Email',            'icon' => 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'],
-            ['id' => 'payments',    'label' => 'Paiements mobiles','icon' => 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z'],
+            ['id' => 'payment_api', 'label' => 'API Paiement',      'icon' => 'M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z'],
+            ['id' => 'payments',    'label' => 'Logos paiement',    'icon' => 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z'],
         ] as $t)
         <button type="button"
             @click="tab = '{{ $t['id'] }}'"
@@ -459,6 +460,135 @@
         </div>
     </div>
 
+
+    {{-- ── API Paiement (CinetPay + FCM) ─────────────────────────────────── --}}
+    <div x-show="tab === 'payment_api'" x-cloak>
+        <div class="space-y-6">
+
+            {{-- CinetPay --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                    <div class="w-9 h-9 bg-orange-50 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-800">CinetPay — Passerelle de paiement</h3>
+                        <p class="text-xs text-gray-400">Traitement des paiements Orange Money, Wave, MTN MoMo, Moov Money. <a href="https://cinetpay.com" target="_blank" class="text-blue-500 hover:underline">cinetpay.com</a></p>
+                    </div>
+                </div>
+                <form action="{{ route('admin.settings.update', 'payment_api') }}" method="POST" class="px-6 py-6 space-y-5">
+                    @csrf @method('PUT')
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                API Key
+                                @if(!empty($config['CINETPAY_API_KEY']))
+                                <span class="ml-2 inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 px-2 py-0.5 rounded-full">
+                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                    Configurée
+                                </span>
+                                @endif
+                            </label>
+                            <input type="password" name="CINETPAY_API_KEY"
+                                placeholder="{{ !empty($config['CINETPAY_API_KEY']) ? '••••••••••••••••' : 'Votre API Key CinetPay' }}"
+                                class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition">
+                            <p class="text-xs text-gray-400 mt-1">Laissez vide pour conserver la clé actuelle.</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Site ID
+                                @if(!empty($config['CINETPAY_SITE_ID']))
+                                <span class="ml-2 inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 px-2 py-0.5 rounded-full">
+                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                    Configuré
+                                </span>
+                                @endif
+                            </label>
+                            <input type="text" name="CINETPAY_SITE_ID"
+                                value="{{ !empty($config['CINETPAY_SITE_ID']) ? $config['CINETPAY_SITE_ID'] : '' }}"
+                                placeholder="Ex: 1234567"
+                                class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition">
+                        </div>
+                    </div>
+
+                    <div class="bg-orange-50 border border-orange-200 rounded-xl p-4 text-sm text-orange-800">
+                        <p class="font-semibold mb-1">Où trouver vos credentials ?</p>
+                        <p class="text-xs leading-relaxed">
+                            Connectez-vous sur <strong>cinetpay.com</strong> → Mon compte → Paramètres API.<br>
+                            L'<strong>API Key</strong> et le <strong>Site ID</strong> sont nécessaires pour traiter les paiements mobile.
+                        </p>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <button type="submit"
+                            class="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Enregistrer la configuration CinetPay
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            {{-- FCM Push Notifications --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                    <div class="w-9 h-9 bg-yellow-50 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-800">Firebase FCM — Notifications push</h3>
+                        <p class="text-xs text-gray-400">Notifications push pour l'application mobile Android/iOS.</p>
+                    </div>
+                </div>
+                <form action="{{ route('admin.settings.update', 'payment_api') }}" method="POST" class="px-6 py-6 space-y-5">
+                    @csrf @method('PUT')
+                    {{-- On soumet uniquement FCM_SERVER_KEY sans toucher CinetPay --}}
+                    <input type="hidden" name="CINETPAY_API_KEY" value="">
+                    <input type="hidden" name="CINETPAY_SITE_ID" value="{{ $config['CINETPAY_SITE_ID'] ?? '' }}">
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            FCM Server Key
+                            @if(!empty($config['FCM_SERVER_KEY']))
+                            <span class="ml-2 inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 px-2 py-0.5 rounded-full">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                Configurée
+                            </span>
+                            @endif
+                        </label>
+                        <input type="password" name="FCM_SERVER_KEY"
+                            placeholder="{{ !empty($config['FCM_SERVER_KEY']) ? '••••••••••••••••' : 'Votre clé serveur Firebase' }}"
+                            class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 outline-none transition">
+                        <p class="text-xs text-gray-400 mt-1">Laissez vide pour conserver la clé actuelle.</p>
+                    </div>
+
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-sm text-yellow-800">
+                        <p class="font-semibold mb-1">Où trouver la Server Key ?</p>
+                        <p class="text-xs leading-relaxed">
+                            <strong>console.firebase.google.com</strong> → Votre projet → Paramètres → Cloud Messaging → Clé du serveur (Legacy).
+                        </p>
+                    </div>
+
+                    <button type="submit"
+                        class="inline-flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Enregistrer la clé FCM
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
 
     {{-- ── Paiements mobiles ────────────────────────────────────────────── --}}
     <div x-show="tab === 'payments'" x-cloak>

@@ -32,12 +32,19 @@ class SettingsController extends Controller
         // TVA
         'VAT_ENABLED',
         'VAT_PERCENT',
+        // CinetPay
+        'CINETPAY_API_KEY',
+        'CINETPAY_SITE_ID',
+        // FCM
+        'FCM_SERVER_KEY',
     ];
 
     private array $sensitiveKeys = [
         'AFRICAS_TALKING_API_KEY',
         'WHATSAPP_API_TOKEN',
         'MAIL_PASSWORD',
+        'CINETPAY_API_KEY',
+        'FCM_SERVER_KEY',
     ];
 
     private array $numericDefaults = [
@@ -72,6 +79,7 @@ class SettingsController extends Controller
             'whatsapp'    => ['WHATSAPP_API_TOKEN', 'WHATSAPP_PHONE_NUMBER_ID', 'WHATSAPP_TEMPLATE_NAME'],
             'email'       => ['MAIL_MAILER', 'MAIL_HOST', 'MAIL_PORT', 'MAIL_USERNAME', 'MAIL_PASSWORD', 'MAIL_FROM_ADDRESS', 'MAIL_FROM_NAME'],
             'commissions' => ['SERVICE_FEE_PERCENT', 'PLATFORM_COMMISSION_PERCENT', 'VAT_ENABLED', 'VAT_PERCENT'],
+            'payment_api' => ['CINETPAY_API_KEY', 'CINETPAY_SITE_ID', 'FCM_SERVER_KEY'],
             default       => [],
         };
 
