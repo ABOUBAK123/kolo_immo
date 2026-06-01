@@ -52,8 +52,8 @@
 
 <!-- Table -->
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden" x-data="{ rejectModal: null, rejectNotes: '' }">
-    <div class="overflow-x-auto">
-        <table class="w-full text-sm">
+    <div class="overflow-x-scroll" style="scrollbar-width: auto; scrollbar-color: #cbd5e1 #f1f5f9;">
+        <table class="w-full text-sm" style="min-width: 1100px;">
             <thead>
                 <tr class="bg-gray-50 text-xs font-semibold text-gray-400 uppercase">
                     <th class="text-left px-5 py-3">Logement</th>
