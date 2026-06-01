@@ -40,11 +40,23 @@ class SettingsController extends Controller
         'MAIL_PASSWORD',
     ];
 
+    private array $numericDefaults = [
+        'SERVICE_FEE_PERCENT'         => 3,
+        'PLATFORM_COMMISSION_PERCENT' => 8,
+        'VAT_PERCENT'                 => 0,
+    ];
+
     public function show(Request $request)
     {
         $config = [];
         foreach ($this->envKeys as $key) {
-            $config[$key] = env($key, '');
+            $raw = env($key);
+            // Pour les clés numériques, utiliser le défaut si la valeur est absente ou vide
+            if (array_key_exists($key, $this->numericDefaults)) {
+                $config[$key] = ($raw !== null && $raw !== '') ? (float) $raw : $this->numericDefaults[$key];
+            } else {
+                $config[$key] = $raw ?? '';
+            }
         }
 
         $tab = $request->get('tab', 'general');

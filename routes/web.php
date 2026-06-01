@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\DisputeController as AdminDisputeController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\SocialAuthController;
 use App\Http\Controllers\SubscriptionController;
 use Illuminate\Support\Facades\Route;
 
@@ -57,6 +58,15 @@ Route::get('/properties', [PropertyController::class, 'index'])->name('propertie
 Route::get('/properties/map', [PropertyController::class, 'mapView'])->name('properties.map');
 Route::get('/properties/map-data', [PropertyController::class, 'mapData'])->name('properties.map-data');
 Route::get('/properties/{property}', [PropertyController::class, 'show'])->name('properties.show');
+
+// ─── SOCIAL AUTH (OAuth pour mobile WebView) ─────────────────────────────────
+Route::get('/auth/{provider}/redirect', [SocialAuthController::class, 'redirect'])
+    ->name('social.redirect')
+    ->where('provider', 'google|facebook|github');
+
+Route::get('/auth/{provider}/callback', [SocialAuthController::class, 'callback'])
+    ->name('social.callback')
+    ->where('provider', 'google|facebook|github');
 
 Route::get('/about',   fn() => view('pages.about'))->name('about');
 Route::get('/contact', fn() => view('pages.contact'))->name('contact');
