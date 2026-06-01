@@ -282,6 +282,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Bookings
     Route::get('/bookings', [AdminController::class, 'bookings'])->name('bookings.index');
 
+    // Payouts (distribution des fonds)
+    Route::get('/payouts', [\App\Http\Controllers\Admin\PayoutController::class, 'index'])->name('payouts.index');
+    Route::post('/payouts/{booking}/release', [\App\Http\Controllers\Admin\PayoutController::class, 'release'])->name('payouts.release');
+    Route::post('/payouts/bulk-release', [\App\Http\Controllers\Admin\PayoutController::class, 'bulkRelease'])->name('payouts.bulk-release');
+
     // Disputes
     Route::get('/disputes', [AdminDisputeController::class, 'index'])->name('disputes.index');
     Route::get('/disputes/{dispute}', [AdminDisputeController::class, 'show'])->name('disputes.show');

@@ -19,7 +19,7 @@ class Booking extends Model
         'status', 'payment_status', 'special_requests',
         'confirmed_at', 'cancelled_at', 'cancellation_reason',
         'cancelled_by', 'checked_in_at', 'checked_out_at',
-        'funds_released_at',
+        'funds_released_at', 'released_by',
     ];
 
     protected function casts(): array
@@ -95,6 +95,11 @@ class Booking extends Model
     public function renewals()
     {
         return $this->hasMany(ContractRenewal::class);
+    }
+
+    public function releasedBy()
+    {
+        return $this->belongsTo(User::class, 'released_by');
     }
 
     public function pendingRenewal()

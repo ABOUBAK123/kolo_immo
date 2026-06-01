@@ -187,8 +187,9 @@ class BookingService
 
     /**
      * Release funds to the owner after successful stay completion.
+     * Calcul : montant propriétaire = subtotal - platform_commission
      */
-    public function releaseFunds(Booking $booking): Booking
+    public function releaseFunds(Booking $booking, int $releasedBy): Booking
     {
         if ($booking->status !== 'completed') {
             throw new \RuntimeException('Les fonds ne peuvent être libérés que pour une réservation terminée.');
@@ -198,14 +199,36 @@ class BookingService
             throw new \RuntimeException('Les fonds ne sont pas en séquestre pour cette réservation.');
         }
 
-        $booking->update([
-            'payment_status'    => 'released',
-            'funds_released_at' => now(),
-        ]);
+        $ownerAmount = round($booking->subtotal - $booking->platform_commission, 2);
+
+        DB::transaction(function () use ($booking, $ownerAmount, $releasedBy) {
+            $booking->update([
+                'payment_status'    => 'released',
+                'funds_released_at' => now(),
+                'released_by'       => $releasedBy,
+            ]);
+
+            // Créditer le portefeuille du propriétaire
+            $owner  = $booking->owner;
+            $wallet = \App\Models\Wallet::firstOrCreate(
+                ['user_id' => $owner->id],
+                ['balance' => 0, 'currency' => 'XOF'],
+            );
+
+            $wallet->credit(
+                $ownerAmount,
+                "Virement réservation #{$booking->reference} — {$booking->property->title}",
+                $booking->id,
+                'credit'
+            );
+        });
 
         Log::info('[KOLO IMMO] Fonds libérés', [
-            'booking'   => $booking->reference,
-            'amount'    => $booking->subtotal - $booking->platform_commission,
+            'booking'      => $booking->reference,
+            'owner'        => $booking->owner->name,
+            'amount_owner' => $ownerAmount,
+            'commission'   => $booking->platform_commission,
+            'released_by'  => $releasedBy,
         ]);
 
         return $booking->fresh();
