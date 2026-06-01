@@ -47,4 +47,13 @@ return [
         'template_name'   => env('WHATSAPP_TEMPLATE_NAME', 'otp_code'),
     ],
 
+    'fcm' => [
+        'server_key' => env('FCM_SERVER_KEY', ''),
+    ],
+
+    'cinetpay' => [
+        'api_key' => env('CINETPAY_API_KEY', ''),
+        'site_id' => env('CINETPAY_SITE_ID', ''),
+    ],
+
 ];

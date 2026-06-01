@@ -59,22 +59,34 @@
         <!-- Main content -->
         <div class="lg:col-span-2 space-y-6">
 
-            <!-- Revenue chart placeholder -->
+            <!-- Revenue chart — ApexCharts -->
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="font-bold text-gray-900">Revenus mensuels</h2>
-                    <select class="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none">
-                        <option>2026</option>
-                        <option>2025</option>
-                    </select>
-                </div>
-                <div class="h-48 bg-gradient-to-t from-blue-50 to-white rounded-xl flex items-end gap-2 px-4 pt-4">
-                    @foreach([60, 80, 45, 90, 70, 100, 75, 85, 60, 90, 110, 95] as $i => $height)
-                    <div class="flex-1 flex flex-col items-center gap-1">
-                        <div class="w-full rounded-t-md bg-blue-700" style="height: {{ $height * 0.4 + 10 }}px; opacity: {{ 0.5 + ($i * 0.04) }};"></div>
-                        <span class="text-xs text-gray-400">{{ ['J','F','M','A','M','J','J','A','S','O','N','D'][$i] }}</span>
+                <div class="flex items-center justify-between mb-2">
+                    <div>
+                        <h2 class="font-bold text-gray-900">Revenus mensuels</h2>
+                        <p class="text-xs text-gray-400 mt-0.5">
+                            Ce mois : <strong class="text-gray-700">{{ number_format($analyticsData['this_month_revenue'], 0, ',', ' ') }} FCFA</strong>
+                            @php $g = $analyticsData['revenue_growth']; @endphp
+                            <span class="ml-1 font-semibold {{ $g >= 0 ? 'text-green-600' : 'text-red-500' }}">
+                                {{ $g >= 0 ? '+' : '' }}{{ $g }}% vs mois dernier
+                            </span>
+                        </p>
                     </div>
-                    @endforeach
+                </div>
+                <div id="chart-revenue" class="h-52"></div>
+            </div>
+
+            <!-- Charts row: Booking status + Occupancy -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                    <h3 class="font-bold text-gray-900 text-sm mb-1">Réservations par statut</h3>
+                    <p class="text-xs text-gray-400 mb-2">Répartition globale</p>
+                    <div id="chart-booking-donut" class="h-44"></div>
+                </div>
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                    <h3 class="font-bold text-gray-900 text-sm mb-1">Occupation ce mois</h3>
+                    <p class="text-xs text-gray-400 mb-2">Nuits réservées / jours disponibles</p>
+                    <div id="chart-occupancy" class="h-44"></div>
                 </div>
             </div>
 
@@ -245,3 +257,69 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/apexcharts@3.49.0/dist/apexcharts.min.js"></script>
+<script>
+(function () {
+    // ── 1. Revenue line chart ────────────────────────────────────────────────
+    const revenueData = @json($analyticsData['revenue_chart']);
+    const revMonths   = revenueData.map(d => d.month);
+    const revAmounts  = revenueData.map(d => d.amount);
+
+    new ApexCharts(document.getElementById('chart-revenue'), {
+        chart: { type: 'area', height: 210, toolbar: { show: false }, sparkline: { enabled: false } },
+        series: [{ name: 'Revenus (FCFA)', data: revAmounts }],
+        xaxis: { categories: revMonths, labels: { style: { fontSize: '11px', colors: '#9ca3af' } } },
+        yaxis: { labels: { formatter: v => (v >= 1000 ? Math.round(v/1000) + 'k' : v), style: { fontSize: '11px', colors: '#9ca3af' } } },
+        colors: ['#1d4ed8'],
+        fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.35, opacityTo: 0.05, stops: [0, 100] } },
+        stroke: { curve: 'smooth', width: 3 },
+        dataLabels: { enabled: false },
+        grid: { borderColor: '#f3f4f6', strokeDashArray: 4 },
+        tooltip: { y: { formatter: v => new Intl.NumberFormat('fr-FR').format(v) + ' FCFA' } },
+    }).render();
+
+    // ── 2. Booking status donut ──────────────────────────────────────────────
+    const breakdown = @json($analyticsData['booking_breakdown']);
+    const statusLabels = { pending: 'En attente', confirmed: 'Confirmées', completed: 'Terminées', cancelled: 'Annulées', disputed: 'Litiges' };
+    const bLabels = Object.keys(breakdown).map(k => statusLabels[k] ?? k);
+    const bValues = Object.values(breakdown).map(Number);
+
+    if (bValues.length > 0 && bValues.some(v => v > 0)) {
+        new ApexCharts(document.getElementById('chart-booking-donut'), {
+            chart: { type: 'donut', height: 180 },
+            series: bValues,
+            labels: bLabels,
+            colors: ['#f59e0b', '#22c55e', '#3b82f6', '#ef4444', '#8b5cf6'],
+            legend: { position: 'bottom', fontSize: '11px' },
+            dataLabels: { enabled: false },
+            plotOptions: { pie: { donut: { size: '65%' } } },
+            tooltip: { y: { formatter: v => v + ' réservation(s)' } },
+        }).render();
+    } else {
+        document.getElementById('chart-booking-donut').innerHTML =
+            '<p class="text-center text-gray-400 text-sm mt-14">Aucune donnée</p>';
+    }
+
+    // ── 3. Occupancy bar chart per property ──────────────────────────────────
+    const occ = @json($analyticsData['occupancy_per_property']);
+    if (occ.length > 0) {
+        new ApexCharts(document.getElementById('chart-occupancy'), {
+            chart: { type: 'bar', height: 180, toolbar: { show: false } },
+            series: [{ name: 'Occupation %', data: occ.map(p => p.rate) }],
+            xaxis: { categories: occ.map(p => p.title), labels: { style: { fontSize: '10px' } } },
+            yaxis: { max: 100, labels: { formatter: v => v + '%', style: { fontSize: '10px' } } },
+            colors: ['#06b6d4'],
+            dataLabels: { enabled: true, formatter: v => v + '%', style: { fontSize: '10px' } },
+            plotOptions: { bar: { borderRadius: 6, columnWidth: '55%' } },
+            grid: { borderColor: '#f3f4f6' },
+            tooltip: { y: { formatter: v => v + '% (' + (occ.find(p => p.rate === v)?.nights ?? '') + ' nuits)' } },
+        }).render();
+    } else {
+        document.getElementById('chart-occupancy').innerHTML =
+            '<p class="text-center text-gray-400 text-sm mt-14">Aucune propriété active</p>';
+    }
+})();
+</script>
+@endpush

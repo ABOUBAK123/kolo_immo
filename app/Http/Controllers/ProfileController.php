@@ -22,11 +22,13 @@ class ProfileController extends Controller
         $user = Auth::user();
 
         $data = $request->validate([
-            'name'    => ['required', 'string', 'max:100'],
-            'email'   => ['required', 'email', 'unique:users,email,' . $user->id],
-            'phone'   => ['required', 'string', 'max:20', 'unique:users,phone,' . $user->id],
-            'city'    => ['nullable', 'string', 'max:100'],
-            'country' => ['nullable', 'string', 'max:2'],
+            'name'     => ['required', 'string', 'max:100'],
+            'email'    => ['required', 'email', 'unique:users,email,' . $user->id],
+            'phone'    => ['required', 'string', 'max:20', 'unique:users,phone,' . $user->id],
+            'city'     => ['nullable', 'string', 'max:100'],
+            'country'  => ['nullable', 'string', 'max:100'],
+            'language' => ['nullable', 'string', 'max:5'],
+            'currency' => ['nullable', 'string', 'max:3', 'in:' . implode(',', array_keys(\App\Helpers\Currency::$currencies))],
         ], [
             'name.required'  => 'Le nom complet est obligatoire.',
             'email.required' => "L'adresse email est obligatoire.",

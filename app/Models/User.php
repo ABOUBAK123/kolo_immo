@@ -22,6 +22,7 @@ class User extends Authenticatable
         'avatar',
         'country',
         'language',
+        'currency',
         'city',
         'trust_score',
         'is_active',
@@ -52,6 +53,26 @@ class User extends Authenticatable
     public function properties()
     {
         return $this->hasMany(Property::class, 'owner_id');
+    }
+
+    public function subscriptions()
+    {
+        return $this->hasMany(\App\Models\Subscription::class);
+    }
+
+    public function activeSubscription(): ?\App\Models\Subscription
+    {
+        return $this->subscriptions()
+            ->where('status', 'active')
+            ->where('ends_at', '>=', now())
+            ->with('plan')
+            ->latest()
+            ->first();
+    }
+
+    public function currentPlan(): ?\App\Models\Plan
+    {
+        return $this->activeSubscription()?->plan;
     }
 
     public function bookingsAsTenant()

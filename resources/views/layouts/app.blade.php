@@ -23,8 +23,10 @@
     $allLanguages = \App\Http\Controllers\LocaleController::LANGUAGES;
     $currentLocale = app()->getLocale();
     $currentLang = $allLanguages[$currentLocale] ?? $allLanguages['fr'];
+    $allCurrencies = \App\Helpers\Currency::$currencies;
+    $currentCurrency = \App\Helpers\Currency::userCurrency();
 @endphp
-<nav class="bg-white shadow-sm sticky top-0 z-50" x-data="{ mobileOpen: false, userDropdown: false, langOpen: false }">
+<nav class="bg-white shadow-sm sticky top-0 z-50" x-data="{ mobileOpen: false, userDropdown: false, langOpen: false, currOpen: false }">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
 
@@ -64,6 +66,36 @@
                     </svg>
                     Publier un bien
                 </a>
+
+                <!-- Currency Switcher -->
+                <div class="relative" @click.away="currOpen = false">
+                    <button @click="currOpen = !currOpen"
+                        class="flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 border border-gray-200 rounded-full px-3 py-1.5 hover:border-gray-300 transition-colors">
+                        <span class="font-medium">{{ $allCurrencies[$currentCurrency]['symbol'] ?? $currentCurrency }}</span>
+                        <svg class="w-3 h-3 transition-transform" :class="currOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    <div x-show="currOpen" x-cloak x-transition
+                        class="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg border border-gray-100 py-1.5 z-50">
+                        @foreach($allCurrencies as $code => $curr)
+                        <form action="{{ route('currency.change', $code) }}" method="POST">
+                            @csrf
+                            <button type="submit"
+                                class="flex items-center gap-3 w-full px-4 py-2 text-sm hover:bg-gray-50 transition-colors {{ $currentCurrency === $code ? 'font-semibold text-blue-700 bg-blue-50' : 'text-gray-700' }}">
+                                <span>{{ $curr['flag'] }}</span>
+                                <span class="font-mono font-semibold w-8">{{ $code }}</span>
+                                <span class="text-gray-500 text-xs truncate">{{ $curr['symbol'] }}</span>
+                                @if($currentCurrency === $code)
+                                <svg class="w-3.5 h-3.5 ml-auto text-blue-700 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                                @endif
+                            </button>
+                        </form>
+                        @endforeach
+                    </div>
+                </div>
 
                 <!-- Language Switcher -->
                 <div class="relative" @click.away="langOpen = false">
@@ -376,10 +408,10 @@
             <div>
                 <h3 class="font-semibold text-white mb-4">Assistance</h3>
                 <ul class="space-y-2">
-                    <li><a href="#" class="text-primary-200 hover:text-white text-sm transition-colors">Centre d'aide</a></li>
-                    <li><a href="#" class="text-primary-200 hover:text-white text-sm transition-colors">Nous contacter</a></li>
-                    <li><a href="#" class="text-primary-200 hover:text-white text-sm transition-colors">Signaler un problème</a></li>
-                    <li><a href="#" class="text-primary-200 hover:text-white text-sm transition-colors">Litiges</a></li>
+                    <li><a href="{{ route('faq') }}" class="text-primary-200 hover:text-white text-sm transition-colors">FAQ</a></li>
+                    <li><a href="{{ route('contact') }}" class="text-primary-200 hover:text-white text-sm transition-colors">Nous contacter</a></li>
+                    <li><a href="{{ route('subscriptions.plans') }}" class="text-primary-200 hover:text-white text-sm transition-colors">Nos offres</a></li>
+                    @auth<li><a href="{{ route('subscriptions.my') }}" class="text-primary-200 hover:text-white text-sm transition-colors">Mon abonnement</a></li>@endauth
                 </ul>
             </div>
 
@@ -387,10 +419,10 @@
             <div>
                 <h3 class="font-semibold text-white mb-4">Légal</h3>
                 <ul class="space-y-2">
-                    <li><a href="#" class="text-primary-200 hover:text-white text-sm transition-colors">À propos de nous</a></li>
-                    <li><a href="#" class="text-primary-200 hover:text-white text-sm transition-colors">Conditions d'utilisation</a></li>
-                    <li><a href="#" class="text-primary-200 hover:text-white text-sm transition-colors">Politique de confidentialité</a></li>
-                    <li><a href="#" class="text-primary-200 hover:text-white text-sm transition-colors">Cookies</a></li>
+                    <li><a href="{{ route('about') }}" class="text-primary-200 hover:text-white text-sm transition-colors">À propos de nous</a></li>
+                    <li><a href="{{ route('terms') }}" class="text-primary-200 hover:text-white text-sm transition-colors">Conditions d'utilisation</a></li>
+                    <li><a href="{{ route('privacy') }}" class="text-primary-200 hover:text-white text-sm transition-colors">Politique de confidentialité</a></li>
+                    <li><a href="{{ route('faq') }}" class="text-primary-200 hover:text-white text-sm transition-colors">FAQ</a></li>
                 </ul>
             </div>
         </div>

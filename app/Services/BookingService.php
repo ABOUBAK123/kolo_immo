@@ -16,9 +16,10 @@ class BookingService
      * Calculate the price breakdown for a booking.
      *
      * - subtotal     = nights × price_per_night
-     * - service_fee  = subtotal × 3%   (platform service fee charged to tenant)
-     * - commission   = subtotal × 8%   (platform commission charged to owner at payout)
-     * - total        = subtotal + service_fee + deposit
+     * - service_fee  = subtotal × service_fee_percent%  (charged to tenant)
+     * - vat          = (subtotal + service_fee) × vat_percent%  (if enabled)
+     * - commission   = subtotal × commission_percent%  (charged to owner at payout)
+     * - total        = subtotal + service_fee + vat + deposit
      */
     public function calculatePrice(
         Property $property,
@@ -35,16 +36,22 @@ class BookingService
         }
 
         $subtotal   = $nights * $property->price_per_night;
-        $serviceFee = round($subtotal * 0.03, 0);
-        $commission = round($subtotal * 0.08, 0);
+        $serviceFee = round($subtotal * config('kolo.service_fee_percent') / 100, 0);
+        $commission = round($subtotal * config('kolo.platform_commission_percent') / 100, 0);
         $deposit    = $property->deposit_amount ?? 0;
-        $total      = $subtotal + $serviceFee + $deposit;
+
+        $vatPercent = config('kolo.vat_enabled') ? (float) config('kolo.vat_percent') : 0.0;
+        $vatAmount  = $vatPercent > 0 ? round(($subtotal + $serviceFee) * $vatPercent / 100, 0) : 0;
+
+        $total = $subtotal + $serviceFee + $vatAmount + $deposit;
 
         return [
             'nights'               => $nights,
             'price_per_night'      => $property->price_per_night,
             'subtotal'             => $subtotal,
             'service_fee'          => $serviceFee,
+            'vat_percent'          => $vatPercent,
+            'vat_amount'           => $vatAmount,
             'platform_commission'  => $commission,
             'deposit_amount'       => $deposit,
             'total_amount'         => $total,
@@ -83,6 +90,8 @@ class BookingService
                 'price_per_night'     => $pricing['price_per_night'],
                 'subtotal'            => $pricing['subtotal'],
                 'service_fee'         => $pricing['service_fee'],
+                'vat_percent'         => $pricing['vat_percent'],
+                'vat_amount'          => $pricing['vat_amount'],
                 'platform_commission' => $pricing['platform_commission'],
                 'deposit_amount'      => $pricing['deposit_amount'],
                 'total_amount'        => $pricing['total_amount'],

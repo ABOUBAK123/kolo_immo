@@ -255,7 +255,7 @@
             </div>
             <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
                 <p class="text-sm text-blue-800">
-                    <strong>Note :</strong> Kolo Immo prélève 3% de frais de service sur chaque réservation, payés par le locataire. Vous recevez le montant total indiqué.
+                    <strong>Note :</strong> Kolo Immo prélève {{ config('kolo.service_fee_percent') }}% de frais de service sur chaque réservation, payés par le locataire. Vous recevez le montant total indiqué.
                 </p>
             </div>
         </div>

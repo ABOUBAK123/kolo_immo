@@ -26,6 +26,12 @@ class SettingsController extends Controller
         'MAIL_PASSWORD',
         'MAIL_FROM_ADDRESS',
         'MAIL_FROM_NAME',
+        // Commissions
+        'SERVICE_FEE_PERCENT',
+        'PLATFORM_COMMISSION_PERCENT',
+        // TVA
+        'VAT_ENABLED',
+        'VAT_PERCENT',
     ];
 
     private array $sensitiveKeys = [
@@ -49,11 +55,12 @@ class SettingsController extends Controller
     public function update(Request $request, string $section)
     {
         $allowed = match ($section) {
-            'general'   => ['OTP_CHANNELS'],
-            'sms'       => ['AFRICAS_TALKING_USERNAME', 'AFRICAS_TALKING_API_KEY', 'AFRICAS_TALKING_SENDER_ID'],
-            'whatsapp'  => ['WHATSAPP_API_TOKEN', 'WHATSAPP_PHONE_NUMBER_ID', 'WHATSAPP_TEMPLATE_NAME'],
-            'email'     => ['MAIL_MAILER', 'MAIL_HOST', 'MAIL_PORT', 'MAIL_USERNAME', 'MAIL_PASSWORD', 'MAIL_FROM_ADDRESS', 'MAIL_FROM_NAME'],
-            default     => [],
+            'general'     => ['OTP_CHANNELS'],
+            'sms'         => ['AFRICAS_TALKING_USERNAME', 'AFRICAS_TALKING_API_KEY', 'AFRICAS_TALKING_SENDER_ID'],
+            'whatsapp'    => ['WHATSAPP_API_TOKEN', 'WHATSAPP_PHONE_NUMBER_ID', 'WHATSAPP_TEMPLATE_NAME'],
+            'email'       => ['MAIL_MAILER', 'MAIL_HOST', 'MAIL_PORT', 'MAIL_USERNAME', 'MAIL_PASSWORD', 'MAIL_FROM_ADDRESS', 'MAIL_FROM_NAME'],
+            'commissions' => ['SERVICE_FEE_PERCENT', 'PLATFORM_COMMISSION_PERCENT', 'VAT_ENABLED', 'VAT_PERCENT'],
+            default       => [],
         };
 
         if (empty($allowed)) {

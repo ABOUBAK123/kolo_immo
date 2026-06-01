@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\DashboardController;
@@ -18,10 +19,18 @@ use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\DisputeController as AdminDisputeController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\SubscriptionController;
 use Illuminate\Support\Facades\Route;
 
 // ─── LOCALE ───────────────────────────────────────────────────────────────────
 Route::post('/language/{locale}', [LocaleController::class, 'change'])->name('language.change');
+Route::post('/currency/{code}', function (string $code) {
+    $allowed = array_keys(\App\Helpers\Currency::$currencies);
+    if (!in_array($code, $allowed)) abort(422);
+    session(['currency' => $code]);
+    if (auth()->check()) auth()->user()->update(['currency' => $code]);
+    return back();
+})->name('currency.change');
 
 // ─── PUBLIC ROUTES ────────────────────────────────────────────────────────────
 
@@ -49,13 +58,22 @@ Route::get('/properties/map', [PropertyController::class, 'mapView'])->name('pro
 Route::get('/properties/map-data', [PropertyController::class, 'mapData'])->name('properties.map-data');
 Route::get('/properties/{property}', [PropertyController::class, 'show'])->name('properties.show');
 
-Route::get('/about', function () {
-    return view('pages.about');
-})->name('about');
+Route::get('/about',   fn() => view('pages.about'))->name('about');
+Route::get('/contact', fn() => view('pages.contact'))->name('contact');
+Route::get('/terms',   fn() => view('pages.terms'))->name('terms');
+Route::get('/privacy', fn() => view('pages.privacy'))->name('privacy');
+Route::get('/faq',     fn() => view('pages.faq'))->name('faq');
 
-Route::get('/contact', function () {
-    return view('pages.contact');
-})->name('contact');
+// ─── PLANS / ABONNEMENTS ─────────────────────────────────────────────────────
+Route::get('/plans', [SubscriptionController::class, 'plans'])->name('subscriptions.plans');
+Route::post('/subscriptions/notify', [SubscriptionController::class, 'notify'])->name('subscriptions.notify')->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
+
+Route::middleware('auth')->group(function () {
+    Route::get('/my-subscription', [SubscriptionController::class, 'mySubscription'])->name('subscriptions.my');
+    Route::post('/subscriptions/subscribe', [SubscriptionController::class, 'subscribe'])->name('subscriptions.subscribe');
+    Route::get('/subscriptions/callback/{sub}', [SubscriptionController::class, 'callback'])->name('subscriptions.callback');
+    Route::post('/subscriptions/cancel', [SubscriptionController::class, 'cancel'])->name('subscriptions.cancel');
+});
 
 // ─── AUTH ROUTES ──────────────────────────────────────────────────────────────
 
@@ -64,6 +82,13 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->name('login.post');
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register'])->name('register.post');
+
+    // Mot de passe oublié
+    Route::get('/forgot-password', [ForgotPasswordController::class, 'show'])->name('password.request');
+    Route::post('/forgot-password', [ForgotPasswordController::class, 'sendOtp'])->name('password.send-otp');
+    Route::get('/forgot-password/verify', [ForgotPasswordController::class, 'showVerify'])->name('password.verify');
+    Route::post('/forgot-password/reset', [ForgotPasswordController::class, 'reset'])->name('password.reset');
+    Route::post('/forgot-password/resend', [ForgotPasswordController::class, 'resend'])->name('password.resend');
 });
 
 Route::middleware('auth')->group(function () {
@@ -113,6 +138,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/messages/{conversation}', [MessageController::class, 'show'])->name('messages.show');
     Route::post('/messages/{conversation}/send', [MessageController::class, 'send'])->name('messages.send');
     Route::post('/messages/{conversation}/read', [MessageController::class, 'markRead'])->name('messages.read');
+    // Polling : retourne les messages depuis un ID donné
+    Route::get('/messages/{conversation}/poll', [MessageController::class, 'poll'])->name('messages.poll');
 
     // Reviews (tenant → property)
     Route::get('/reviews/create/{booking}', [ReviewController::class, 'create'])->name('reviews.create');
@@ -238,6 +265,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/properties/{property}/toggle-featured', [AdminController::class, 'toggleFeatured'])->name('properties.toggle-featured');
     Route::post('/properties/{property}/toggle-status', [AdminController::class, 'togglePropertyStatus'])->name('properties.toggle-status');
     Route::post('/properties/{property}/suspend', [AdminController::class, 'suspendProperty'])->name('properties.suspend');
+    Route::post('/properties/{property}/under-review', [AdminController::class, 'underReviewProperty'])->name('properties.under-review');
+    Route::post('/properties/{property}/verify', [AdminController::class, 'verifyProperty'])->name('properties.verify');
+    Route::post('/properties/{property}/reject', [AdminController::class, 'rejectProperty'])->name('properties.reject');
 
     // Bookings
     Route::get('/bookings', [AdminController::class, 'bookings'])->name('bookings.index');

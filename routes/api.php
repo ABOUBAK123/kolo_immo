@@ -41,6 +41,10 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::post('/login', [AuthController::class, 'login'])->name('login');
         Route::post('/verify-otp', [AuthController::class, 'verifyOtp'])->name('verify-otp');
         Route::post('/resend-otp', [AuthController::class, 'resendOtp'])->name('resend-otp');
+
+        // Mot de passe oublié
+        Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name('forgot-password');
+        Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('reset-password');
     });
 
     // ─── AUTH (Protected) ─────────────────────────────────────────────────────
@@ -48,6 +52,33 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
         Route::get('/me', [AuthController::class, 'me'])->name('me');
         Route::post('/profile', [AuthController::class, 'updateProfile'])->name('profile');
+
+        // Push notifications — enregistrement / suppression de token device
+        Route::post('/device-token', function (\Illuminate\Http\Request $request) {
+            $request->validate([
+                'token'    => ['required', 'string'],
+                'platform' => ['required', 'in:android,ios,web'],
+            ]);
+
+            \App\Models\DeviceToken::updateOrCreate(
+                ['token' => $request->token],
+                [
+                    'user_id'      => $request->user()->id,
+                    'platform'     => $request->platform,
+                    'last_used_at' => now(),
+                ]
+            );
+
+            return response()->json(['success' => true, 'message' => 'Token enregistré.']);
+        })->name('device-token.register');
+
+        Route::delete('/device-token', function (\Illuminate\Http\Request $request) {
+            $request->validate(['token' => ['required', 'string']]);
+            \App\Models\DeviceToken::where('token', $request->token)
+                ->where('user_id', $request->user()->id)
+                ->delete();
+            return response()->json(['success' => true, 'message' => 'Token supprimé.']);
+        })->name('device-token.delete');
     });
 
     // ─── PROPERTIES (Public) ──────────────────────────────────────────────────

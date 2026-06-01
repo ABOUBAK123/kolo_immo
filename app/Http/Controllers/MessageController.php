@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\MessageSent;
 use App\Models\ChatMessage;
 use App\Models\Conversation;
 use Illuminate\Http\Request;
@@ -104,11 +105,27 @@ class MessageController extends Controller
         // Update conversation last_message_at
         $conversation->update(['last_message_at' => now()]);
 
+        // Broadcast to WebSocket channel (no-op with log/null driver, live with Reverb)
+        try {
+            broadcast(new MessageSent($message->load('sender'), $conversation))->toOthers();
+        } catch (\Throwable) {
+            // Silent: broadcasting is optional, polling handles real-time fallback
+        }
+
         if ($request->expectsJson()) {
-            $message->load('sender');
             return response()->json([
-                'success' => true,
-                'message' => $message,
+                'success'    => true,
+                'message_id' => $message->id,
+                'message'    => [
+                    'id'          => $message->id,
+                    'body'        => $message->body,
+                    'sender_id'   => $message->sender_id,
+                    'sender_name' => $message->sender->name,
+                    'created_at'  => $message->created_at->toIso8601String(),
+                    'attachment'  => $message->attachment_path
+                        ? ['path' => asset('storage/' . $message->attachment_path), 'type' => $message->attachment_type]
+                        : null,
+                ],
             ]);
         }
 
@@ -132,6 +149,46 @@ class MessageController extends Controller
         }
 
         return back();
+    }
+
+    /**
+     * Polling endpoint: return messages newer than a given message ID.
+     * GET /messages/{conversation}/poll?after={lastId}
+     */
+    public function poll(Request $request, Conversation $conversation)
+    {
+        $this->authorizeConversationAccess($conversation);
+
+        $afterId = (int) $request->query('after', 0);
+        $user    = Auth::user();
+
+        $messages = $conversation->messages()
+            ->where('id', '>', $afterId)
+            ->with('sender:id,name')
+            ->orderBy('id')
+            ->get()
+            ->map(fn($m) => [
+                'id'          => $m->id,
+                'body'        => $m->body,
+                'sender_id'   => $m->sender_id,
+                'sender_name' => $m->sender->name ?? 'Utilisateur',
+                'is_mine'     => $m->sender_id === $user->id,
+                'created_at'  => $m->created_at->diffForHumans(),
+                'read_at'     => $m->read_at,
+                'attachment'  => $m->attachment_path
+                    ? ['url' => asset('storage/' . $m->attachment_path), 'type' => $m->attachment_type]
+                    : null,
+            ]);
+
+        // Mark received messages as read
+        if ($messages->isNotEmpty()) {
+            $conversation->messages()
+                ->whereIn('id', $messages->where('is_mine', false)->pluck('id'))
+                ->whereNull('read_at')
+                ->update(['read_at' => now()]);
+        }
+
+        return response()->json(['messages' => $messages, 'count' => $messages->count()]);
     }
 
     // ─── Helpers ──────────────────────────────────────────────────────────────

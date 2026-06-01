@@ -13,11 +13,12 @@
     {{-- Tab bar --}}
     <div class="flex gap-1 bg-gray-100 p-1 rounded-xl mb-6 w-fit flex-wrap">
         @foreach([
-            ['id' => 'general',  'label' => 'Général',          'icon' => 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z'],
-            ['id' => 'sms',      'label' => 'SMS',              'icon' => 'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-3 3v-3z'],
-            ['id' => 'whatsapp', 'label' => 'WhatsApp',         'icon' => 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z'],
-            ['id' => 'email',    'label' => 'Email',            'icon' => 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'],
-            ['id' => 'payments', 'label' => 'Paiements mobiles','icon' => 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z'],
+            ['id' => 'general',     'label' => 'Général',          'icon' => 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z'],
+            ['id' => 'commissions', 'label' => 'Commissions',       'icon' => 'M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z'],
+            ['id' => 'sms',         'label' => 'SMS',              'icon' => 'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-3 3v-3z'],
+            ['id' => 'whatsapp',    'label' => 'WhatsApp',         'icon' => 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z'],
+            ['id' => 'email',       'label' => 'Email',            'icon' => 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'],
+            ['id' => 'payments',    'label' => 'Paiements mobiles','icon' => 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z'],
         ] as $t)
         <button type="button"
             @click="tab = '{{ $t['id'] }}'"
@@ -79,6 +80,141 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
                         Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- ── Commissions ─────────────────────────────────────────────────── --}}
+    <div x-show="tab === 'commissions'" x-cloak>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                <div class="w-9 h-9 bg-violet-50 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-800">Taux de commissions</h3>
+                    <p class="text-xs text-gray-400">Ces taux s'appliquent à chaque réservation confirmée.</p>
+                </div>
+            </div>
+            <form action="{{ route('admin.settings.update', 'commissions') }}" method="POST" class="px-6 py-6 space-y-6">
+                @csrf @method('PUT')
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    {{-- Frais de service --}}
+                    <div class="border border-gray-100 rounded-2xl p-5 bg-blue-50/40">
+                        <div class="flex items-center gap-2 mb-3">
+                            <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z"/>
+                                </svg>
+                            </div>
+                            <p class="font-semibold text-sm text-gray-800">Frais de service locataire</p>
+                        </div>
+                        <p class="text-xs text-gray-500 mb-4">Prélevés sur le locataire en supplément du loyer. S'ajoutent au total de la réservation.</p>
+                        <div class="relative">
+                            <input type="number" name="SERVICE_FEE_PERCENT" step="0.5" min="0" max="30"
+                                value="{{ $config['SERVICE_FEE_PERCENT'] ?? 3 }}"
+                                class="w-full border border-gray-300 rounded-xl px-4 py-3 pr-10 text-sm font-semibold text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+                            <span class="absolute inset-y-0 right-3 flex items-center text-gray-400 font-bold text-sm">%</span>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-2">Actuel : <strong>{{ $config['SERVICE_FEE_PERCENT'] ?? 3 }}%</strong> — soit {{ number_format(10000 * ($config['SERVICE_FEE_PERCENT'] ?? 3) / 100, 0, ',', ' ') }} FCFA sur 10 000 FCFA de loyer</p>
+                    </div>
+
+                    {{-- Commission propriétaire --}}
+                    <div class="border border-gray-100 rounded-2xl p-5 bg-violet-50/40">
+                        <div class="flex items-center gap-2 mb-3">
+                            <div class="w-8 h-8 bg-violet-100 rounded-lg flex items-center justify-center">
+                                <svg class="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                                </svg>
+                            </div>
+                            <p class="font-semibold text-sm text-gray-800">Commission plateforme propriétaire</p>
+                        </div>
+                        <p class="text-xs text-gray-500 mb-4">Déduite du montant versé au propriétaire lors de la libération des fonds, après le séjour.</p>
+                        <div class="relative">
+                            <input type="number" name="PLATFORM_COMMISSION_PERCENT" step="0.5" min="0" max="30"
+                                value="{{ $config['PLATFORM_COMMISSION_PERCENT'] ?? 8 }}"
+                                class="w-full border border-gray-300 rounded-xl px-4 py-3 pr-10 text-sm font-semibold text-gray-800 focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none transition">
+                            <span class="absolute inset-y-0 right-3 flex items-center text-gray-400 font-bold text-sm">%</span>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-2">Actuel : <strong>{{ $config['PLATFORM_COMMISSION_PERCENT'] ?? 8 }}%</strong> — soit {{ number_format(10000 * ($config['PLATFORM_COMMISSION_PERCENT'] ?? 8) / 100, 0, ',', ' ') }} FCFA sur 10 000 FCFA de loyer</p>
+                    </div>
+                </div>
+
+                {{-- Exemple de simulation --}}
+                <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                    <p class="text-sm font-semibold text-gray-700 mb-3">Simulation sur une réservation de 50 000 FCFA</p>
+                    <div class="grid grid-cols-3 gap-4 text-sm">
+                        <div class="text-center">
+                            <p class="text-xs text-gray-500 mb-1">Loyer (subtotal)</p>
+                            <p class="font-bold text-gray-800">50 000 FCFA</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-xs text-blue-600 mb-1">Frais locataire ({{ $config['SERVICE_FEE_PERCENT'] ?? 3 }}%)</p>
+                            <p class="font-bold text-blue-700">+ {{ number_format(50000 * ($config['SERVICE_FEE_PERCENT'] ?? 3) / 100, 0, ',', ' ') }} FCFA</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-xs text-violet-600 mb-1">Commission propriétaire ({{ $config['PLATFORM_COMMISSION_PERCENT'] ?? 8 }}%)</p>
+                            <p class="font-bold text-violet-700">- {{ number_format(50000 * ($config['PLATFORM_COMMISSION_PERCENT'] ?? 8) / 100, 0, ',', ' ') }} FCFA</p>
+                        </div>
+                    </div>
+                    <div class="mt-3 pt-3 border-t border-gray-200 grid grid-cols-2 gap-4 text-sm">
+                        <div class="text-center">
+                            <p class="text-xs text-gray-500 mb-1">Total payé par locataire</p>
+                            @php $sfee = 50000 * ($config['SERVICE_FEE_PERCENT'] ?? 3) / 100; @endphp
+                            <p class="font-bold text-gray-900">{{ number_format(50000 + $sfee, 0, ',', ' ') }} FCFA</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-xs text-gray-500 mb-1">Net reçu par propriétaire</p>
+                            @php $comm = 50000 * ($config['PLATFORM_COMMISSION_PERCENT'] ?? 8) / 100; @endphp
+                            <p class="font-bold text-green-700">{{ number_format(50000 - $comm, 0, ',', ' ') }} FCFA</p>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- TVA --}}
+                <div class="border border-gray-100 rounded-2xl p-5 bg-gray-50/60">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <p class="font-semibold text-gray-800">TVA / Taxe sur la valeur ajoutée</p>
+                            <p class="text-xs text-gray-500 mt-0.5">Ajoutée sur le sous-total + frais de service.</p>
+                        </div>
+                        <label class="inline-flex items-center gap-2 cursor-pointer">
+                            <span class="text-xs text-gray-500">Désactivée</span>
+                            <div class="relative">
+                                <input type="checkbox" name="VAT_ENABLED" value="1" class="sr-only peer"
+                                    {{ ($config['VAT_ENABLED'] ?? '0') === '1' ? 'checked' : '' }}>
+                                <div class="w-10 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-violet-300 rounded-full peer peer-checked:bg-violet-600 transition-colors"></div>
+                                <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4 shadow"></div>
+                            </div>
+                            <span class="text-xs text-gray-500">Activée</span>
+                        </label>
+                    </div>
+                    <div class="relative max-w-xs">
+                        <input type="number" name="VAT_PERCENT" step="0.5" min="0" max="30"
+                            value="{{ $config['VAT_PERCENT'] ?? 0 }}"
+                            class="w-full border border-gray-300 rounded-xl px-4 py-2.5 pr-10 text-sm font-semibold text-gray-800 focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none transition">
+                        <span class="absolute inset-y-0 right-3 flex items-center text-gray-400 font-bold text-sm">%</span>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-2">Actuel : <strong>{{ $config['VAT_PERCENT'] ?? 0 }}%</strong></p>
+                </div>
+
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
+                    <p class="font-semibold mb-1">Important</p>
+                    <p class="text-xs">Les nouveaux taux s'appliquent uniquement aux <strong>nouvelles réservations</strong> créées après la modification. Les réservations existantes conservent les taux en vigueur au moment de leur création.</p>
+                </div>
+
+                <div>
+                    <button type="submit"
+                        class="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Enregistrer les taux
                     </button>
                 </div>
             </form>

@@ -183,10 +183,10 @@ class OtpService
     public function sendEmail(string $email, string $code, string $purpose, string $name = ''): void
     {
         try {
-            Mail::to($email)->send(new OtpMail($code, $purpose, $name));
-            Log::info('[OTP Email] Envoyé', ['to' => $email, 'purpose' => $purpose]);
+            Mail::to($email)->queue(new OtpMail($code, $purpose, $name));
+            Log::info('[OTP Email] Mis en file d\'attente', ['to' => $email, 'purpose' => $purpose]);
         } catch (\Throwable $e) {
-            Log::error('[OTP Email] Échec', ['to' => $email, 'error' => $e->getMessage()]);
+            Log::error('[OTP Email] Échec mise en file', ['to' => $email, 'error' => $e->getMessage()]);
         }
     }
 

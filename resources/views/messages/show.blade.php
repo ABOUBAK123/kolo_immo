@@ -3,24 +3,86 @@
 @section('title', 'Conversation - Kolo Immo')
 
 @section('content')
+@php $other = Auth::id() === $conversation->tenant_id ? $conversation->owner : $conversation->tenant; @endphp
+
 <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6"
      x-data="{
         newMessage: '',
         sending: false,
+        lastId: {{ $conversation->messages->last()?->id ?? 0 }},
+        pollInterval: null,
+
         async send() {
-            if (!this.newMessage.trim()) return;
+            if (!this.newMessage.trim() && !document.querySelector('[name=attachment]').files.length) return;
             this.sending = true;
             const form = document.getElementById('msg-form');
             const data = new FormData(form);
-            const res = await fetch(form.action, { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' }, body: data });
-            const json = await res.json();
-            if (json.success) {
-                this.newMessage = '';
-                window.location.reload();
-            }
+            try {
+                const res  = await fetch(form.action, { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' }, body: data });
+                const json = await res.json();
+                if (json.success) {
+                    this.newMessage = '';
+                    document.querySelector('[name=attachment]').value = '';
+                    this.appendMessage(json.message, true);
+                    this.lastId = json.message.id;
+                    this.scrollBottom();
+                }
+            } catch (e) { console.error(e); }
             this.sending = false;
+        },
+
+        appendMessage(msg, isMine) {
+            const container = document.getElementById('messages-container');
+            const div = document.createElement('div');
+            div.id  = 'msg-' + msg.id;
+            div.className = 'flex ' + (isMine ? 'justify-end' : 'justify-start') + ' gap-2';
+            let avatar = isMine ? '' : `<div class='w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold text-xs flex-shrink-0 mt-1'>${(msg.sender_name||'U')[0].toUpperCase()}</div>`;
+            let bubble = isMine ? 'bg-blue-700 text-white rounded-tr-md' : 'bg-gray-100 text-gray-900 rounded-tl-md';
+            let attach = '';
+            if (msg.attachment) {
+                if (msg.attachment.type === 'image') {
+                    attach = `<img src='${msg.attachment.path || msg.attachment.url}' class='mt-2 rounded-lg max-w-full max-h-48 object-cover'>`;
+                } else {
+                    attach = `<a href='${msg.attachment.path || msg.attachment.url}' target='_blank' class='text-blue-200 text-xs underline mt-1 block'>📎 Pièce jointe</a>`;
+                }
+            }
+            div.innerHTML = `${avatar}<div class='max-w-[70%]'><div class='${bubble} rounded-2xl px-4 py-2.5'>${msg.body ? `<p class='text-sm leading-relaxed'>${msg.body}</p>` : ''}${attach}</div><p class='text-xs text-gray-400 mt-1 ${isMine ? 'text-right' : 'text-left'} px-1'>à l'instant</p></div>`;
+            container.appendChild(div);
+        },
+
+        async poll() {
+            try {
+                const res  = await fetch('{{ route('messages.poll', $conversation) }}?after=' + this.lastId, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                const json = await res.json();
+                if (json.messages && json.messages.length > 0) {
+                    json.messages.forEach(msg => {
+                        if (!document.getElementById('msg-' + msg.id)) {
+                            this.appendMessage(msg, msg.is_mine);
+                            this.lastId = msg.id;
+                        }
+                    });
+                    this.scrollBottom();
+                }
+            } catch (e) {}
+        },
+
+        scrollBottom() {
+            this.$nextTick(() => {
+                const c = document.getElementById('messages-container');
+                if (c) c.scrollTop = c.scrollHeight;
+            });
+        },
+
+        startPolling() {
+            this.pollInterval = setInterval(() => this.poll(), 3000);
+        },
+
+        stopPolling() {
+            if (this.pollInterval) clearInterval(this.pollInterval);
         }
-     }">
+     }"
+     x-init="scrollBottom(); startPolling()"
+     @visibilitychange.window="document.hidden ? stopPolling() : startPolling()">
 
     <!-- Header -->
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm mb-4 p-4 flex items-center gap-4">
@@ -30,11 +92,13 @@
             </svg>
         </a>
         <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold flex-shrink-0">
-            @php $other = Auth::id() === $conversation->tenant_id ? $conversation->owner : $conversation->tenant; @endphp
             {{ strtoupper(substr($other->name ?? 'U', 0, 1)) }}
         </div>
         <div class="flex-1 min-w-0">
-            <p class="font-semibold text-gray-900 truncate">{{ $other->name ?? 'Utilisateur' }}</p>
+            <div class="flex items-center gap-2">
+                <p class="font-semibold text-gray-900 truncate">{{ $other->name ?? 'Utilisateur' }}</p>
+                <span class="w-2 h-2 rounded-full bg-green-400 flex-shrink-0" title="Actualisation automatique"></span>
+            </div>
             <p class="text-xs text-gray-400 truncate">{{ $conversation->property->title ?? 'Propriété' }}</p>
         </div>
         @if($conversation->booking)
@@ -49,7 +113,7 @@
         <div class="p-4 space-y-4 max-h-[60vh] overflow-y-auto" id="messages-container">
             @forelse($conversation->messages as $msg)
             @php $isMine = $msg->sender_id === Auth::id(); @endphp
-            <div class="flex {{ $isMine ? 'justify-end' : 'justify-start' }} gap-2">
+            <div id="msg-{{ $msg->id }}" class="flex {{ $isMine ? 'justify-end' : 'justify-start' }} gap-2">
                 @if(!$isMine)
                 <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold text-xs flex-shrink-0 mt-1">
                     {{ strtoupper(substr($msg->sender->name ?? 'U', 0, 1)) }}
@@ -72,9 +136,7 @@
                     </div>
                     <p class="text-xs text-gray-400 mt-1 {{ $isMine ? 'text-right' : 'text-left' }} px-1">
                         {{ $msg->created_at->diffForHumans() }}
-                        @if($isMine && $msg->read_at)
-                        · Lu
-                        @endif
+                        @if($isMine && $msg->read_at) · Lu @endif
                     </p>
                 </div>
             </div>
@@ -104,21 +166,18 @@
                     </svg>
                     <input type="file" name="attachment" class="hidden" accept="image/*,.pdf,.doc,.docx">
                 </label>
-                <button type="submit" :disabled="sending || !newMessage.trim()"
+                <button type="submit" :disabled="sending || (!newMessage.trim())"
                     class="bg-blue-700 text-white rounded-xl p-2.5 hover:bg-blue-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg x-show="!sending" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                    </svg>
+                    <svg x-show="sending" x-cloak class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
                     </svg>
                 </button>
             </div>
         </div>
     </form>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const container = document.getElementById('messages-container');
-    if (container) container.scrollTop = container.scrollHeight;
-});
-</script>
 @endsection

@@ -221,6 +221,10 @@ class AdminController extends Controller
             $query->where('type', $request->type);
         }
 
+        if ($request->filled('verification')) {
+            $query->where('verification_status', $request->verification);
+        }
+
         $properties = $query->latest()->paginate(20)->withQueryString();
 
         return view('admin.properties.index', compact('properties'));
@@ -243,6 +247,44 @@ class AdminController extends Controller
     {
         $property->update(['status' => 'suspended']);
         return back()->with('success', 'Logement suspendu.');
+    }
+
+    /**
+     * Mark property as under review.
+     */
+    public function underReviewProperty(Property $property)
+    {
+        $property->update(['verification_status' => 'under_review']);
+        return back()->with('success', 'Logement marqué "en cours d\'examen".');
+    }
+
+    /**
+     * Verify (approve) a property.
+     */
+    public function verifyProperty(Request $request, Property $property)
+    {
+        $property->update([
+            'verification_status' => 'verified',
+            'verification_notes'  => $request->input('notes'),
+            'verified_by'         => auth()->id(),
+            'verified_at'         => now(),
+        ]);
+        return back()->with('success', 'Logement vérifié et approuvé.');
+    }
+
+    /**
+     * Reject a property with notes.
+     */
+    public function rejectProperty(Request $request, Property $property)
+    {
+        $request->validate(['notes' => 'required|string|max:500']);
+        $property->update([
+            'verification_status' => 'rejected',
+            'verification_notes'  => $request->notes,
+            'verified_by'         => auth()->id(),
+            'verified_at'         => now(),
+        ]);
+        return back()->with('success', 'Logement rejeté. Le propriétaire sera informé.');
     }
 
     /**

@@ -188,7 +188,8 @@ class AuthController extends Controller
     public function resendOtp(Request $request)
     {
         $request->validate([
-            'phone' => ['required', 'string'],
+            'phone'   => ['required', 'string'],
+            'purpose' => ['nullable', 'in:phone_verify,login,password_reset'],
         ]);
 
         $user = User::where('phone', $request->phone)->first();
@@ -200,12 +201,127 @@ class AuthController extends Controller
             ], 404);
         }
 
-        $this->otpService->generate($user->phone, 'phone_verify', $user, $user->email);
+        $purpose = $request->input('purpose', 'phone_verify');
+        $this->otpService->generate($user->phone, $purpose, $user, $user->email);
 
         return response()->json([
             'success' => true,
             'message' => 'Un nouveau code a été envoyé au ' . $user->phone,
         ]);
+    }
+
+    /**
+     * Step 1 — Send OTP for password reset.
+     * POST /api/v1/auth/forgot-password
+     */
+    public function forgotPassword(Request $request)
+    {
+        $request->validate([
+            'contact' => ['required', 'string'],
+        ], [
+            'contact.required' => 'Veuillez saisir votre email ou numéro de téléphone.',
+        ]);
+
+        $contact = trim($request->contact);
+
+        $user = User::where('phone', $contact)
+            ->orWhere('email', $contact)
+            ->first();
+
+        // Always return success to avoid user enumeration
+        if (!$user) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Si ce contact existe, un code de vérification a été envoyé.',
+                'data'    => ['phone' => null],
+            ]);
+        }
+
+        $phone = $user->phone ?? $contact;
+        $this->otpService->generate($phone, 'password_reset', $user, $user->email);
+
+        $masked = $this->maskContact($phone);
+        $via    = $user->phone ? 'SMS' : 'email';
+
+        return response()->json([
+            'success' => true,
+            'message' => "Code de vérification envoyé par {$via} au {$masked}.",
+            'data'    => [
+                'phone'  => $phone,
+                'masked' => $masked,
+                'via'    => $via,
+            ],
+        ]);
+    }
+
+    /**
+     * Step 2 — Verify OTP and reset password.
+     * POST /api/v1/auth/reset-password
+     */
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'phone'                 => ['required', 'string'],
+            'code'                  => ['required', 'string', 'size:6'],
+            'password'              => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
+        ], [
+            'code.required'              => 'Le code de vérification est obligatoire.',
+            'code.size'                  => 'Le code doit contenir exactement 6 chiffres.',
+            'password.required'          => 'Le nouveau mot de passe est obligatoire.',
+            'password.confirmed'         => 'Les mots de passe ne correspondent pas.',
+        ]);
+
+        $valid = $this->otpService->verify($request->phone, $request->code, 'password_reset');
+
+        if (!$valid) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Code incorrect ou expiré.',
+                'errors'  => ['code' => ['Code OTP incorrect ou expiré.']],
+            ], 422);
+        }
+
+        $user = User::where('phone', $request->phone)->first();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Utilisateur introuvable.',
+            ], 404);
+        }
+
+        $user->update(['password' => Hash::make($request->password)]);
+
+        // Revoke all existing tokens for security
+        $user->tokens()->delete();
+
+        // Issue a fresh token so the user is immediately logged in
+        $token = $user->createToken('mobile-app', ['*'])->plainTextToken;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Mot de passe réinitialisé avec succès.',
+            'data'    => [
+                'token' => $token,
+                'user'  => $this->formatUser($user->fresh()),
+            ],
+        ]);
+    }
+
+    // ─── Private helpers ──────────────────────────────────────────────────────
+
+    private function maskContact(string $contact): string
+    {
+        if (filter_var($contact, FILTER_VALIDATE_EMAIL)) {
+            [$local, $domain] = explode('@', $contact);
+            $masked = substr($local, 0, 2) . str_repeat('*', max(strlen($local) - 2, 3));
+            return $masked . '@' . $domain;
+        }
+
+        // Phone: keep first 4 and last 2 chars
+        $len = strlen($contact);
+        if ($len <= 6) return $contact;
+        return substr($contact, 0, 4) . str_repeat('*', $len - 6) . substr($contact, -2);
     }
 
     /**
