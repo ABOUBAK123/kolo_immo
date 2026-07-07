@@ -408,6 +408,7 @@
             <div>
                 <h3 class="font-semibold text-white mb-4">Assistance</h3>
                 <ul class="space-y-2">
+                    <li><a href="tel:010142004609" class="text-primary-200 hover:text-white text-sm transition-colors">Tél : 01 01 42 00 46 09</a></li>
                     <li><a href="{{ route('faq') }}" class="text-primary-200 hover:text-white text-sm transition-colors">FAQ</a></li>
                     <li><a href="{{ route('contact') }}" class="text-primary-200 hover:text-white text-sm transition-colors">Nous contacter</a></li>
                     <li><a href="{{ route('subscriptions.plans') }}" class="text-primary-200 hover:text-white text-sm transition-colors">Nos offres</a></li>
