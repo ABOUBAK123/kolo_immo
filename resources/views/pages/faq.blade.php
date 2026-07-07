@@ -59,7 +59,7 @@
 
     <div class="bg-gradient-to-r from-blue-700 to-indigo-700 rounded-2xl p-6 text-white text-center mt-10">
         <p class="font-bold mb-1">Vous n'avez pas trouvé votre réponse ?</p>
-        <p class="text-blue-200 text-sm mb-4">Notre équipe répond sous 24h. Appelez-nous au <a href="tel:010142004609" class="font-semibold underline">01 01 42 00 46 09</a> ou <a href="https://wa.me/22510142004609" target="_blank" class="font-semibold underline">contactez-nous sur WhatsApp</a>.</p>
+        <p class="text-blue-200 text-sm mb-4">Notre équipe répond sous 24h. Appelez-nous au <a href="tel:010142004609" class="font-semibold underline">01 01 42 00 46 09</a> ou <a href="https://wa.me/22510142004609" target="_blank" class="font-semibold underline">WhatsApp +225 01 01 42 00 46 09</a>.</p>
         <a href="{{ route('contact') }}" class="inline-block bg-white text-blue-700 font-bold px-5 py-2.5 rounded-xl text-sm hover:bg-blue-50 transition">
             Nous contacter
         </a>

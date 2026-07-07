@@ -19,7 +19,7 @@
                         ['icon' => 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z', 'label' => 'Email', 'value' => 'support@koloimmo.com'],
                         ['icon' => 'M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z', 'label' => 'Téléphone', 'value' => '01 01 42 00 46 09'],
                         ['icon' => 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z', 'label' => 'Adresse', 'value' => 'Abidjan, Côte d\'Ivoire'],
-                        ['icon' => 'M12 2C6.48 2 2 6.48 2 12c0 1.54.36 3 .97 4.29L2.5 20.5l8.3-2.47C13 20.64 14.5 21 16 21c5.52 0 10-4.48 10-10S21.52 2 16 2m0 18c-1.41 0-2.73-.35-3.88-.98l-.28-.15-2.89.86.86-2.89-.15-.28C4.35 14.73 4 13.41 4 12c0-4.41 3.59-8 8-8s8 3.59 8 8-3.59 8-8 8z', 'label' => 'WhatsApp', 'value' => '<a href="https://wa.me/22510142004609" target="_blank" class="hover:underline">Chat WhatsApp</a>'],
+                        ['icon' => 'M12 2C6.48 2 2 6.48 2 12c0 1.54.36 3 .97 4.29L2.5 20.5l8.3-2.47C13 20.64 14.5 21 16 21c5.52 0 10-4.48 10-10S21.52 2 16 2m0 18c-1.41 0-2.73-.35-3.88-.98l-.28-.15-2.89.86.86-2.89-.15-.28C4.35 14.73 4 13.41 4 12c0-4.41 3.59-8 8-8s8 3.59 8 8-3.59 8-8 8z', 'label' => 'WhatsApp', 'value' => '<a href="https://wa.me/22510142004609" target="_blank" class="hover:underline">+225 01 01 42 00 46 09</a>'],
                     ] as $info)
                     <div class="flex items-start gap-3">
                         <div class="w-9 h-9 bg-blue-50 text-blue-700 rounded-lg flex items-center justify-center flex-shrink-0">
