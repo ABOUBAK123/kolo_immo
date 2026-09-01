@@ -535,6 +535,279 @@
                 </form>
             </div>
 
+            {{-- Orange Money --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                    <div class="w-9 h-9 bg-orange-50 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-800">Orange Money — Web Payment API</h3>
+                        <p class="text-xs text-gray-400">Intégration directe Orange Money. <a href="https://developer.orange.com/apis/om-webpay" target="_blank" class="text-blue-500 hover:underline">developer.orange.com</a></p>
+                    </div>
+                </div>
+                <form action="{{ route('admin.settings.update', 'payment_api') }}" method="POST" class="px-6 py-6 space-y-5">
+                    @csrf @method('PUT')
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Client ID
+                                @if(!empty($config['ORANGE_MONEY_CLIENT_ID']))
+                                <span class="ml-2 inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 px-2 py-0.5 rounded-full">Configuré</span>
+                                @endif
+                            </label>
+                            <input type="text" name="ORANGE_MONEY_CLIENT_ID"
+                                value="{{ $config['ORANGE_MONEY_CLIENT_ID'] ?? '' }}"
+                                placeholder="Client ID Orange Developer"
+                                class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Client Secret
+                                @if(!empty($config['ORANGE_MONEY_CLIENT_SECRET']))
+                                <span class="ml-2 inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 px-2 py-0.5 rounded-full">Configuré</span>
+                                @endif
+                            </label>
+                            <input type="password" name="ORANGE_MONEY_CLIENT_SECRET"
+                                placeholder="{{ !empty($config['ORANGE_MONEY_CLIENT_SECRET']) ? '••••••••••••••••' : 'Client Secret' }}"
+                                class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Merchant Key (Clé marchand)
+                            @if(!empty($config['ORANGE_MONEY_MERCHANT_KEY']))
+                            <span class="ml-2 inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 px-2 py-0.5 rounded-full">Configuré</span>
+                            @endif
+                        </label>
+                        <input type="password" name="ORANGE_MONEY_MERCHANT_KEY"
+                            placeholder="{{ !empty($config['ORANGE_MONEY_MERCHANT_KEY']) ? '••••••••••••••••' : 'Merchant Key' }}"
+                            class="w-full sm:max-w-md border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition">
+                        <p class="text-xs text-gray-400 mt-1">Laissez vide pour conserver les valeurs actuelles.</p>
+                    </div>
+
+                    <div class="bg-orange-50 border border-orange-200 rounded-xl p-4 text-sm text-orange-800">
+                        <p class="font-semibold mb-1">Où trouver vos credentials ?</p>
+                        <p class="text-xs leading-relaxed">
+                            Créez une app sur <strong>developer.orange.com</strong> (produit « Orange Money Web Payment »). Le <strong>Client ID</strong> et le <strong>Client Secret</strong> servent à obtenir un token OAuth2 ; la <strong>Merchant Key</strong> (fournie par Orange Money CI lors de l'activation marchand) sert à créer les paiements.
+                        </p>
+                    </div>
+
+                    <button type="submit"
+                        class="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Enregistrer Orange Money
+                    </button>
+                </form>
+            </div>
+
+            {{-- MTN Mobile Money --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                    <div class="w-9 h-9 bg-yellow-50 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-800">MTN Mobile Money — Collection API</h3>
+                        <p class="text-xs text-gray-400">Intégration directe MTN MoMo. <a href="https://momodeveloper.mtn.com" target="_blank" class="text-blue-500 hover:underline">momodeveloper.mtn.com</a></p>
+                    </div>
+                </div>
+                <form action="{{ route('admin.settings.update', 'payment_api') }}" method="POST" class="px-6 py-6 space-y-5">
+                    @csrf @method('PUT')
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Subscription Key (Primary)
+                                @if(!empty($config['MTN_MOMO_SUBSCRIPTION_KEY']))
+                                <span class="ml-2 inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 px-2 py-0.5 rounded-full">Configuré</span>
+                                @endif
+                            </label>
+                            <input type="password" name="MTN_MOMO_SUBSCRIPTION_KEY"
+                                placeholder="{{ !empty($config['MTN_MOMO_SUBSCRIPTION_KEY']) ? '••••••••••••••••' : 'Ocp-Apim-Subscription-Key' }}"
+                                class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 outline-none transition">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">API User (UUID)</label>
+                            <input type="text" name="MTN_MOMO_API_USER"
+                                value="{{ $config['MTN_MOMO_API_USER'] ?? '' }}"
+                                placeholder="Ex: 6c4f1f6a-....-....-...."
+                                class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 outline-none transition">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                API Key
+                                @if(!empty($config['MTN_MOMO_API_KEY']))
+                                <span class="ml-2 inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 px-2 py-0.5 rounded-full">Configuré</span>
+                                @endif
+                            </label>
+                            <input type="password" name="MTN_MOMO_API_KEY"
+                                placeholder="{{ !empty($config['MTN_MOMO_API_KEY']) ? '••••••••••••••••' : 'API Key générée pour l\'API User' }}"
+                                class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 outline-none transition">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Target Environment</label>
+                            <select name="MTN_MOMO_TARGET_ENVIRONMENT"
+                                class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 outline-none transition">
+                                <option value="sandbox" {{ ($config['MTN_MOMO_TARGET_ENVIRONMENT'] ?? 'sandbox') === 'sandbox' ? 'selected' : '' }}>sandbox (test)</option>
+                                <option value="mtnci" {{ ($config['MTN_MOMO_TARGET_ENVIRONMENT'] ?? '') === 'mtnci' ? 'selected' : '' }}>mtnci (production Côte d'Ivoire)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-sm text-yellow-800">
+                        <p class="font-semibold mb-1">Où trouver vos credentials ?</p>
+                        <p class="text-xs leading-relaxed">
+                            Sur <strong>momodeveloper.mtn.com</strong>, abonnez-vous au produit <strong>Collections</strong> pour obtenir la <strong>Subscription Key</strong>, puis créez un <strong>API User</strong> + <strong>API Key</strong> via l'API de provisioning (sandbox) ou l'onboarding partenaire (production).
+                        </p>
+                    </div>
+
+                    <button type="submit"
+                        class="inline-flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Enregistrer MTN MoMo
+                    </button>
+                </form>
+            </div>
+
+            {{-- Wave --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                    <div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999A6 6 0 003 15z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-800">Wave — Business API</h3>
+                        <p class="text-xs text-gray-400">Intégration directe Wave Checkout. <a href="https://docs.wave.com" target="_blank" class="text-blue-500 hover:underline">docs.wave.com</a></p>
+                    </div>
+                </div>
+                <form action="{{ route('admin.settings.update', 'payment_api') }}" method="POST" class="px-6 py-6 space-y-5">
+                    @csrf @method('PUT')
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                API Key (Bearer token)
+                                @if(!empty($config['WAVE_API_KEY']))
+                                <span class="ml-2 inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 px-2 py-0.5 rounded-full">Configurée</span>
+                                @endif
+                            </label>
+                            <input type="password" name="WAVE_API_KEY"
+                                placeholder="{{ !empty($config['WAVE_API_KEY']) ? '••••••••••••••••' : 'Clé API secrète Wave' }}"
+                                class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Webhook Secret
+                                @if(!empty($config['WAVE_WEBHOOK_SECRET']))
+                                <span class="ml-2 inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 px-2 py-0.5 rounded-full">Configuré</span>
+                                @endif
+                            </label>
+                            <input type="password" name="WAVE_WEBHOOK_SECRET"
+                                placeholder="{{ !empty($config['WAVE_WEBHOOK_SECRET']) ? '••••••••••••••••' : 'Secret de vérification des webhooks' }}"
+                                class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
+                        <p class="font-semibold mb-1">Où trouver vos credentials ?</p>
+                        <p class="text-xs leading-relaxed">
+                            Connectez-vous sur le <strong>Wave Business Dashboard</strong> → Developers → API Keys. La clé API sert d'en-tête <code class="bg-blue-100 px-1 rounded">Authorization: Bearer</code> pour créer des « checkout sessions » ; le Webhook Secret sert à valider la signature des notifications reçues.
+                        </p>
+                    </div>
+
+                    <button type="submit"
+                        class="inline-flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Enregistrer Wave
+                    </button>
+                </form>
+            </div>
+
+            {{-- Moov Money --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                    <div class="w-9 h-9 bg-sky-50 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-800">Moov Money — API Paiement Marchand</h3>
+                        <p class="text-xs text-gray-400">Intégration directe Moov Money (Moov Africa).</p>
+                    </div>
+                </div>
+                <form action="{{ route('admin.settings.update', 'payment_api') }}" method="POST" class="px-6 py-6 space-y-5">
+                    @csrf @method('PUT')
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Client ID
+                                @if(!empty($config['MOOV_MONEY_CLIENT_ID']))
+                                <span class="ml-2 inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 px-2 py-0.5 rounded-full">Configuré</span>
+                                @endif
+                            </label>
+                            <input type="text" name="MOOV_MONEY_CLIENT_ID"
+                                value="{{ $config['MOOV_MONEY_CLIENT_ID'] ?? '' }}"
+                                placeholder="Client ID fourni par Moov Africa"
+                                class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Client Secret
+                                @if(!empty($config['MOOV_MONEY_CLIENT_SECRET']))
+                                <span class="ml-2 inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 px-2 py-0.5 rounded-full">Configuré</span>
+                                @endif
+                            </label>
+                            <input type="password" name="MOOV_MONEY_CLIENT_SECRET"
+                                placeholder="{{ !empty($config['MOOV_MONEY_CLIENT_SECRET']) ? '••••••••••••••••' : 'Client Secret' }}"
+                                class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Numéro Marchand (Merchant Number)</label>
+                        <input type="text" name="MOOV_MONEY_MERCHANT_NUMBER"
+                            value="{{ $config['MOOV_MONEY_MERCHANT_NUMBER'] ?? '' }}"
+                            placeholder="Ex: 225XXXXXXXXX"
+                            class="w-full sm:max-w-md border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition">
+                    </div>
+
+                    <div class="bg-sky-50 border border-sky-200 rounded-xl p-4 text-sm text-sky-800">
+                        <p class="font-semibold mb-1">Où trouver vos credentials ?</p>
+                        <p class="text-xs leading-relaxed">
+                            Moov Africa ne propose pas de portail développeur libre-service en Côte d'Ivoire : le <strong>Client ID</strong>, le <strong>Client Secret</strong> et le <strong>numéro marchand</strong> sont fournis directement par l'équipe partenariats Moov Money après signature d'un contrat marchand. En attendant, la plupart des plateformes locales traitent Moov Money via un agrégateur (CinetPay, PayDunya…).
+                        </p>
+                    </div>
+
+                    <button type="submit"
+                        class="inline-flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Enregistrer Moov Money
+                    </button>
+                </form>
+            </div>
+
             {{-- FCM Push Notifications --}}
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">

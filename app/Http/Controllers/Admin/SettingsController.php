@@ -37,6 +37,22 @@ class SettingsController extends Controller
         'CINETPAY_SITE_ID',
         // FCM
         'FCM_SERVER_KEY',
+        // Orange Money
+        'ORANGE_MONEY_CLIENT_ID',
+        'ORANGE_MONEY_CLIENT_SECRET',
+        'ORANGE_MONEY_MERCHANT_KEY',
+        // MTN Mobile Money
+        'MTN_MOMO_SUBSCRIPTION_KEY',
+        'MTN_MOMO_API_USER',
+        'MTN_MOMO_API_KEY',
+        'MTN_MOMO_TARGET_ENVIRONMENT',
+        // Wave
+        'WAVE_API_KEY',
+        'WAVE_WEBHOOK_SECRET',
+        // Moov Money
+        'MOOV_MONEY_CLIENT_ID',
+        'MOOV_MONEY_CLIENT_SECRET',
+        'MOOV_MONEY_MERCHANT_NUMBER',
     ];
 
     private array $sensitiveKeys = [
@@ -45,6 +61,13 @@ class SettingsController extends Controller
         'MAIL_PASSWORD',
         'CINETPAY_API_KEY',
         'FCM_SERVER_KEY',
+        'ORANGE_MONEY_CLIENT_SECRET',
+        'ORANGE_MONEY_MERCHANT_KEY',
+        'MTN_MOMO_SUBSCRIPTION_KEY',
+        'MTN_MOMO_API_KEY',
+        'WAVE_API_KEY',
+        'WAVE_WEBHOOK_SECRET',
+        'MOOV_MONEY_CLIENT_SECRET',
     ];
 
     private array $numericDefaults = [
@@ -79,7 +102,13 @@ class SettingsController extends Controller
             'whatsapp'    => ['WHATSAPP_API_TOKEN', 'WHATSAPP_PHONE_NUMBER_ID', 'WHATSAPP_TEMPLATE_NAME'],
             'email'       => ['MAIL_MAILER', 'MAIL_HOST', 'MAIL_PORT', 'MAIL_USERNAME', 'MAIL_PASSWORD', 'MAIL_FROM_ADDRESS', 'MAIL_FROM_NAME'],
             'commissions' => ['SERVICE_FEE_PERCENT', 'PLATFORM_COMMISSION_PERCENT', 'VAT_ENABLED', 'VAT_PERCENT'],
-            'payment_api' => ['CINETPAY_API_KEY', 'CINETPAY_SITE_ID', 'FCM_SERVER_KEY'],
+            'payment_api' => [
+                'CINETPAY_API_KEY', 'CINETPAY_SITE_ID', 'FCM_SERVER_KEY',
+                'ORANGE_MONEY_CLIENT_ID', 'ORANGE_MONEY_CLIENT_SECRET', 'ORANGE_MONEY_MERCHANT_KEY',
+                'MTN_MOMO_SUBSCRIPTION_KEY', 'MTN_MOMO_API_USER', 'MTN_MOMO_API_KEY', 'MTN_MOMO_TARGET_ENVIRONMENT',
+                'WAVE_API_KEY', 'WAVE_WEBHOOK_SECRET',
+                'MOOV_MONEY_CLIENT_ID', 'MOOV_MONEY_CLIENT_SECRET', 'MOOV_MONEY_MERCHANT_NUMBER',
+            ],
             default       => [],
         };
 
