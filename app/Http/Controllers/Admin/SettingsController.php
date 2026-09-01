@@ -148,6 +148,13 @@ class SettingsController extends Controller
         } catch (\Throwable) {
         }
 
+        // Restart queue workers so they pick up the new config (SMTP, SMS, etc.)
+        // instead of keeping the settings loaded when they last booted.
+        try {
+            \Artisan::call('queue:restart');
+        } catch (\Throwable) {
+        }
+
         return redirect()->route('admin.settings.show', ['tab' => $section])
             ->with('success', 'Configuration mise à jour avec succès.');
     }
