@@ -379,6 +379,23 @@
             <form action="{{ route('admin.settings.update', 'email') }}" method="POST" class="px-6 py-6 space-y-5">
                 @csrf @method('PUT')
 
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Mode d'envoi
+                        @if(($config['MAIL_MAILER'] ?? 'log') !== 'smtp')
+                        <span class="ml-2 inline-flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">
+                            ⚠ Mode "{{ $config['MAIL_MAILER'] ?? 'log' }}" — les emails ne sont pas réellement envoyés
+                        </span>
+                        @endif
+                    </label>
+                    <select name="MAIL_MAILER"
+                        class="w-full sm:max-w-xs border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+                        <option value="smtp" {{ ($config['MAIL_MAILER'] ?? 'log') === 'smtp' ? 'selected' : '' }}>SMTP (envoi réel)</option>
+                        <option value="log" {{ ($config['MAIL_MAILER'] ?? 'log') === 'log' ? 'selected' : '' }}>Log (test — écrit dans les logs, n'envoie rien)</option>
+                    </select>
+                    <p class="text-xs text-gray-400 mt-1">Doit être sur <strong>SMTP</strong> pour que les emails partent réellement. Le mode "Log" n'écrit que dans <code>storage/logs/laravel.log</code>.</p>
+                </div>
+
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
                     <div class="sm:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Serveur SMTP (Host)</label>

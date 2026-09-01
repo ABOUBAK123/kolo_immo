@@ -177,6 +177,11 @@ class SettingsController extends Controller
 
         $to = $request->input('test_email');
 
+        if (config('mail.default') !== 'smtp') {
+            return redirect()->route('admin.settings.show', ['tab' => 'email'])
+                ->with('error', 'Le mode d\'envoi actuel est "' . config('mail.default') . '", pas "SMTP" — aucun email n\'a réellement été envoyé. Changez le "Mode d\'envoi" en SMTP ci-dessus et enregistrez avant de tester.');
+        }
+
         try {
             Mail::raw(
                 "Ceci est un email de test envoyé depuis les paramètres SMTP de Kolo Immo.\n\n"
