@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class SettingsController extends Controller
 {
@@ -166,6 +167,37 @@ class SettingsController extends Controller
 
         return redirect()->route('admin.settings.show', ['tab' => $section])
             ->with('success', 'Configuration mise à jour avec succès.');
+    }
+
+    public function testEmail(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $request->validate([
+            'test_email' => ['required', 'email'],
+        ]);
+
+        $to = $request->input('test_email');
+
+        try {
+            Mail::raw(
+                "Ceci est un email de test envoyé depuis les paramètres SMTP de Kolo Immo.\n\n"
+                . "Si vous recevez ce message, votre configuration SMTP fonctionne correctement.\n\n"
+                . "Envoyé le " . now()->format('d/m/Y à H:i'),
+                function ($message) use ($to) {
+                    $message->to($to)->subject('Kolo Immo — Test de configuration SMTP');
+                }
+            );
+        } catch (\Throwable $e) {
+            \Log::error('[KOLO IMMO] Échec du test SMTP', [
+                'to'    => $to,
+                'error' => $e->getMessage(),
+            ]);
+
+            return redirect()->route('admin.settings.show', ['tab' => 'email'])
+                ->with('error', "Échec de l'envoi du test : " . $e->getMessage());
+        }
+
+        return redirect()->route('admin.settings.show', ['tab' => 'email'])
+            ->with('success', "Email de test envoyé avec succès à {$to}. Vérifiez la boîte de réception (et les spams).");
     }
 
     public function uploadPaymentLogo(Request $request): \Illuminate\Http\RedirectResponse
