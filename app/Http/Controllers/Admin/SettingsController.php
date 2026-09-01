@@ -184,7 +184,7 @@ class SettingsController extends Controller
 
         try {
             Mail::to($to)->send(new \App\Mail\SmtpTestMail(
-                to: $to,
+                recipientEmail: $to,
                 host: config('mail.mailers.smtp.host', ''),
                 sentAt: now()->format('d/m/Y à H:i'),
             ));

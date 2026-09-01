@@ -13,7 +13,7 @@ class SmtpTestMail extends Mailable
     use Queueable, SerializesModels;
 
     public function __construct(
-        public readonly string $to,
+        public readonly string $recipientEmail,
         public readonly string $host,
         public readonly string $sentAt,
     ) {}
@@ -28,7 +28,7 @@ class SmtpTestMail extends Mailable
         return new Content(
             view: 'emails.smtp-test',
             with: [
-                'to'     => $this->to,
+                'to'     => $this->recipientEmail,
                 'host'   => $this->host,
                 'sentAt' => $this->sentAt,
             ],
