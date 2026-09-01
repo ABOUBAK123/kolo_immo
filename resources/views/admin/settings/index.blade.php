@@ -462,8 +462,8 @@
         {{-- Test d'envoi SMTP --}}
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mt-6">
             <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
-                <div class="w-9 h-9 bg-teal-50 rounded-lg flex items-center justify-center">
-                    <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                     </svg>
                 </div>
@@ -477,9 +477,9 @@
                 <div class="flex flex-col sm:flex-row gap-3">
                     <input type="email" name="test_email" required
                         placeholder="votre@email.com"
-                        class="flex-1 border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition">
+                        class="flex-1 border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
                     <button type="submit"
-                        class="inline-flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors whitespace-nowrap">
+                        class="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors whitespace-nowrap">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                         </svg>
@@ -807,8 +807,8 @@
                         <img src="{{ $apiPaymentLogos['moov_money'] }}" alt="Moov Money" class="w-full h-full object-contain p-1">
                     </div>
                     @else
-                    <div class="w-9 h-9 bg-sky-50 rounded-lg flex items-center justify-center">
-                        <svg class="w-5 h-5 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="w-9 h-9 bg-violet-50 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                         </svg>
                     </div>
@@ -832,7 +832,7 @@
                             <input type="text" name="MOOV_MONEY_CLIENT_ID"
                                 value="{{ $config['MOOV_MONEY_CLIENT_ID'] ?? '' }}"
                                 placeholder="Client ID fourni par Moov Africa"
-                                class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition">
+                                class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none transition">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -843,7 +843,7 @@
                             </label>
                             <input type="password" name="MOOV_MONEY_CLIENT_SECRET"
                                 placeholder="{{ !empty($config['MOOV_MONEY_CLIENT_SECRET']) ? '••••••••••••••••' : 'Client Secret' }}"
-                                class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition">
+                                class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none transition">
                         </div>
                     </div>
 
@@ -852,10 +852,10 @@
                         <input type="text" name="MOOV_MONEY_MERCHANT_NUMBER"
                             value="{{ $config['MOOV_MONEY_MERCHANT_NUMBER'] ?? '' }}"
                             placeholder="Ex: 225XXXXXXXXX"
-                            class="w-full sm:max-w-md border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition">
+                            class="w-full sm:max-w-md border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none transition">
                     </div>
 
-                    <div class="bg-sky-50 border border-sky-200 rounded-xl p-4 text-sm text-sky-800">
+                    <div class="bg-violet-50 border border-violet-200 rounded-xl p-4 text-sm text-violet-800">
                         <p class="font-semibold mb-1">Où trouver vos credentials ?</p>
                         <p class="text-xs leading-relaxed">
                             Moov Africa ne propose pas de portail développeur libre-service en Côte d'Ivoire : le <strong>Client ID</strong>, le <strong>Client Secret</strong> et le <strong>numéro marchand</strong> sont fournis directement par l'équipe partenariats Moov Money après signature d'un contrat marchand. En attendant, la plupart des plateformes locales traitent Moov Money via un agrégateur (CinetPay, PayDunya…).
@@ -863,7 +863,7 @@
                     </div>
 
                     <button type="submit"
-                        class="inline-flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors">
+                        class="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
