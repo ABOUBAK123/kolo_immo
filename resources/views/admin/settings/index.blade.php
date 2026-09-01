@@ -465,6 +465,15 @@
     <div x-show="tab === 'payment_api'" x-cloak>
         <div class="space-y-6">
 
+            @php
+                $apiLogoDir = public_path('payment_logos');
+                $apiPaymentLogos = [];
+                foreach (['orange_money', 'mtn_momo', 'wave', 'moov_money'] as $pmKey) {
+                    $files = is_dir($apiLogoDir) ? glob("{$apiLogoDir}/{$pmKey}.*") : [];
+                    $apiPaymentLogos[$pmKey] = !empty($files) ? asset('payment_logos/' . basename($files[0])) : null;
+                }
+            @endphp
+
             {{-- CinetPay --}}
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
@@ -538,11 +547,17 @@
             {{-- Orange Money --}}
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                    @if($apiPaymentLogos['orange_money'])
+                    <div class="w-9 h-9 rounded-lg overflow-hidden border border-gray-100 bg-gray-50 flex items-center justify-center">
+                        <img src="{{ $apiPaymentLogos['orange_money'] }}" alt="Orange Money" class="w-full h-full object-contain p-1">
+                    </div>
+                    @else
                     <div class="w-9 h-9 bg-orange-50 rounded-lg flex items-center justify-center">
                         <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </div>
+                    @endif
                     <div>
                         <h3 class="font-semibold text-gray-800">Orange Money — Web Payment API</h3>
                         <p class="text-xs text-gray-400">Intégration directe Orange Money. <a href="https://developer.orange.com/apis/om-webpay" target="_blank" class="text-blue-500 hover:underline">developer.orange.com</a></p>
@@ -610,11 +625,17 @@
             {{-- MTN Mobile Money --}}
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                    @if($apiPaymentLogos['mtn_momo'])
+                    <div class="w-9 h-9 rounded-lg overflow-hidden border border-gray-100 bg-gray-50 flex items-center justify-center">
+                        <img src="{{ $apiPaymentLogos['mtn_momo'] }}" alt="MTN MoMo" class="w-full h-full object-contain p-1">
+                    </div>
+                    @else
                     <div class="w-9 h-9 bg-yellow-50 rounded-lg flex items-center justify-center">
                         <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z"/>
                         </svg>
                     </div>
+                    @endif
                     <div>
                         <h3 class="font-semibold text-gray-800">MTN Mobile Money — Collection API</h3>
                         <p class="text-xs text-gray-400">Intégration directe MTN MoMo. <a href="https://momodeveloper.mtn.com" target="_blank" class="text-blue-500 hover:underline">momodeveloper.mtn.com</a></p>
@@ -686,11 +707,17 @@
             {{-- Wave --}}
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                    @if($apiPaymentLogos['wave'])
+                    <div class="w-9 h-9 rounded-lg overflow-hidden border border-gray-100 bg-gray-50 flex items-center justify-center">
+                        <img src="{{ $apiPaymentLogos['wave'] }}" alt="Wave" class="w-full h-full object-contain p-1">
+                    </div>
+                    @else
                     <div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center">
                         <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999A6 6 0 003 15z"/>
                         </svg>
                     </div>
+                    @endif
                     <div>
                         <h3 class="font-semibold text-gray-800">Wave — Business API</h3>
                         <p class="text-xs text-gray-400">Intégration directe Wave Checkout. <a href="https://docs.wave.com" target="_blank" class="text-blue-500 hover:underline">docs.wave.com</a></p>
@@ -744,11 +771,17 @@
             {{-- Moov Money --}}
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                    @if($apiPaymentLogos['moov_money'])
+                    <div class="w-9 h-9 rounded-lg overflow-hidden border border-gray-100 bg-gray-50 flex items-center justify-center">
+                        <img src="{{ $apiPaymentLogos['moov_money'] }}" alt="Moov Money" class="w-full h-full object-contain p-1">
+                    </div>
+                    @else
                     <div class="w-9 h-9 bg-sky-50 rounded-lg flex items-center justify-center">
                         <svg class="w-5 h-5 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                         </svg>
                     </div>
+                    @endif
                     <div>
                         <h3 class="font-semibold text-gray-800">Moov Money — API Paiement Marchand</h3>
                         <p class="text-xs text-gray-400">Intégration directe Moov Money (Moov Africa).</p>
