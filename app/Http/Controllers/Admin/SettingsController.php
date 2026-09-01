@@ -183,14 +183,11 @@ class SettingsController extends Controller
         }
 
         try {
-            Mail::raw(
-                "Ceci est un email de test envoyé depuis les paramètres SMTP de Kolo Immo.\n\n"
-                . "Si vous recevez ce message, votre configuration SMTP fonctionne correctement.\n\n"
-                . "Envoyé le " . now()->format('d/m/Y à H:i'),
-                function ($message) use ($to) {
-                    $message->to($to)->subject('Kolo Immo — Test de configuration SMTP');
-                }
-            );
+            Mail::to($to)->send(new \App\Mail\SmtpTestMail(
+                to: $to,
+                host: config('mail.mailers.smtp.host', ''),
+                sentAt: now()->format('d/m/Y à H:i'),
+            ));
         } catch (\Throwable $e) {
             \Log::error('[KOLO IMMO] Échec du test SMTP', [
                 'to'    => $to,
