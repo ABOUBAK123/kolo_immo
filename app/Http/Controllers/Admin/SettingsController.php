@@ -140,7 +140,16 @@ class SettingsController extends Controller
             }
         }
 
-        $this->writeEnv($updates);
+        try {
+            $this->writeEnv($updates);
+        } catch (\Throwable $e) {
+            \Log::error('[KOLO IMMO] Échec écriture .env depuis les paramètres admin', [
+                'section' => $section,
+                'error'   => $e->getMessage(),
+            ]);
+
+            return back()->with('error', 'Impossible d\'enregistrer la configuration : le fichier .env n\'est pas accessible en écriture sur ce serveur. Contactez votre hébergeur pour vérifier les permissions.');
+        }
 
         // Clear config cache
         try {
@@ -201,7 +210,16 @@ class SettingsController extends Controller
     private function writeEnv(array $updates): void
     {
         $path = base_path('.env');
+
+        if (!is_readable($path)) {
+            throw new \RuntimeException("Le fichier .env est introuvable ou illisible ({$path}).");
+        }
+
         $content = file_get_contents($path);
+
+        if ($content === false) {
+            throw new \RuntimeException("Échec de lecture du fichier .env ({$path}).");
+        }
 
         foreach ($updates as $key => $value) {
             // Quote value if it contains spaces
@@ -218,6 +236,8 @@ class SettingsController extends Controller
             }
         }
 
-        file_put_contents($path, $content);
+        if (!is_writable($path) || file_put_contents($path, $content) === false) {
+            throw new \RuntimeException("Échec d'écriture du fichier .env ({$path}). Vérifiez les permissions.");
+        }
     }
 }
