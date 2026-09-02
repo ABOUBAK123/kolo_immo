@@ -115,7 +115,15 @@ class AdminController extends Controller
             return back()->with('error', 'Impossible de modifier le statut d\'un administrateur.');
         }
 
-        $user->update(['is_active' => !$user->is_active]);
+        $activating = !$user->is_active;
+        $updates    = ['is_active' => $activating];
+
+        // Generate the agent's referral code the first time their account is activated.
+        if ($activating && $user->isAgent() && empty($user->agent_code)) {
+            $updates['agent_code'] = User::generateAgentCode();
+        }
+
+        $user->update($updates);
         $label = $user->is_active ? 'activé' : 'désactivé';
 
         return back()->with('success', "Compte utilisateur {$label}.");
@@ -336,6 +344,62 @@ class AdminController extends Controller
             ->paginate(15);
 
         return view('admin.disputes.index', compact('disputes'));
+    }
+
+    /**
+     * Admin review moderation.
+     */
+    public function reviews(Request $request)
+    {
+        $query = Review::with(['reviewer', 'reviewee', 'property', 'booking']);
+
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+
+        if ($request->get('flagged') === '1') {
+            $query->where('is_flagged', true);
+        }
+
+        if ($request->filled('rating')) {
+            $query->where('rating_overall', '<=', (int) $request->rating);
+        }
+
+        $reviews     = $query->latest()->paginate(20)->withQueryString();
+        $flaggedCount = Review::where('is_flagged', true)->count();
+
+        return view('admin.reviews.index', compact('reviews', 'flaggedCount'));
+    }
+
+    /**
+     * Unflag a review (admin).
+     */
+    public function unflagReview(Review $review)
+    {
+        $review->update(['is_flagged' => false, 'flag_reason' => null]);
+        return back()->with('success', 'Signalement retiré.');
+    }
+
+    /**
+     * Delete a review (admin).
+     */
+    public function deleteReview(Review $review)
+    {
+        $propertyId = $review->property_id;
+        $type       = $review->type;
+        $review->delete();
+
+        // Recalculate property rating if it was a property review
+        if ($type === 'tenant_to_property' && $propertyId) {
+            $stats = Review::where('property_id', $propertyId)->where('type', 'tenant_to_property')
+                ->selectRaw('AVG(rating_overall) as avg_rating, COUNT(*) as count')->first();
+            Property::where('id', $propertyId)->update([
+                'rating_avg'   => round($stats->avg_rating ?? 0, 1),
+                'rating_count' => $stats->count ?? 0,
+            ]);
+        }
+
+        return back()->with('success', 'Avis supprimé.');
     }
 
     /**

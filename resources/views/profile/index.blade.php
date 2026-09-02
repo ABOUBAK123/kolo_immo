@@ -149,6 +149,20 @@
         <div x-show="activeTab === 'infos'" x-cloak class="p-6">
             <h3 class="text-lg font-bold text-gray-900 mb-6">Informations personnelles</h3>
 
+            @if($user->isAgent())
+            <div class="mb-6 border border-purple-200 bg-purple-50 rounded-xl p-4">
+                <p class="text-sm font-semibold text-purple-800 mb-1">Votre code agent</p>
+                @if($user->agent_code)
+                <p class="text-xs text-purple-600 mb-2">Communiquez ce code aux propriétaires et locataires que vous inscrivez sur la plateforme.</p>
+                <div class="inline-flex items-center gap-2 bg-white border border-purple-300 rounded-lg px-4 py-2">
+                    <span class="font-mono font-bold text-purple-800 tracking-wide">{{ $user->agent_code }}</span>
+                </div>
+                @else
+                <p class="text-xs text-purple-600">Votre code sera généré automatiquement dès que votre compte sera activé par l'administrateur.</p>
+                @endif
+            </div>
+            @endif
+
             @if(session('success') && session('tab') === 'infos')
             <div class="mb-4 bg-green-50 border border-green-200 text-green-800 rounded-xl px-4 py-3 text-sm flex items-center gap-2">
                 <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">

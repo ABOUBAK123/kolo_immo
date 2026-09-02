@@ -18,6 +18,8 @@ class User extends Authenticatable
         'phone',
         'password',
         'role',
+        'agent_code',
+        'referred_by_agent_id',
         'kyc_status',
         'avatar',
         'country',
@@ -47,7 +49,7 @@ class User extends Authenticatable
             'password'           => 'hashed',
             'is_active'          => 'boolean',
             'is_banned'          => 'boolean',
-            'trust_score'        => 'integer',
+            'trust_score'        => 'float',
         ];
     }
 
@@ -113,6 +115,18 @@ class User extends Authenticatable
         return $this->hasMany(KycDocument::class);
     }
 
+    /** The agent who referred this user at registration (via agent code), if any. */
+    public function referredByAgent()
+    {
+        return $this->belongsTo(User::class, 'referred_by_agent_id');
+    }
+
+    /** Users (owners/tenants) this agent has referred via their agent code. */
+    public function referredUsers()
+    {
+        return $this->hasMany(User::class, 'referred_by_agent_id');
+    }
+
     public function favorites()
     {
         return $this->hasMany(Favorite::class);
@@ -169,6 +183,16 @@ class User extends Authenticatable
     public function isKycVerified(): bool
     {
         return $this->kyc_status === 'verified';
+    }
+
+    /** Generate a unique agent referral code, e.g. "AGT-K3F9QX". */
+    public static function generateAgentCode(): string
+    {
+        do {
+            $code = 'AGT-' . strtoupper(\Illuminate\Support\Str::random(6));
+        } while (self::where('agent_code', $code)->exists());
+
+        return $code;
     }
 
     public function avatarUrl(): string

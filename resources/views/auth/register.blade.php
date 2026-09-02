@@ -33,7 +33,7 @@
             </div>
             @endif
 
-            <form action="{{ route('register') }}" method="POST">
+            <form action="{{ route('register') }}" method="POST" enctype="multipart/form-data">
                 @csrf
 
                 <!-- Role selector -->
@@ -94,8 +94,19 @@
                         <svg class="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
-                        <p class="text-xs text-amber-700">Ce type de compte sera activé par l'administrateur après vérification.</p>
+                        <p class="text-xs text-amber-700">Ce type de compte sera activé par l'administrateur après vérification de votre pièce d'identité ci-dessous.</p>
                     </div>
+                </div>
+
+                <!-- Code agent (facultatif, pour propriétaires/locataires parrainés par un agent) -->
+                <div class="mb-4" x-show="role === 'tenant' || role === 'owner'" x-cloak>
+                    <label for="agent_code" class="block text-sm font-semibold text-gray-700 mb-1.5">
+                        Code agent <span class="text-gray-400 font-normal">(facultatif)</span>
+                    </label>
+                    <input type="text" id="agent_code" name="agent_code" value="{{ old('agent_code') }}"
+                        placeholder="Ex: AGT-K3F9QX"
+                        class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm uppercase {{ $errors->has('agent_code') ? 'border-red-300 bg-red-50' : '' }}">
+                    <p class="text-xs text-gray-400 mt-1">Si un agent immobilier vous a communiqué un code, saisissez-le ici.</p>
                 </div>
 
                 <!-- Name fields -->
@@ -205,6 +216,52 @@
                             <option value="{{ $capital }}">
                             @endforeach
                         </datalist>
+                    </div>
+                </div>
+
+                <!-- KYC (vérification d'identité) — obligatoire pour Propriétaire / Agent Immo -->
+                <div x-show="role === 'owner' || role === 'agent'" x-cloak
+                    class="mb-6 border border-gray-200 rounded-xl p-4 bg-gray-50/60">
+                    <div class="flex items-center gap-2 mb-1">
+                        <svg class="w-4 h-4 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
+                        <p class="font-semibold text-sm text-gray-800">Vérification d'identité (KYC)</p>
+                    </div>
+                    <p class="text-xs text-gray-500 mb-4">Requise pour activer votre compte. Vos documents sont examinés par notre équipe.</p>
+
+                    <div class="mb-4">
+                        <label for="kyc_type" class="block text-sm font-semibold text-gray-700 mb-1.5">
+                            Type de pièce <span class="text-red-500">*</span>
+                        </label>
+                        <select id="kyc_type" name="kyc_type"
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white {{ $errors->has('kyc_type') ? 'border-red-300' : '' }}"
+                            :required="role === 'owner' || role === 'agent'">
+                            <option value="">Sélectionner...</option>
+                            <option value="cni" {{ old('kyc_type') === 'cni' ? 'selected' : '' }}>Carte Nationale d'Identité</option>
+                            <option value="passport" {{ old('kyc_type') === 'passport' ? 'selected' : '' }}>Passeport</option>
+                            <option value="residence_permit" {{ old('kyc_type') === 'residence_permit' ? 'selected' : '' }}>Titre de séjour</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="kyc_document" class="block text-sm font-semibold text-gray-700 mb-1.5">
+                                Pièce justificative <span class="text-red-500">*</span>
+                            </label>
+                            <input type="file" id="kyc_document" name="kyc_document" accept=".pdf,.jpg,.jpeg,.png"
+                                class="w-full text-xs text-gray-600 border border-gray-200 rounded-xl px-3 py-2.5 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer {{ $errors->has('kyc_document') ? 'border-red-300' : '' }}"
+                                :required="role === 'owner' || role === 'agent'">
+                            <p class="text-xs text-gray-400 mt-1">PDF, JPG ou PNG · max 5 Mo</p>
+                        </div>
+                        <div>
+                            <label for="kyc_selfie" class="block text-sm font-semibold text-gray-700 mb-1.5">
+                                Selfie <span class="text-gray-400 font-normal">(facultatif)</span>
+                            </label>
+                            <input type="file" id="kyc_selfie" name="kyc_selfie" accept="image/*"
+                                class="w-full text-xs text-gray-600 border border-gray-200 rounded-xl px-3 py-2.5 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer {{ $errors->has('kyc_selfie') ? 'border-red-300' : '' }}">
+                            <p class="text-xs text-gray-400 mt-1">JPG ou PNG · max 2 Mo</p>
+                        </div>
                     </div>
                 </div>
 
