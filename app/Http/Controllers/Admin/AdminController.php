@@ -43,11 +43,12 @@ class AdminController extends Controller
     }
 
     /**
-     * List all users with filters.
+     * List tenant accounts with filters. This tab is scoped to locataires only —
+     * owners/agents/admins are managed from their own dedicated tabs.
      */
     public function users(Request $request)
     {
-        $query = User::query();
+        $query = User::query()->where('role', 'tenant');
 
         if ($request->filled('search')) {
             $s = $request->search;
@@ -56,10 +57,6 @@ class AdminController extends Controller
                   ->orWhere('email', 'like', "%{$s}%")
                   ->orWhere('phone', 'like', "%{$s}%");
             });
-        }
-
-        if ($request->filled('role')) {
-            $query->where('role', $request->role);
         }
 
         if ($request->filled('kyc')) {
@@ -80,6 +77,85 @@ class AdminController extends Controller
             ->withQueryString();
 
         return view('admin.users.index', compact('users'));
+    }
+
+    /**
+     * List real-estate agent accounts with filters.
+     */
+    public function agents(Request $request)
+    {
+        $query = User::query()->where('role', 'agent');
+
+        if ($request->filled('search')) {
+            $s = $request->search;
+            $query->where(function ($q) use ($s) {
+                $q->where('name', 'like', "%{$s}%")
+                  ->orWhere('email', 'like', "%{$s}%")
+                  ->orWhere('phone', 'like', "%{$s}%")
+                  ->orWhere('agent_code', 'like', "%{$s}%");
+            });
+        }
+
+        if ($request->filled('kyc')) {
+            $query->where('kyc_status', $request->kyc);
+        }
+
+        if ($request->filled('activation') && $request->activation === 'pending') {
+            $query->where('is_active', false)->where('is_banned', false);
+        }
+
+        $agents = $query->withCount('referredUsers')
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('admin.agents.index', compact('agents'));
+    }
+
+    /**
+     * Show the form to edit an agent's basic info.
+     */
+    public function editAgent(User $agent)
+    {
+        return view('admin.agents.edit', compact('agent'));
+    }
+
+    /**
+     * Update an agent's basic info (name, email, phone, country, city).
+     */
+    public function updateAgent(Request $request, User $agent)
+    {
+        $data = $request->validate([
+            'name'    => ['required', 'string', 'max:100'],
+            'email'   => ['required', 'email', 'unique:users,email,' . $agent->id],
+            'phone'   => ['required', 'string', 'max:20', 'unique:users,phone,' . $agent->id],
+            'country' => ['nullable', 'string', 'max:100'],
+            'city'    => ['nullable', 'string', 'max:100'],
+        ], [
+            'name.required'  => 'Le nom complet est obligatoire.',
+            'email.required' => 'L\'adresse email est obligatoire.',
+            'email.unique'   => 'Cette adresse email est déjà utilisée.',
+            'phone.required' => 'Le numéro de téléphone est obligatoire.',
+            'phone.unique'   => 'Ce numéro de téléphone est déjà utilisé.',
+        ]);
+
+        $agent->update($data);
+
+        return redirect()->route('admin.agents.index')->with('success', 'Agent mis à jour avec succès.');
+    }
+
+    /**
+     * Archive (soft-delete) an agent account.
+     */
+    public function destroyAgent(User $agent)
+    {
+        if ($agent->isAdmin()) {
+            return back()->with('error', 'Impossible de supprimer un administrateur.');
+        }
+
+        $agent->delete();
+
+        return redirect()->route('admin.agents.index')->with('success', 'Agent archivé avec succès.');
     }
 
     /**

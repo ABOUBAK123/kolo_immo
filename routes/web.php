@@ -261,11 +261,17 @@ Route::middleware(['auth', 'owner'])->prefix('owner')->name('owner.')->group(fun
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
 
-    // Users
+    // Users (locataires)
     Route::get('/users', [AdminController::class, 'users'])->name('users.index');
     Route::get('/users/{user}', [AdminController::class, 'showUser'])->name('users.show');
     Route::patch('/users/{user}/toggle-ban', [AdminController::class, 'toggleBan'])->name('users.toggle-ban');
     Route::patch('/users/{user}/toggle-active', [AdminController::class, 'toggleActive'])->name('users.toggle-active');
+
+    // Agents Immo
+    Route::get('/agents', [AdminController::class, 'agents'])->name('agents.index');
+    Route::get('/agents/{agent}/edit', [AdminController::class, 'editAgent'])->name('agents.edit');
+    Route::put('/agents/{agent}', [AdminController::class, 'updateAgent'])->name('agents.update');
+    Route::delete('/agents/{agent}', [AdminController::class, 'destroyAgent'])->name('agents.destroy');
 
     // KYC
     Route::get('/kyc', [AdminController::class, 'kycList'])->name('kyc.index');
