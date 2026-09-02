@@ -86,6 +86,14 @@
                 Agents Immo
             </a>
 
+            <a href="{{ route('admin.owners.index') }}"
+                class="sidebar-link {{ request()->routeIs('admin.owners.*') ? 'active' : '' }}">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+                </svg>
+                Propriétaires
+            </a>
+
             <a href="{{ route('admin.properties.index') }}"
                 class="sidebar-link {{ request()->routeIs('admin.properties.*') ? 'active' : '' }}">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">

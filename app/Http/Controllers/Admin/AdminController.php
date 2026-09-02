@@ -159,6 +159,84 @@ class AdminController extends Controller
     }
 
     /**
+     * List owner accounts with filters.
+     */
+    public function owners(Request $request)
+    {
+        $query = User::query()->where('role', 'owner');
+
+        if ($request->filled('search')) {
+            $s = $request->search;
+            $query->where(function ($q) use ($s) {
+                $q->where('name', 'like', "%{$s}%")
+                  ->orWhere('email', 'like', "%{$s}%")
+                  ->orWhere('phone', 'like', "%{$s}%");
+            });
+        }
+
+        if ($request->filled('kyc')) {
+            $query->where('kyc_status', $request->kyc);
+        }
+
+        if ($request->filled('activation') && $request->activation === 'pending') {
+            $query->where('is_active', false)->where('is_banned', false);
+        }
+
+        $owners = $query->withCount('properties')
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('admin.owners.index', compact('owners'));
+    }
+
+    /**
+     * Show the form to edit an owner's basic info.
+     */
+    public function editOwner(User $owner)
+    {
+        return view('admin.owners.edit', compact('owner'));
+    }
+
+    /**
+     * Update an owner's basic info (name, email, phone, country, city).
+     */
+    public function updateOwner(Request $request, User $owner)
+    {
+        $data = $request->validate([
+            'name'    => ['required', 'string', 'max:100'],
+            'email'   => ['required', 'email', 'unique:users,email,' . $owner->id],
+            'phone'   => ['required', 'string', 'max:20', 'unique:users,phone,' . $owner->id],
+            'country' => ['nullable', 'string', 'max:100'],
+            'city'    => ['nullable', 'string', 'max:100'],
+        ], [
+            'name.required'  => 'Le nom complet est obligatoire.',
+            'email.required' => 'L\'adresse email est obligatoire.',
+            'email.unique'   => 'Cette adresse email est déjà utilisée.',
+            'phone.required' => 'Le numéro de téléphone est obligatoire.',
+            'phone.unique'   => 'Ce numéro de téléphone est déjà utilisé.',
+        ]);
+
+        $owner->update($data);
+
+        return redirect()->route('admin.owners.index')->with('success', 'Propriétaire mis à jour avec succès.');
+    }
+
+    /**
+     * Archive (soft-delete) an owner account.
+     */
+    public function destroyOwner(User $owner)
+    {
+        if ($owner->isAdmin()) {
+            return back()->with('error', 'Impossible de supprimer un administrateur.');
+        }
+
+        $owner->delete();
+
+        return redirect()->route('admin.owners.index')->with('success', 'Propriétaire archivé avec succès.');
+    }
+
+    /**
      * Show a user's details.
      */
     public function showUser(User $user)

@@ -273,6 +273,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::put('/agents/{agent}', [AdminController::class, 'updateAgent'])->name('agents.update');
     Route::delete('/agents/{agent}', [AdminController::class, 'destroyAgent'])->name('agents.destroy');
 
+    // Propriétaires
+    Route::get('/owners', [AdminController::class, 'owners'])->name('owners.index');
+    Route::get('/owners/{owner}/edit', [AdminController::class, 'editOwner'])->name('owners.edit');
+    Route::put('/owners/{owner}', [AdminController::class, 'updateOwner'])->name('owners.update');
+    Route::delete('/owners/{owner}', [AdminController::class, 'destroyOwner'])->name('owners.destroy');
+
     // KYC
     Route::get('/kyc', [AdminController::class, 'kycList'])->name('kyc.index');
     Route::get('/kyc/{kycDocument}', [AdminController::class, 'showKyc'])->name('kyc.show');
