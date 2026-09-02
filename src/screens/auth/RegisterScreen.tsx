@@ -111,10 +111,11 @@ export const RegisterScreen: React.FC<Props> = ({navigation}) => {
 
   const nextStep = () => {
     if (!validateStep()) return;
-    if (step === 2 && requiresKyc) {
-      setStep(3);
+    if (step === 2) {
+      if (requiresKyc) setStep(3);
+      else handleRegister();
     } else {
-      handleRegister();
+      setStep(s => s + 1);
     }
   };
 
