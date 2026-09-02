@@ -106,29 +106,41 @@
                         </form>
                     </td>
                     <td class="px-5 py-3">
-                        <div class="flex items-center justify-center gap-1 flex-wrap">
+                        <div class="flex items-center justify-center gap-1.5 flex-wrap">
 
                             {{-- Verification workflow --}}
                             @if($property->verification_status === 'pending')
                             <form method="POST" action="{{ route('admin.properties.under-review', $property) }}" class="inline">
                                 @csrf
-                                <button class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded font-semibold hover:bg-blue-200 transition">Examiner</button>
+                                <button title="Examiner"
+                                    class="w-8 h-8 inline-flex items-center justify-center text-blue-700 bg-blue-100 hover:bg-blue-200 rounded-lg transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                    </svg>
+                                </button>
                             </form>
                             @endif
 
                             @if(in_array($property->verification_status, ['pending', 'under_review', 'rejected']))
                             <form method="POST" action="{{ route('admin.properties.verify', $property) }}" class="inline">
                                 @csrf
-                                <button class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded font-semibold hover:bg-green-200 transition"
-                                    onclick="return confirm('Approuver ce logement ?')">Approuver</button>
+                                <button title="Approuver"
+                                    class="w-8 h-8 inline-flex items-center justify-center text-green-700 bg-green-100 hover:bg-green-200 rounded-lg transition-colors"
+                                    onclick="return confirm('Approuver ce logement ?')">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </button>
                             </form>
                             @endif
 
                             @if(in_array($property->verification_status, ['pending', 'under_review', 'verified']))
-                            <button type="button"
+                            <button type="button" title="Rejeter"
                                 @click="rejectModal = {{ $property->id }}; rejectNotes = ''"
-                                class="text-xs px-2 py-1 bg-red-100 text-red-700 rounded font-semibold hover:bg-red-200 transition">
-                                Rejeter
+                                class="w-8 h-8 inline-flex items-center justify-center text-red-700 bg-red-100 hover:bg-red-200 rounded-lg transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
                             </button>
                             @endif
 
@@ -139,20 +151,40 @@
                             <form method="POST" action="{{ route('admin.properties.toggle-status', $property) }}" class="inline">
                                 @csrf
                                 @if($property->status === 'suspended')
-                                <button class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded font-semibold hover:bg-blue-200 transition"
-                                    onclick="return confirm('Réactiver ce logement ?')">Réactiver</button>
+                                <button title="Réactiver"
+                                    class="w-8 h-8 inline-flex items-center justify-center text-blue-700 bg-blue-100 hover:bg-blue-200 rounded-lg transition-colors"
+                                    onclick="return confirm('Réactiver ce logement ?')">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                    </svg>
+                                </button>
                                 @elseif($property->status === 'active')
-                                <button class="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded font-semibold hover:bg-yellow-200 transition">Désactiver</button>
+                                <button title="Désactiver"
+                                    class="w-8 h-8 inline-flex items-center justify-center text-yellow-700 bg-yellow-100 hover:bg-yellow-200 rounded-lg transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </button>
                                 @else
-                                <button class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded font-semibold hover:bg-green-200 transition">Activer</button>
+                                <button title="Activer"
+                                    class="w-8 h-8 inline-flex items-center justify-center text-green-700 bg-green-100 hover:bg-green-200 rounded-lg transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </button>
                                 @endif
                             </form>
 
                             @if($property->status !== 'suspended')
                             <form method="POST" action="{{ route('admin.properties.suspend', $property) }}" class="inline">
                                 @csrf
-                                <button class="text-xs px-2 py-1 bg-red-100 text-red-700 rounded font-semibold hover:bg-red-200 transition"
-                                    onclick="return confirm('Suspendre ce logement ?')">Suspendre</button>
+                                <button title="Suspendre"
+                                    class="w-8 h-8 inline-flex items-center justify-center text-red-700 bg-red-100 hover:bg-red-200 rounded-lg transition-colors"
+                                    onclick="return confirm('Suspendre ce logement ?')">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 105.636 5.636a9 9 0 0012.728 12.728zM5.636 5.636l12.728 12.728"/>
+                                    </svg>
+                                </button>
                             </form>
                             @endif
                         </div>

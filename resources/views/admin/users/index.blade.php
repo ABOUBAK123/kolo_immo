@@ -130,29 +130,48 @@
                         @endif
                     </td>
                     <td class="px-5 py-3">
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <a href="{{ route('admin.users.show', $user) }}"
-                                class="text-blue-600 hover:text-blue-800 text-xs font-medium px-2 py-1 rounded bg-blue-50 hover:bg-blue-100 transition-colors">
-                                Voir
+                        <div class="flex items-center justify-center gap-1.5">
+                            <a href="{{ route('admin.users.show', $user) }}" title="Voir"
+                                class="w-8 h-8 inline-flex items-center justify-center text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
                             </a>
                             @if(!$user->is_banned)
                             <form action="{{ route('admin.users.toggle-active', $user) }}" method="POST">
                                 @csrf @method('PATCH')
-                                <button type="submit"
-                                    class="text-xs font-semibold px-2 py-1 rounded transition-colors
+                                <button type="submit" title="{{ $user->is_active ? 'Désactiver' : 'Activer' }}"
+                                    class="w-8 h-8 inline-flex items-center justify-center rounded-lg transition-colors
                                     {{ $user->is_active ? 'text-orange-700 bg-orange-50 hover:bg-orange-100' : 'text-green-700 bg-green-50 hover:bg-green-100' }}"
                                     onclick="return confirm('{{ $user->is_active ? 'Désactiver' : 'Activer' }} ce compte ?')">
-                                    {{ $user->is_active ? 'Désactiver' : '✓ Activer' }}
+                                    @if($user->is_active)
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.36 6.64a9 9 0 11-12.73 0M12 3v9"/>
+                                    </svg>
+                                    @else
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    @endif
                                 </button>
                             </form>
                             @endif
                             <form action="{{ route('admin.users.toggle-ban', $user) }}" method="POST">
                                 @csrf @method('PATCH')
-                                <button type="submit"
-                                    class="text-xs font-medium px-2 py-1 rounded transition-colors
+                                <button type="submit" title="{{ $user->is_banned ? 'Débannir' : 'Bannir' }}"
+                                    class="w-8 h-8 inline-flex items-center justify-center rounded-lg transition-colors
                                     {{ $user->is_banned ? 'text-green-700 bg-green-50 hover:bg-green-100' : 'text-red-700 bg-red-50 hover:bg-red-100' }}"
                                     onclick="return confirm('{{ $user->is_banned ? 'Débannir' : 'Bannir' }} cet utilisateur ?')">
-                                    {{ $user->is_banned ? 'Débannir' : 'Bannir' }}
+                                    @if($user->is_banned)
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v1h8z"/>
+                                    </svg>
+                                    @else
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 105.636 5.636a9 9 0 0012.728 12.728zM5.636 5.636l12.728 12.728"/>
+                                    </svg>
+                                    @endif
                                 </button>
                             </form>
                         </div>
