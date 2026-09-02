@@ -11,6 +11,9 @@ export interface User {
   avatar: string | null;
   phone_verified_at: string | null;
   created_at: string;
+  /** Referral code assigned to agent accounts once activated by an admin (e.g. "AGT-K3F9QX"). */
+  agent_code?: string | null;
+  is_active?: boolean;
 }
 
 export interface PropertyPhoto {
@@ -146,6 +149,10 @@ export type AuthStackParamList = {
   Login: undefined;
   Register: undefined;
   OTP: { phone: string; userId: number };
+  ForgotPassword: undefined;
+  ForgotPasswordOTP: { phone: string; masked: string; via: string };
+  ResetPassword: { phone: string; code: string };
+  SocialAuth: { provider: 'google' | 'facebook' | 'github'; providerLabel: string };
 };
 
 export type MainTabParamList = {

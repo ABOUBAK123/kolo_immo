@@ -1,5 +1,6 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {
+  Image,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -11,6 +12,7 @@ import {
   View,
 } from 'react-native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {launchImageLibrary} from 'react-native-image-picker';
 import {authApi} from '../../api/auth';
 import {Button} from '../../components/Button';
 import {Input} from '../../components/Input';
@@ -22,7 +24,13 @@ type Props = {
   navigation: NativeStackNavigationProp<AuthStackParamList, 'Register'>;
 };
 
-const STEPS = ['Infos', 'Sécurité', 'Profil'];
+type PickedFile = {uri: string; type: string; fileName: string};
+
+const KYC_TYPES: {value: 'cni' | 'passport' | 'residence_permit'; label: string}[] = [
+  {value: 'cni',              label: "Carte Nationale d'Identité"},
+  {value: 'passport',         label: 'Passeport'},
+  {value: 'residence_permit', label: 'Titre de séjour'},
+];
 const ROLES: {value: 'tenant' | 'owner' | 'both' | 'agent'; emoji: string; label: string; desc: string}[] = [
   {value: 'tenant', emoji: '🏠', label: 'Locataire',        desc: 'Je cherche un logement'},
   {value: 'owner',  emoji: '🔑', label: 'Propriétaire',     desc: 'Je loue mon bien'},
@@ -63,6 +71,17 @@ export const RegisterScreen: React.FC<Props> = ({navigation}) => {
   // Step 2 — Profil
   const [role, setRole]           = useState<'tenant' | 'owner' | 'both' | 'agent'>('tenant');
   const [country, setCountry]     = useState('CI');
+  const [agentCode, setAgentCode] = useState('');
+  // Step 3 — Vérification d'identité (Propriétaire / Agent immobilier uniquement)
+  const [kycType, setKycType]         = useState<'cni' | 'passport' | 'residence_permit' | ''>('');
+  const [kycDocument, setKycDocument] = useState<PickedFile | null>(null);
+  const [kycSelfie, setKycSelfie]     = useState<PickedFile | null>(null);
+
+  const requiresKyc = role === 'owner' || role === 'agent';
+  const STEPS = useMemo(
+    () => (requiresKyc ? ['Infos', 'Sécurité', 'Profil', 'Vérification'] : ['Infos', 'Sécurité', 'Profil']),
+    [requiresKyc],
+  );
 
   const [errors, setErrors]   = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -82,23 +101,65 @@ export const RegisterScreen: React.FC<Props> = ({navigation}) => {
       else if (!/[0-9]/.test(password)) e.password = 'Le mot de passe doit contenir des chiffres';
       if (password !== confirm) e.confirm = 'Les mots de passe ne correspondent pas';
     }
+    if (step === 3) {
+      if (!kycType) e.kyc_type = 'Veuillez choisir le type de pièce';
+      if (!kycDocument) e.kyc_document = 'Veuillez joindre une pièce justificative';
+    }
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
   const nextStep = () => {
-    if (validateStep()) setStep(s => s + 1);
+    if (!validateStep()) return;
+    if (step === 2 && requiresKyc) {
+      setStep(3);
+    } else {
+      handleRegister();
+    }
+  };
+
+  const pickKycFile = (target: 'document' | 'selfie') => {
+    launchImageLibrary({mediaType: 'photo', quality: 0.8}, response => {
+      if (response.didCancel || response.errorCode) return;
+      const asset = response.assets?.[0];
+      if (!asset?.uri) return;
+      const file: PickedFile = {uri: asset.uri, type: asset.type ?? 'image/jpeg', fileName: asset.fileName ?? `${target}.jpg`};
+      if (target === 'document') setKycDocument(file);
+      else setKycSelfie(file);
+      setErrors(e => ({...e, [target === 'document' ? 'kyc_document' : 'kyc_selfie']: ''}));
+    });
   };
 
   const handleRegister = async () => {
+    if (step === 3 && !validateStep()) return;
     setErrors({});
     setLoading(true);
     try {
-      const payload: any = {name, password, role, country};
-      if (email) payload.email = email;
-      if (phone) payload.phone = phone;
+      let res;
 
-      const res = await authApi.register(payload);
+      if (requiresKyc) {
+        const fd = new FormData();
+        fd.append('name', name);
+        fd.append('password', password);
+        fd.append('role', role);
+        fd.append('country', country);
+        if (email) fd.append('email', email);
+        if (phone) fd.append('phone', phone);
+        if (agentCode.trim()) fd.append('agent_code', agentCode.trim());
+        fd.append('kyc_type', kycType);
+        if (kycDocument) fd.append('kyc_document', kycDocument as any);
+        if (kycSelfie) fd.append('kyc_selfie', kycSelfie as any);
+
+        res = await authApi.register(fd);
+      } else {
+        const payload: any = {name, password, role, country};
+        if (email) payload.email = email;
+        if (phone) payload.phone = phone;
+        if (agentCode.trim()) payload.agent_code = agentCode.trim();
+
+        res = await authApi.register(payload);
+      }
+
       const regData = res.data.data;
       const userPhone: string | null = regData.phone ?? phone ?? null;
 
@@ -117,7 +178,8 @@ export const RegisterScreen: React.FC<Props> = ({navigation}) => {
           mapped[k] = Array.isArray(v) ? v[0] : (v as string);
         });
         setErrors(mapped);
-        setStep(0);
+        const kycFields = ['kyc_type', 'kyc_document', 'kyc_selfie'];
+        setStep(Object.keys(mapped).some(k => kycFields.includes(k)) ? 3 : 0);
       } else {
         setModal({
           visible: true,
@@ -299,13 +361,83 @@ export const RegisterScreen: React.FC<Props> = ({navigation}) => {
               ))}
             </View>
 
-            {(role === 'owner' || role === 'agent') && (
+            {(role === 'tenant' || role === 'owner' || role === 'both') && (
+              <View style={{marginTop: 20}}>
+                <Input
+                  label="Code agent (facultatif)"
+                  value={agentCode}
+                  onChangeText={setAgentCode}
+                  placeholder="Ex: AGT-K3F9QX"
+                  autoCapitalize="characters"
+                  hint="Si un agent immobilier vous a communiqué un code, saisissez-le ici."
+                />
+              </View>
+            )}
+
+            {requiresKyc && (
               <View style={styles.activationNotice}>
                 <Text style={styles.activationNoticeText}>
-                  ⏳ Ce type de compte sera activé par l'administrateur après vérification.
+                  ⏳ Ce type de compte sera activé par l'administrateur après vérification de votre pièce d'identité.
                 </Text>
               </View>
             )}
+
+            <Button
+              title={requiresKyc ? 'Suivant →' : 'Créer mon compte'}
+              onPress={nextStep}
+              loading={loading}
+              fullWidth
+              size="lg"
+              style={{marginTop: 24}}
+            />
+          </View>
+        )}
+
+        {/* ── Step 3 — Vérification d'identité (Propriétaire / Agent) ── */}
+        {step === 3 && (
+          <View>
+            <Text style={styles.stepTitle}>Vérification d'identité</Text>
+            <Text style={styles.stepSub}>Requise pour activer votre compte. Vos documents sont examinés par notre équipe.</Text>
+
+            <Text style={styles.fieldLabel}>Type de pièce *</Text>
+            <View style={{gap: 8, marginBottom: 4}}>
+              {KYC_TYPES.map(t => (
+                <TouchableOpacity
+                  key={t.value}
+                  style={[styles.kycTypeRow, kycType === t.value && styles.kycTypeRowActive]}
+                  onPress={() => { setKycType(t.value); setErrors(e => ({...e, kyc_type: ''})); }}
+                  activeOpacity={0.8}>
+                  <View style={[styles.radioDot, kycType === t.value && styles.radioDotActive]} />
+                  <Text style={[styles.kycTypeLabel, kycType === t.value && styles.kycTypeLabelActive]}>{t.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            {errors.kyc_type ? <Text style={styles.errorMsg}>{errors.kyc_type}</Text> : null}
+
+            <Text style={[styles.fieldLabel, {marginTop: 16}]}>Pièce justificative *</Text>
+            <TouchableOpacity style={styles.uploadBox} onPress={() => pickKycFile('document')} activeOpacity={0.8}>
+              {kycDocument ? (
+                <Image source={{uri: kycDocument.uri}} style={styles.uploadPreview} />
+              ) : (
+                <>
+                  <Text style={styles.uploadIcon}>📄</Text>
+                  <Text style={styles.uploadText}>Ajouter une photo de votre pièce</Text>
+                </>
+              )}
+            </TouchableOpacity>
+            {errors.kyc_document ? <Text style={styles.errorMsg}>{errors.kyc_document}</Text> : null}
+
+            <Text style={[styles.fieldLabel, {marginTop: 16}]}>Selfie (facultatif)</Text>
+            <TouchableOpacity style={styles.uploadBox} onPress={() => pickKycFile('selfie')} activeOpacity={0.8}>
+              {kycSelfie ? (
+                <Image source={{uri: kycSelfie.uri}} style={styles.uploadPreview} />
+              ) : (
+                <>
+                  <Text style={styles.uploadIcon}>🤳</Text>
+                  <Text style={styles.uploadText}>Ajouter un selfie</Text>
+                </>
+              )}
+            </TouchableOpacity>
 
             <Button
               title="Créer mon compte"
@@ -494,4 +626,42 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   activationNoticeText: { ...typography.bodySm, color: '#854d0e', lineHeight: 20 },
+
+  kycTypeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    borderRadius: radius.lg,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+  },
+  kycTypeRowActive: { borderColor: colors.primary, backgroundColor: colors.primaryFaint },
+  radioDot: {
+    width: 18,
+    height: 18,
+    borderRadius: radius.full,
+    borderWidth: 2,
+    borderColor: colors.border,
+  },
+  radioDotActive: { borderColor: colors.primary, backgroundColor: colors.primary },
+  kycTypeLabel: { ...typography.body, color: colors.text },
+  kycTypeLabelActive: { color: colors.primary, fontWeight: '600' },
+
+  uploadBox: {
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderStyle: 'dashed',
+    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
+    minHeight: 110,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  uploadIcon: { fontSize: 28, marginBottom: 6 },
+  uploadText: { ...typography.bodySm, color: colors.textSecondary },
+  uploadPreview: { width: '100%', height: 140, resizeMode: 'cover' },
 });

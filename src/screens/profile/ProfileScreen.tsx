@@ -58,6 +58,7 @@ export const ProfileScreen: React.FC<Props> = ({navigation}) => {
   const roleLabel =
     user?.role === 'owner' ? '🔑 Propriétaire' :
     user?.role === 'both'  ? '🔄 Locataire & Propriétaire' :
+    user?.role === 'agent' ? '💼 Agent immobilier' :
     '🏠 Locataire';
 
   return (
@@ -108,6 +109,23 @@ export const ProfileScreen: React.FC<Props> = ({navigation}) => {
             <Text style={styles.statLabel}>Pays</Text>
           </View>
         </View>
+
+        {/* ── Code agent ── */}
+        {user?.role === 'agent' && (
+          <View style={styles.agentCodeCard}>
+            <Text style={styles.agentCodeTitle}>Votre code agent</Text>
+            {user?.agent_code ? (
+              <>
+                <Text style={styles.agentCodeSub}>Communiquez ce code aux propriétaires et locataires que vous inscrivez sur la plateforme.</Text>
+                <View style={styles.agentCodeBox}>
+                  <Text style={styles.agentCodeValue}>{user.agent_code}</Text>
+                </View>
+              </>
+            ) : (
+              <Text style={styles.agentCodeSub}>Votre code sera généré automatiquement dès que votre compte sera activé par l'administrateur.</Text>
+            )}
+          </View>
+        )}
 
         {/* ── Info section ── */}
         <View style={styles.section}>
@@ -322,6 +340,29 @@ const styles = StyleSheet.create({
   statSep: {width: 1, backgroundColor: colors.border, marginHorizontal: 4},
   trustBarOuter: {width: '80%', height: 4, backgroundColor: colors.gray200, borderRadius: 2, overflow: 'hidden'},
   trustBarInner: {height: 4, borderRadius: 2},
+
+  agentCodeCard: {
+    backgroundColor: '#F5F3FF',
+    borderWidth: 1,
+    borderColor: '#DDD6FE',
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.md,
+    borderRadius: radius.xl,
+    padding: spacing.md,
+  },
+  agentCodeTitle: {...typography.label, color: '#5B21B6', fontWeight: '700', marginBottom: 4},
+  agentCodeSub: {...typography.bodySm, color: '#6D28D9', lineHeight: 18},
+  agentCodeBox: {
+    marginTop: 10,
+    alignSelf: 'flex-start',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: '#DDD6FE',
+    borderRadius: radius.lg,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  agentCodeValue: {...typography.h4, color: '#5B21B6', letterSpacing: 1, fontWeight: '800'},
 
   section: {
     backgroundColor: colors.surface,

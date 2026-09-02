@@ -15,6 +15,8 @@ export interface RegisterPayload {
   role: 'tenant' | 'owner' | 'both' | 'agent';
   country?: string;
   city?: string;
+  /** Optional referral code shared by an agent (ignored silently if invalid). */
+  agent_code?: string;
 }
 
 // Enveloppe standard de l'API: { success, message, data: {...} }
@@ -36,18 +38,37 @@ interface RegisterData {
   needs_activation: boolean;
 }
 
+interface ForgotPasswordData {
+  phone: string;
+  masked: string;
+  via: string;
+}
+
 export const authApi = {
   login: (payload: LoginPayload) =>
     apiClient.post<ApiResponse<AuthData>>('/auth/login', payload),
 
-  register: (payload: RegisterPayload) =>
-    apiClient.post<ApiResponse<RegisterData>>('/auth/register', payload),
+  register: (payload: RegisterPayload | FormData) =>
+    apiClient.post<ApiResponse<RegisterData>>('/auth/register', payload, {
+      headers: payload instanceof FormData ? {'Content-Type': 'multipart/form-data'} : undefined,
+    }),
 
   verifyOtp: (phone: string, code: string) =>
     apiClient.post<ApiResponse<AuthData>>('/auth/verify-otp', {phone, code, purpose: 'phone_verify'}),
 
-  resendOtp: (phone: string) =>
-    apiClient.post('/auth/resend-otp', {phone}),
+  resendOtp: (phone: string, purpose: string = 'phone_verify') =>
+    apiClient.post('/auth/resend-otp', {phone, purpose}),
+
+  forgotPassword: (contact: string) =>
+    apiClient.post<ApiResponse<ForgotPasswordData>>('/auth/forgot-password', {contact}),
+
+  resetPassword: (phone: string, code: string, password: string) =>
+    apiClient.post<ApiResponse<AuthData>>('/auth/reset-password', {
+      phone,
+      code,
+      password,
+      password_confirmation: password,
+    }),
 
   logout: () => apiClient.post('/auth/logout'),
 
