@@ -22,13 +22,17 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $data = $request->validate([
-            'name'     => ['required', 'string', 'max:100'],
-            'email'    => ['nullable', 'email', 'unique:users,email'],
-            'phone'    => ['required_without:email', 'nullable', 'string', 'max:20', 'unique:users,phone'],
-            'password' => ['required', Password::min(8)->letters()->numbers()],
-            'role'     => ['required', 'in:tenant,owner,both,agent'],
-            'country'  => ['nullable', 'string', 'max:100'],
-            'city'     => ['nullable', 'string', 'max:100'],
+            'name'         => ['required', 'string', 'max:100'],
+            'email'        => ['nullable', 'email', 'unique:users,email'],
+            'phone'        => ['required_without:email', 'nullable', 'string', 'max:20', 'unique:users,phone'],
+            'password'     => ['required', Password::min(8)->letters()->numbers()],
+            'role'         => ['required', 'in:tenant,owner,both,agent'],
+            'country'      => ['nullable', 'string', 'max:100'],
+            'city'         => ['nullable', 'string', 'max:100'],
+            'agent_code'   => ['nullable', 'string', 'max:20'],
+            'kyc_type'     => ['nullable', 'in:cni,passport,residence_permit'],
+            'kyc_document' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            'kyc_selfie'   => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
         ]);
 
         $needsAdminActivation = in_array($data['role'], ['owner', 'agent']);
@@ -37,19 +41,28 @@ class AuthController extends Controller
         $raw = $data['country'] ?? 'CI';
         $country = (preg_match('/^[A-Za-z]{2}$/', $raw)) ? strtoupper($raw) : 'CI';
 
+        // Optional agent referral code: silently ignored if it doesn't match any agent.
+        $referringAgent = null;
+        if (!empty($data['agent_code'])) {
+            $referringAgent = User::where('role', 'agent')
+                ->where('agent_code', $data['agent_code'])
+                ->first();
+        }
+
         try {
             $user = User::create([
-                'name'        => $data['name'],
-                'email'       => $data['email'] ?? null,
-                'phone'       => $data['phone'] ?? null,
-                'password'    => Hash::make($data['password']),
-                'role'        => $data['role'],
-                'country'     => $country,
-                'city'        => $data['city'] ?? null,
-                'kyc_status'  => 'pending',
-                'is_active'   => !$needsAdminActivation,
-                'is_banned'   => false,
-                'trust_score' => 50,
+                'name'                 => $data['name'],
+                'email'                => $data['email'] ?? null,
+                'phone'                => $data['phone'] ?? null,
+                'password'             => Hash::make($data['password']),
+                'role'                 => $data['role'],
+                'country'              => $country,
+                'city'                 => $data['city'] ?? null,
+                'referred_by_agent_id' => $referringAgent?->id,
+                'kyc_status'           => 'pending',
+                'is_active'            => !$needsAdminActivation,
+                'is_banned'            => false,
+                'trust_score'          => 50,
             ]);
         } catch (\Illuminate\Database\QueryException $e) {
             \Illuminate\Support\Facades\Log::error('[Register] DB error: ' . $e->getMessage());
@@ -57,6 +70,23 @@ class AuthController extends Controller
                 'success' => false,
                 'message' => 'Erreur lors de la création du compte. Veuillez réessayer.',
             ], 500);
+        }
+
+        // Unified KYC step: owner/agent accounts can submit their identity
+        // document in the same registration call instead of a separate step.
+        if (!empty($data['kyc_type']) && $request->hasFile('kyc_document')) {
+            $docPath    = $request->file('kyc_document')->store('kyc/documents', 'public');
+            $selfiePath = $request->hasFile('kyc_selfie')
+                ? $request->file('kyc_selfie')->store('kyc/selfies', 'public')
+                : null;
+
+            \App\Models\KycDocument::create([
+                'user_id'       => $user->id,
+                'type'          => $data['kyc_type'],
+                'document_path' => $docPath,
+                'selfie_path'   => $selfiePath,
+                'status'        => 'pending',
+            ]);
         }
 
         // Send OTP for phone verification
@@ -388,11 +418,13 @@ class AuthController extends Controller
             'email'               => $user->email,
             'phone'               => $user->phone,
             'role'                => $user->role,
+            'agent_code'          => $user->agent_code,
             'kyc_status'          => $user->kyc_status,
             'avatar_url'          => $user->avatarUrl(),
             'country'             => $user->country,
             'city'                => $user->city,
             'trust_score'         => $user->trust_score,
+            'is_active'           => $user->is_active,
             'is_kyc_verified'     => $user->isKycVerified(),
             'phone_verified'      => $user->phone_verified_at !== null,
             'email_verified'      => $user->email_verified_at !== null,
