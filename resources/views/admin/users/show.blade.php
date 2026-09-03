@@ -4,7 +4,14 @@
 
 @section('content')
 <div class="mb-6 flex items-center gap-3">
-    <a href="{{ route('admin.users.index') }}" class="text-blue-600 hover:underline text-sm">← Utilisateurs</a>
+    @php
+        $backRoute = match($user->role) {
+            'agent' => ['admin.agents.index', 'Agents Immo'],
+            'owner' => ['admin.owners.index', 'Propriétaires'],
+            default => ['admin.users.index', 'Locataires'],
+        };
+    @endphp
+    <a href="{{ route($backRoute[0]) }}" class="text-blue-600 hover:underline text-sm">← {{ $backRoute[1] }}</a>
     <span class="text-gray-400">/</span>
     <span class="text-gray-700 font-medium">{{ $user->name }}</span>
 </div>
